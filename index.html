@@ -258,6 +258,21 @@
   .ptitle { font-weight:700; font-size:15px; color:#1f2a44; }
   .pmeta, .pby { font-size:12px; color:#778; }
   .pcat { background:#eef2fd; color:#2f5bd3; border-radius:10px; padding:1px 7px; font-weight:600; }
+  .porg { font-size:13px; color:#2a3a5e; line-height:1.5; }
+  .ptel { color:#667; font-size:12px; margin-left:4px; }
+  .vbadge { display:inline-block; font-size:11px; font-weight:700; border-radius:10px; padding:0 7px; margin-left:4px; vertical-align:1px; }
+  .vbadge.ok { background:#e6f6ec; color:#16834a; } .vbadge.gov { background:#e8f0fe; color:#1a56c9; }
+  .porgsel { flex:0 1 230px; min-width:160px; }
+  .orghead { display:flex; flex-wrap:wrap; gap:10px; align-items:center; font-size:16px; margin:2px 0 8px; }
+  .orgbox { background:#f6f8fd; border:1px solid #dfe5f3; border-radius:8px; padding:10px; margin-top:12px; }
+  .orgt { font-size:13px; font-weight:600; color:#334; margin-bottom:6px; } .orgt small { font-weight:400; color:#778; } .orgt a { font-weight:400; font-size:12px; margin-left:4px; }
+  .prow2 { display:flex; gap:6px; } .prow2 > * { flex:1; min-width:0; }
+  .vbadge.org { background:#f1ecfd; color:#6a3fc7; }
+  .ovok { font-size:12.5px; color:#8ee0b0; margin:0 4px 8px; line-height:1.5; } .ovok small { color:#9fb3a8; }
+  .ovno { font-size:12.5px; color:#ffcf7a; margin:0 4px 6px; } .ovno small { color:#c9b48a; }
+  .ovfirst { background:#fff8e6; border:1px solid #f3dfa8; border-radius:8px; padding:9px 11px; font-size:13.5px; line-height:1.6; margin-bottom:10px; }
+  .ovsent { font-size:14.5px; margin:4px 0 8px; }
+  .steps.small { font-size:13px; margin:6px 0 10px; padding-left:20px; line-height:1.7; } a.small { font-size:12.5px; }
   .pdesc { font-size:13px; color:#445; line-height:1.5; }
   .preason { font-size:12.5px; color:#b3261e; }
   .pacts { display:flex; flex-wrap:wrap; gap:5px; margin-top:auto; padding-top:6px; }
@@ -452,11 +467,52 @@
     <label class="fl">양식 이름</label><input class="fi" id="pubT" maxlength="60">
     <label class="fl">설명 <small>어디에 쓰는 양식인지, 제출처 등</small></label><textarea class="fi" id="pubD" rows="3" maxlength="300" placeholder="예) ○○군 장애인 주간보호시설 이용 신청 시 제출"></textarea>
     <label class="fl">분류</label><select class="fi" id="pubC"></select>
+    <div class="orgbox">
+      <div class="orgt">🏛 양식을 올리는 기관 <small>공공기관·단체라면 적어 주세요. 기관명으로 검색됩니다.</small> <a href="#" onclick="openOrgDlg(); return false;">내 기관 정보 불러오기·저장</a></div>
+      <div class="prow2"><input class="fi" id="pubO" placeholder="기관명 (예: 부여군청, 부여군시설관리공단)" maxlength="60"><input class="fi" id="pubDp" placeholder="부서 (예: 주민복지과)" maxlength="60"></div>
+      <input class="fi" id="pubTel" placeholder="문의 전화 (선택, 예: 041-830-0000)" maxlength="30" style="margin-top:6px">
+    </div>
     <label class="okline"><input type="checkbox" id="pubOk"> 개인정보(이름·주민번호·서명 등)가 들어 있지 않은 <b>빈 서식</b>입니다.</label>
     <div class="hint2" id="pubDlgNote"></div>
     <div class="hint2">관리자가 확인·승인하면 ‘공개 양식 목록’에 올라가 누구나 쓸 수 있게 됩니다. 입력해 둔 내용과 서명은 올라가지 않습니다.</div>
   </div>
   <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('pubDlg').close()">취소</button><button class="b primary" id="pubGo" onclick="submitPublish()">공개 신청</button></div>
+</dialog>
+<dialog id="ovDlg" class="pdlg">
+  <div class="dh"><h3>📧 기관 메일 인증</h3><button class="b" onclick="document.getElementById('ovDlg').close()">나중에 하기</button></div>
+  <div class="db">
+    <div class="ovfirst" id="ovFirst">👋 처음 오셨네요! 양식을 <b>공개 신청</b>하려면 기관 메일 인증을 한 번 해 주세요. 양식을 찾아 쓰기만 할 때는 인증하지 않아도 됩니다.</div>
+    <div id="ovStep1">
+      <div class="hint2">공공기관·단체 직원인지 확인하기 위해 <b>기관에서 받은 업무 메일</b>로 인증합니다. 처음 한 번만 하면 됩니다.</div>
+      <label class="fl">기관 메일 주소</label>
+      <input class="fi" id="ovMail" type="email" inputmode="email" autocomplete="email" placeholder="예) hong@korea.kr, hong@buyeo.go.kr">
+      <div class="hint2">· 네이버·다음·Gmail 같은 개인 메일은 쓸 수 없습니다.<br>· 메일 주소 자체는 공개되지 않고, 공개 목록에는 <b>@ 뒤의 기관 도메인</b>(예: korea.kr)만 표시됩니다.</div>
+    </div>
+    <div id="ovStep2" hidden>
+      <div class="ovsent">📨 <b id="ovSent"></b> 로 인증 메일을 보냈습니다.</div>
+      <ol class="steps small">
+        <li>기관 메일함에서 <b>noreply@applyform-2522d.firebaseapp.com</b>이 보낸 메일을 엽니다.</li>
+        <li>메일 안의 <b>링크</b>를 누르면 이 도구가 열리면서 인증이 자동으로 끝납니다. <small>(지금 이 브라우저에서 여는 것이 가장 확실합니다)</small></li>
+        <li>몇 분이 지나도 메일이 없으면 <b>스팸함</b>을 확인하거나 ‘다시 보내기’를 누르세요.</li>
+      </ol>
+      <a href="#" onclick="ovReset(); return false;" class="small">다른 메일 주소로 인증하기</a>
+    </div>
+  </div>
+  <div class="df"><span class="sp"></span>
+    <button class="b primary" id="ovSend" onclick="sendOrgVerify(false)">인증 메일 보내기</button>
+    <button class="b" id="ovResend" hidden onclick="sendOrgVerify(true)">다시 보내기</button>
+  </div>
+</dialog>
+<dialog id="orgDlg" class="pdlg">
+  <div class="dh"><h3>🏛 내 기관 정보</h3><button class="b" onclick="document.getElementById('orgDlg').close()">닫기</button></div>
+  <div class="db">
+    <div class="hint2">한 번 등록해 두면 양식을 공개 신청할 때 자동으로 들어가고, 공개 목록에서 <b>기관명으로 검색</b>됩니다.</div>
+    <label class="fl">기관명</label><input class="fi" id="orgN" placeholder="예) 부여군청, ○○구 보건소, ○○초등학교" maxlength="60">
+    <label class="fl">부서</label><input class="fi" id="orgDp" placeholder="예) 주민복지과 노인복지팀" maxlength="60">
+    <label class="fl">문의 전화 <small>선택 · 공개 목록에 표시됩니다</small></label><input class="fi" id="orgTel" placeholder="예) 041-830-0000" maxlength="30">
+    <div class="hint2" id="orgMail" style="margin-top:10px"></div>
+  </div>
+  <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('orgDlg').close()">취소</button><button class="b primary" onclick="saveOrg()">저장</button></div>
 </dialog>
 <dialog id="pubPrev" class="pdlg wide">
   <div class="dh"><h3 id="pubPrevTitle">미리보기</h3><span id="pubPrevActs"></span><button class="b" onclick="document.getElementById('pubPrev').close()">닫기</button></div>
@@ -587,7 +643,7 @@ const PUB_SETUP_HTML = `<div class="soon wide">
   <p>여러 사람이 만든 양식을 함께 쓰는 기능입니다. 관리자가 한 번만 아래처럼 설정하면 켜집니다.</p>
   <ol class="steps">
     <li><b>Firebase 콘솔</b>(console.firebase.google.com)에서 프로젝트를 만들고 <b>웹 앱</b>을 추가합니다.</li>
-    <li><b>Authentication → 로그인 방법 → Google</b>을 사용 설정하고, <b>설정 → 승인된 도메인</b>에 <code>아이디.github.io</code>를 추가합니다.</li>
+    <li><b>Authentication → 로그인 방법</b>에서 <b>Google</b>과 <b>이메일/비밀번호(이메일 링크 포함)</b>를 사용 설정하고, <b>설정 → 승인된 도메인</b>에 <code>아이디.github.io</code>를 추가합니다.</li>
     <li><b>Firestore Database</b>를 만들고, <b>규칙</b> 탭에 함께 받은 <code>firestore.rules</code> 내용을 붙여 넣어 게시합니다.</li>
     <li>Firestore에 <b>admins</b> 컬렉션을 만들고, <b>문서 ID에 관리자 구글 이메일</b>을 넣어 문서를 하나 만듭니다(필드는 아무거나).</li>
     <li>이 HTML 파일 맨 위 <code>FIREBASE_CONFIG</code>에 웹 앱 설정값을 붙여 넣고 GitHub에 다시 올립니다.</li>
@@ -2022,6 +2078,8 @@ const realFB = {
         au.onAuthStateChanged(this.auth, async u => {
           this.user = u; this.admin = false;
           if (u && u.email) { try { this.admin = (await fs.getDoc(fs.doc(this.db, 'admins', u.email))).exists(); } catch (e) {} }
+          myOrg = {};
+          if (u) { try { myOrg = JSON.parse(localStorage.getItem(orgKey()) || '{}'); } catch (e) {} const p = await this.getProfile(); if (p) { myOrg = p; keepOrgLocal(); } }
           pubAuthChanged(); if (first) { first = false; res(); }
         });
       });
@@ -2059,16 +2117,36 @@ const realFB = {
     const CH = 800000, chunks = []; for (let i = 0; i < f.pdf.length; i += CH) chunks.push(f.pdf.slice(i, i + CH));
     let oldParts = 0;
     if (pubId) { try { const b = await getDoc(doc(this.db, 'formBodies', pubId)); if (b.exists()) oldParts = b.data().parts || 0; } catch (e) {} }
-    const base = Object.assign({}, meta, { ownerUid: uid, ownerName: this.user.displayName || '익명', status: 'pending', reason: '', updatedAt: serverTimestamp() });
+    const base = Object.assign({}, meta, { ownerUid: uid, ownerName: this.user.displayName || '익명', ownerDomain: (this.orgEmail() || this.user.email || '').split('@')[1] || '',
+                                         status: 'pending', reason: '', updatedAt: serverTimestamp() });
+    if (!pubId) base.orgVerified = false;
     if (!pubId) base.createdAt = serverTimestamp();
     const batch = writeBatch(this.db);
     batch.set(ref, base, { merge: true });
+    batch.set(doc(this.db, 'formOwners', ref.id), { uid, email: this.orgEmail() || this.user.email || '' });   // 인증 메일(비공개)
     batch.set(doc(this.db, 'formBodies', ref.id), { ownerUid: uid, pages: f.pages, fields: f.fields, parts: chunks.length });
     chunks.forEach((d, i) => batch.set(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i), { ownerUid: uid, i, d }));
     for (let i = chunks.length; i < oldParts; i++) batch.delete(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i));
     await batch.commit();
     return ref.id;
   },
+  orgEmail() { const p = this.user && (this.user.providerData || []).find(p => p.providerId === 'password'); return p ? p.email : ''; },
+  sendOrgLink(email) {
+    return this.m.sendSignInLinkToEmail(this.auth, email, { url: location.origin + location.pathname + '?orgverify=1', handleCodeInApp: true });
+  },
+  isOrgLink(href) { return !!this.m && this.m.isSignInWithEmailLink(this.auth, href); },
+  async refreshUser() { await this.m.reload(this.auth.currentUser); this.user = this.auth.currentUser; await this.user.getIdToken(true); },
+  async completeOrgLink(email, href) {
+    const cred = this.m.EmailAuthProvider.credentialWithLink(email, href);
+    await this.m.linkWithCredential(this.auth.currentUser, cred); await this.refreshUser();
+  },
+  async unlinkOrg() { await this.m.unlink(this.auth.currentUser, 'password'); await this.refreshUser(); },
+  async getProfile() {
+    const { doc, getDoc } = this.m;
+    try { const d = await getDoc(doc(this.db, 'profiles', this.user.uid)); return d.exists() ? d.data() : null; } catch (e) { return null; }
+  },
+  saveProfile(p) { const { doc, setDoc } = this.m; return setDoc(doc(this.db, 'profiles', this.user.uid), p); },
+  setOrgVerified(id, v) { const { doc, updateDoc } = this.m; return updateDoc(doc(this.db, 'forms', id), { orgVerified: !!v }); },
   setStatus(id, status, reason) {
     const { doc, updateDoc, serverTimestamp } = this.m;
     return updateDoc(doc(this.db, 'forms', id), { status, reason: reason || '', reviewedAt: serverTimestamp() });
@@ -2076,7 +2154,7 @@ const realFB = {
   async remove(id) {
     const { doc, collection, getDocs, writeBatch } = this.m, batch = writeBatch(this.db);
     try { (await getDocs(collection(this.db, 'formBodies', id, 'parts'))).forEach(p => batch.delete(p.ref)); } catch (e) {}
-    batch.delete(doc(this.db, 'formBodies', id)); batch.delete(doc(this.db, 'forms', id));
+    batch.delete(doc(this.db, 'formBodies', id)); batch.delete(doc(this.db, 'formOwners', id)); batch.delete(doc(this.db, 'forms', id));
     await batch.commit();
   },
   report(id, title, reason) {
@@ -2092,7 +2170,22 @@ const realFB = {
 const FB = window.FB_OVERRIDE || realFB;
 
 /* ---------- 상태 ---------- */
-let pubTabNow = 'list', pubCache = null, pubQuery = '', pubCat = '';
+let pubTabNow = 'list', pubCache = null, pubQuery = '', pubCat = '', pubOrg = '';
+const PROFILE_KEY = 'kit-org-profile';
+let myOrg = {};
+const orgKey = () => PROFILE_KEY + ':' + (FB.user ? FB.user.uid : '');
+function keepOrgLocal() { try { localStorage.setItem(orgKey(), JSON.stringify(myOrg)); } catch (e) {} }
+const isGovDomain = d => /(^|\.)go\.kr$|^korea\.kr$/i.test(d || '');
+const FREE_MAIL = /^(gmail\.com|googlemail\.com|naver\.com|daum\.net|hanmail\.net|kakao\.com|nate\.com|hotmail\.com|outlook\.com|live\.com|msn\.com|yahoo\.com|yahoo\.co\.kr|icloud\.com|me\.com|korea\.com|empas\.com|paran\.com|dreamwiz\.com|chol\.com|hanmir\.com|lycos\.co\.kr|proton\.me|protonmail\.com)$/i;
+const isOrgDomain = d => !!d && !FREE_MAIL.test(d);
+const orgLine = f => !f.org ? '' : `<div class="porg">🏛 <b>${esc(f.org)}</b>${f.dept ? ' · ' + esc(f.dept) : ''}${f.tel ? ` <span class="ptel">☎ ${esc(f.tel)}</span>` : ''}
+  ${f.orgVerified ? '<span class="vbadge ok" title="관리자가 기관을 확인했습니다">✔ 기관 확인</span>' : ''}${isGovDomain(f.ownerDomain) ? `<span class="vbadge gov" title="공공기관 메일(${esc(f.ownerDomain)})로 인증한 사람이 올린 양식입니다">✔ 공공기관 메일 인증</span>`
+    : isOrgDomain(f.ownerDomain) ? `<span class="vbadge org" title="기관 메일(@${esc(f.ownerDomain)})로 인증한 사람이 올린 양식입니다">✔ @${esc(f.ownerDomain)} 인증</span>` : ''}</div>`;
+const linkFor = q => location.origin + location.pathname + '?' + q;
+function copyLink(url, what) {
+  const done = () => toast(`${what} 링크를 복사했습니다. 홈페이지·안내문에 붙여 넣으세요.`);
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => prompt('아래 링크를 복사하세요.', url)); else prompt('아래 링크를 복사하세요.', url);
+}
 const tsText = t => { const d = t && (t.toDate ? t.toDate() : (t.seconds ? new Date(t.seconds * 1000) : new Date(t))); return d && !isNaN(d) ? `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}` : ''; };
 const STATUS_TXT = { pending: ['승인 대기', 'st-wait'], approved: ['공개 중', 'st-ok'], rejected: ['반려', 'st-no'], hidden: ['숨김', 'st-no'] };
 
@@ -2100,9 +2193,20 @@ function pubAuthChanged() {
   const el = document.getElementById('pubAuth'); if (!el) return;
   const u = FB.user;
   el.innerHTML = !FB.enabled() ? '<div class="hint">아직 서버가 연결되지 않았습니다.</div>'
-    : u ? `<div class="who2"><b>${esc(u.displayName || u.email)}</b>${FB.admin ? ' <em>관리자</em>' : ''}<br><small>${esc(u.email || '')}</small></div><button class="sb" onclick="pubSignOut()">로그아웃</button>`
+    : u ? `<div class="who2"><b>${esc(u.displayName || u.email)}</b>${FB.admin ? ' <em>관리자</em>' : ''}<br><small>${esc(u.email || '')}</small>
+          ${myOrg.org ? `<br>🏛 ${esc(myOrg.org)}${myOrg.dept ? ' · ' + esc(myOrg.dept) : ''}` : ''}</div>
+          ${FB.orgEmail() ? `<div class="ovok">✔ 기관 메일 인증됨<br><small>${esc(FB.orgEmail())}</small></div>` : `<div class="ovno">⚠ 기관 메일 미인증 <small>(공개 신청 불가)</small></div><button class="sb primary" onclick="openOrgVerify()">📧 기관 메일 인증하기</button>`}
+          <button class="sb" onclick="openOrgDlg()">🏛 내 기관 정보${myOrg.org ? ' 수정' : ' 등록'}</button>
+          ${FB.orgEmail() ? '<button class="sb" onclick="changeOrgMail()">인증 메일 바꾸기</button>' : ''}<button class="sb" onclick="pubSignOut()">로그아웃</button>`
         : `<button class="sb primary" onclick="pubSignIn()">G 구글로 로그인</button><div class="hint">양식 사용은 로그인 없이 됩니다.<br>공개 신청·신고는 로그인이 필요합니다.</div>`;
   const adm = document.querySelector('.ptab[data-t="admin"]'); if (adm) adm.hidden = !FB.admin;
+  if (u && FB.enabled()) {
+    const pending = sessionStorage.getItem('kit-org-link');
+    if (pending) { sessionStorage.removeItem('kit-org-link'); setTimeout(() => handleOrgLink(pending), 0); }
+    else if (!FB.orgEmail() && !FB.admin && !sessionStorage.getItem('kit-ov-asked')) {      // 로그인 후 처음 한 번 안내
+      sessionStorage.setItem('kit-ov-asked', '1'); setTimeout(() => openOrgVerify(true), 300);
+    }
+  }
   if (pubTabNow === 'admin' && !FB.admin) pubTabNow = 'list';
   if (document.querySelector('.module[data-mod="pub"].on')) pubRender();
   if (CF) renderMyPanel();
@@ -2135,6 +2239,7 @@ function cardHTML(f, actions) {
     <div class="pthumb">${f.thumb ? `<img src="${f.thumb}" alt="">` : '<span>📄</span>'}</div>
     <div class="pinfo">
       <div class="ptitle">${esc(f.title)}</div>
+      ${orgLine(f)}
       <div class="pmeta"><span class="pcat">${esc(f.category || '기타')}</span> ${f.pages || 1}쪽 · 칸 ${f.fields || 0}개${f.status !== 'approved' ? ` · <span class="pst ${st[1]}">${st[0]}</span>` : ''}</div>
       ${f.desc ? `<div class="pdesc">${esc(f.desc)}</div>` : ''}
       <div class="pby">${esc(f.ownerName || '')} · ${tsText(f.updatedAt || f.createdAt)}</div>
@@ -2144,21 +2249,27 @@ function cardHTML(f, actions) {
 }
 async function pubRenderList() {
   if (!pubCache) { pubSetBody('<div class="pubmsg">목록을 불러오는 중…</div>'); pubCache = await FB.listApproved(); }
-  const q = pubQuery.trim().toLowerCase();
-  const list = pubCache.filter(f => (!pubCat || f.category === pubCat) && (!q || [f.title, f.desc, f.ownerName].join(' ').toLowerCase().includes(q)))
-                       .sort((a, b) => String(a.title).localeCompare(String(b.title), 'ko'));
+  const words = pubQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const hay = f => [f.title, f.desc, f.org, f.dept, f.ownerName, f.category].join(' ').toLowerCase().replace(/\s+/g, '');
+  const list = pubCache.filter(f => (!pubCat || f.category === pubCat) && (!pubOrg || (f.org || '기관 미등록') === pubOrg) && words.every(w => hay(f).includes(w)))
+                       .sort((a, b) => String(a.org || '힣').localeCompare(String(b.org || '힣'), 'ko') || String(a.title).localeCompare(String(b.title), 'ko'));
+  const orgs = {}; pubCache.forEach(f => { const o = f.org || '기관 미등록'; orgs[o] = (orgs[o] || 0) + 1; });
+  const orgOpts = Object.keys(orgs).sort((a, b) => a.localeCompare(b, 'ko'));
   pubSetBody(`
     <div class="pbar">
-      <input class="pq" id="pubQ" placeholder="양식 이름·설명으로 찾기" value="${esc(pubQuery)}">
+      <input class="pq" id="pubQ" placeholder="기관명·신청서 이름으로 찾기" value="${esc(pubQuery)}">
+      <select class="pq porgsel" id="pubOrgSel"><option value="">🏛 모든 기관 (${pubCache.length})</option>${orgOpts.map(o => `<option${o === pubOrg ? ' selected' : ''} value="${esc(o)}">${esc(o)} (${orgs[o]})</option>`).join('')}</select>
       <div class="pchips">${['', ...PUB_CATS].map(c => `<button class="chip${c === pubCat ? ' on' : ''}" data-c="${c}">${c || '전체'}</button>`).join('')}</div>
       <button class="b" onclick="pubCache=null; pubRender()">↻ 새로고침</button>
     </div>
-    <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 내 컴퓨터의 ‘직접 만든 양식’에 담기고, 입력한 내용은 내 컴퓨터에만 남습니다.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+    ${pubOrg && pubOrg !== '기관 미등록' ? `<div class="orghead">🏛 <b>${esc(pubOrg)}</b> 신청서 ${list.length}건 <button class="b" onclick="copyLink(linkFor('org='+encodeURIComponent(pubOrg)), '이 기관 신청서 모음')">🔗 이 기관 신청서 모음 링크</button></div>` : ''}
+    <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 바로 입력할 수 있고, 입력한 내용은 내 기기에만 남습니다.</div>
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="이 양식을 바로 여는 주소" onclick="copyLink(linkFor('form=${f.id}'), '양식')">🔗 링크</button><button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
       : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
   const qi = document.getElementById('pubQ');
   qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
   $$('.pchips .chip').forEach(c => c.addEventListener('click', () => { pubCat = c.dataset.c; pubRenderList(); }));
+  document.getElementById('pubOrgSel').addEventListener('change', e => { pubOrg = e.target.value; pubRenderList(); });
 }
 async function pubRenderMine() {
   if (!FB.user) { pubSetBody('<div class="pubmsg">공개 신청한 양식을 보려면 먼저 로그인하세요.<br><br><button class="b primary" onclick="pubSignIn()">G 구글로 로그인</button></div>'); return; }
@@ -2175,7 +2286,7 @@ async function pubRenderAdmin() {
   const title = id => (pubCache || []).concat(pend, hid).find(f => f.id === id)?.title;
   pubSetBody(`
     <h3 class="psec">승인 대기 <span>${pend.length}</span></h3>
-    <div class="pgrid">${pend.length ? pend.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b primary" onclick="pubDecide('${f.id}','approved')">승인</button><button class="b" onclick="pubDecide('${f.id}','rejected')">반려</button><button class="b ghost" onclick="pubDelete('${f.id}')">삭제</button>`)).join('') : '<div class="pubmsg small">대기 중인 신청이 없습니다.</div>'}</div>
+    <div class="pgrid">${pend.length ? pend.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b primary" onclick="pubDecide('${f.id}','approved')">승인</button><button class="b" onclick="pubDecide('${f.id}','rejected')">반려</button>${f.org ? `<button class="b" onclick="pubVerify('${f.id}', ${!f.orgVerified})">${f.orgVerified ? '기관 확인 취소' : '✔ 기관 확인'}</button>` : ''}<button class="b ghost" onclick="pubDelete('${f.id}')">삭제</button>`)).join('') : '<div class="pubmsg small">대기 중인 신청이 없습니다.</div>'}</div>
     <h3 class="psec">신고 <span>${reps.length}</span></h3>
     <div class="plist">${reps.length ? reps.map(r => `<div class="prow"><div><b>${esc(r.formTitle || title(r.formId) || r.formId)}</b><br><small>${esc(r.reason)} · ${tsText(r.at)}</small></div>
         <div class="pacts"><button class="b" onclick="pubPreview('${r.formId}')">미리보기</button><button class="b" onclick="pubDecide('${r.formId}','hidden')">양식 숨기기</button><button class="b ghost" onclick="pubDelReport('${r.id}')">신고 처리 완료</button></div></div>`).join('') : '<div class="pubmsg small">신고가 없습니다.</div>'}</div>
@@ -2200,7 +2311,7 @@ async function pubPreview(id) {
   const dlg = document.getElementById('pubPrev'), box = document.getElementById('pubPrevBody');
   const meta = [].concat(pubCache || []).find(f => f.id === id);
   document.getElementById('pubPrevTitle').textContent = meta ? meta.title : '미리보기';
-  document.getElementById('pubPrevActs').innerHTML = FB.admin ? `<button class="b" onclick="pubDecide('${id}','hidden'); document.getElementById('pubPrev').close()">숨기기</button>` : '';
+  document.getElementById('pubPrevActs').innerHTML = FB.admin ? `${meta && meta.org ? `<button class="b" onclick="pubVerify('${id}', ${!(meta && meta.orgVerified)}); document.getElementById('pubPrev').close()">${meta.orgVerified ? '기관 확인 취소' : '✔ 기관 확인'}</button>` : ''}<button class="b" onclick="pubDecide('${id}','hidden'); document.getElementById('pubPrev').close()">숨기기</button>` : '';
   box.innerHTML = '<div class="pubmsg">불러오는 중…</div>'; dlg.showModal();
   try {
     const body = await FB.getBody(id), doc = await openPdf(b64ToBytes(body.pdf)); box.innerHTML = '';
@@ -2221,6 +2332,10 @@ async function pubDecide(id, status) {
   if (status === 'rejected') { reason = prompt('반려 사유를 적어 주세요. (신청자에게 보입니다)', '개인정보가 포함되어 있습니다.'); if (reason === null) return; }
   if (status === 'hidden' && !confirm('이 양식을 공개 목록에서 숨길까요?')) return;
   try { await FB.setStatus(id, status, reason); pubCache = null; toast({ approved: '승인했습니다. 공개 목록에 올라갔습니다.', rejected: '반려했습니다.', hidden: '숨겼습니다.' }[status]); pubRender(); }
+  catch (e) { alert('처리하지 못했습니다.\n' + (e.message || e)); }
+}
+async function pubVerify(id, v) {
+  try { await FB.setOrgVerified(id, v); pubCache = null; toast(v ? '기관 확인 표시를 붙였습니다.' : '기관 확인 표시를 뗐습니다.'); pubRender(); }
   catch (e) { alert('처리하지 못했습니다.\n' + (e.message || e)); }
 }
 async function pubDelete(id) {
@@ -2247,11 +2362,88 @@ async function makeThumb(f) {
     return c.toDataURL('image/jpeg', 0.72);
   } catch (e) { return ''; }
 }
+/* ---------- 기관 메일 인증 (구글 로그인 후 처음 한 번) ---------- */
+const VERIFY_MAIL_KEY = 'kit-verify-email';
+function ovStep(n) { document.getElementById('ovStep1').hidden = n !== 1; document.getElementById('ovStep2').hidden = n !== 2;
+  document.getElementById('ovSend').hidden = n !== 1; document.getElementById('ovResend').hidden = n !== 2; }
+function openOrgVerify(first) {
+  if (!FB.user) { pubSignIn(); return; }
+  const sent = localStorage.getItem(VERIFY_MAIL_KEY);
+  document.getElementById('ovFirst').hidden = !first;
+  document.getElementById('ovMail').value = sent || '';
+  if (sent) { document.getElementById('ovSent').textContent = sent; ovStep(2); } else ovStep(1);
+  document.getElementById('ovDlg').showModal();
+}
+async function sendOrgVerify(again) {
+  const email = (again ? localStorage.getItem(VERIFY_MAIL_KEY) : document.getElementById('ovMail').value).trim().toLowerCase();
+  const dom = email.split('@')[1] || '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('메일 주소를 정확히 적어 주세요.'); return; }
+  if (!isOrgDomain(dom)) { alert(`@${dom} 은(는) 개인 메일이라 쓸 수 없습니다.\n기관에서 받은 업무 메일(예: @korea.kr, @○○.go.kr, @기관.or.kr)을 적어 주세요.`); return; }
+  const btn = document.getElementById(again ? 'ovResend' : 'ovSend'); btn.disabled = true;
+  try {
+    await FB.sendOrgLink(email);
+    localStorage.setItem(VERIFY_MAIL_KEY, email); document.getElementById('ovSent').textContent = email; ovStep(2);
+    toast('인증 메일을 보냈습니다. 기관 메일함을 확인하세요.');
+  } catch (e) { alert(orgErr(e)); }
+  btn.disabled = false;
+}
+function ovReset() { localStorage.removeItem(VERIFY_MAIL_KEY); document.getElementById('ovMail').value = ''; ovStep(1); }
+function orgErr(e) {
+  const c = (e && e.code) || '';
+  if (/credential-already-in-use|email-already-in-use|account-exists/.test(c)) return '이 기관 메일은 이미 다른 구글 계정에 인증되어 있습니다.\n그 계정으로 로그인하거나 관리자에게 문의하세요.';
+  if (/provider-already-linked/.test(c)) return '이미 기관 메일이 인증된 계정입니다. 바꾸려면 ‘인증 메일 바꾸기’를 누르세요.';
+  if (/invalid-action-code|expired-action-code/.test(c)) return '인증 링크가 만료되었거나 이미 사용되었습니다. 인증 메일을 다시 보내 주세요.';
+  if (/operation-not-allowed/.test(c)) return '서버에서 ‘이메일 링크 인증’이 꺼져 있습니다. 관리자에게 알려 주세요.';
+  if (/quota|too-many-requests/.test(c)) return '오늘 보낼 수 있는 인증 메일 수를 넘었습니다. 잠시 후(또는 내일) 다시 해 주세요.';
+  if (/invalid-email/.test(c)) return '메일 주소 형식이 올바르지 않습니다.';
+  return '처리하지 못했습니다.\n' + ((e && e.message) || e);
+}
+async function handleOrgLink(href) {                       // 메일의 인증 링크로 들어왔을 때
+  const clean = () => { if (/[?&](oobCode|orgverify)=/.test(location.search)) history.replaceState(null, '', location.pathname); };
+  if (!FB.isOrgLink(href)) return false;
+  if (!FB.user) {
+    sessionStorage.setItem('kit-org-link', href); clean(); pubOpen();
+    alert('기관 메일 인증을 마치려면 먼저 구글로 로그인하세요.\n로그인하면 인증이 자동으로 이어집니다.'); return true;
+  }
+  let email = localStorage.getItem(VERIFY_MAIL_KEY);
+  if (!email) email = prompt('인증 메일을 받은 기관 메일 주소를 다시 입력해 주세요.\n(메일을 보낸 기기와 다른 기기에서 링크를 연 경우입니다)');
+  clean(); if (!email) return true;
+  try {
+    await FB.completeOrgLink(email.trim().toLowerCase(), href);
+    localStorage.removeItem(VERIFY_MAIL_KEY);
+    try { document.getElementById('ovDlg').close(); } catch (e) {}
+    pubAuthChanged(); toast('기관 메일 인증을 마쳤습니다. 이제 양식을 공개 신청할 수 있습니다.');
+    if (!myOrg.org) setTimeout(openOrgDlg, 400);
+  } catch (e) { alert(orgErr(e)); }
+  return true;
+}
+async function changeOrgMail() {
+  if (!confirm(`지금 인증된 ${FB.orgEmail()} 연결을 해제하고 다른 기관 메일로 다시 인증할까요?\n(이미 공개한 양식은 그대로 남습니다)`)) return;
+  try { await FB.unlinkOrg(); ovReset(); pubAuthChanged(); openOrgVerify(); } catch (e) { alert(orgErr(e)); }
+}
+
+function openOrgDlg() {
+  document.getElementById('orgN').value = myOrg.org || ''; document.getElementById('orgDp').value = myOrg.dept || ''; document.getElementById('orgTel').value = myOrg.tel || '';
+  const d = FB.user && (FB.user.email || '').split('@')[1];
+  const om = FB.orgEmail(), od = om ? om.split('@')[1] : '';
+  document.getElementById('orgMail').innerHTML = od ? `✔ 기관 메일 <b>${esc(om)}</b> 인증됨. 올리는 양식에 <b>${isGovDomain(od) ? '‘공공기관 메일 인증’' : '‘@' + esc(od) + ' 인증’'}</b> 표시가 붙습니다.`
+    : d ? (isGovDomain(d) ? `✔ 지금 로그인한 계정(<b>${esc(d)}</b>)은 공공기관 메일이라 올리는 양식에 <b>‘공공기관 메일’</b> 표시가 자동으로 붙습니다.`
+      : `지금 로그인한 계정은 일반 메일(<b>${esc(d)}</b>)입니다. 공공기관 메일(korea.kr·go.kr)로 만든 구글 계정으로 로그인하면 ‘공공기관 메일’ 표시가 붙고, 아니면 관리자가 확인 후 ‘기관 확인’ 표시를 붙여 드립니다.`) : '';
+  document.getElementById('orgDlg').showModal();
+}
+async function saveOrg() {
+  const p = { org: document.getElementById('orgN').value.trim().slice(0, 60), dept: document.getElementById('orgDp').value.trim().slice(0, 60), tel: document.getElementById('orgTel').value.trim().slice(0, 30) };
+  myOrg = p; keepOrgLocal();
+  try { if (FB.user) await FB.saveProfile(p); } catch (e) {}
+  document.getElementById('orgDlg').close(); pubAuthChanged(); toast('기관 정보를 저장했습니다. 공개 신청할 때 자동으로 들어갑니다.');
+  if (document.getElementById('pubDlg').open) { document.getElementById('pubO').value = p.org; document.getElementById('pubDp').value = p.dept; document.getElementById('pubTel').value = p.tel; }
+}
 async function openPublish() {
   if (!CF) return;
   if (!FB.enabled()) { alert('아직 공개 양식 서버가 연결되지 않았습니다.\n관리자가 Firebase 설정을 넣으면 사용할 수 있습니다.'); return; }
   try { await FB.init(); } catch (e) { alert('서버에 연결하지 못했습니다.\n' + (e.message || e)); return; }
   if (!FB.user) { if (!confirm('공개 신청은 로그인이 필요합니다. 구글로 로그인할까요?')) return; await pubSignIn(); if (!FB.user) return; }
+  if (!FB.orgEmail() && !FB.admin) { alert('공개 신청은 기관 메일 인증을 마친 뒤에 할 수 있습니다.\n기관 메일로 인증을 진행해 주세요.'); openOrgVerify(); return; }
   if (CF.source && CF.source.pubId && !(CF.pub && CF.pub.id)) {
     if (!confirm('다른 사람이 공개한 양식을 가져온 것입니다.\n고친 양식을 새 양식으로 공개 신청할까요?')) return;
   }
@@ -2259,12 +2451,16 @@ async function openPublish() {
   document.getElementById('pubT').value = CF.title;
   document.getElementById('pubD').value = (CF.pub && CF.pub.desc) || '';
   document.getElementById('pubC').innerHTML = PUB_CATS.map(c => `<option${(CF.pub && CF.pub.category) === c ? ' selected' : ''}>${c}</option>`).join('');
+  document.getElementById('pubO').value = (CF.pub && CF.pub.org) || myOrg.org || '';
+  document.getElementById('pubDp').value = (CF.pub && CF.pub.dept) || myOrg.dept || '';
+  document.getElementById('pubTel').value = (CF.pub && CF.pub.tel) || myOrg.tel || '';
   document.getElementById('pubOk').checked = false;
   document.getElementById('pubDlgNote').textContent = CF.pub && CF.pub.id ? '이미 공개 신청한 양식입니다. 다시 신청하면 고친 내용으로 바뀌고, 관리자 승인을 다시 받습니다.' : '';
   d.showModal();
 }
 async function submitPublish() {
   const title = document.getElementById('pubT').value.trim(), desc = document.getElementById('pubD').value.trim(), category = document.getElementById('pubC').value;
+  const org = document.getElementById('pubO').value.trim().slice(0, 60), dept = document.getElementById('pubDp').value.trim().slice(0, 60), tel = document.getElementById('pubTel').value.trim().slice(0, 30);
   if (!title) { alert('양식 이름을 적어 주세요.'); return; }
   if (!document.getElementById('pubOk').checked) { alert('개인정보가 없는 빈 서식인지 확인하고 체크해 주세요.'); return; }
   if (!CF.fields.length) { alert('입력칸이 하나도 없습니다. 칸을 만든 뒤 신청하세요.'); return; }
@@ -2272,8 +2468,9 @@ async function submitPublish() {
   const btn = document.getElementById('pubGo'); btn.disabled = true; btn.textContent = '올리는 중…';
   try {
     const thumb = await makeThumb(CF);
-    const id = await FB.publish({ title, desc, category, pages: CF.pages.length, fields: CF.fields.length, thumb }, CF, CF.pub && CF.pub.id);
-    CF.pub = { id, status: 'pending', desc, category, at: new Date().toISOString() }; CF.title = title;
+    const id = await FB.publish({ title, desc, category, org, dept, tel, pages: CF.pages.length, fields: CF.fields.length, thumb }, CF, CF.pub && CF.pub.id);
+    CF.pub = { id, status: 'pending', desc, category, org, dept, tel, at: new Date().toISOString() }; CF.title = title;
+    if (org && !myOrg.org) { myOrg = { org, dept, tel }; keepOrgLocal(); FB.saveProfile(myOrg).catch(() => {}); pubAuthChanged(); }
     saveForms(); refreshMyList(); renderMyPanel(); document.getElementById('pubDlg').close(); pubCache = null;
     toast('공개 신청했습니다. 관리자 승인 후 공개 목록에 올라갑니다.');
   } catch (e) { alert('공개 신청하지 못했습니다.\n' + (e.message || e)); }
@@ -2302,7 +2499,19 @@ function pubStatusLine() {
   let cur = null; try { cur = localStorage.getItem(CUR_FORM_KEY); } catch (e) {}
   if (m === 'my' && cur && forms.some(f => f.id === cur)) openForm(cur, 'fill');
   pubAuthChanged();
-  if (m === 'pub') pubOpen(); else if (FB.enabled()) FB.init().catch(() => {});
+  const qp = new URLSearchParams(location.search);
+  if (FB.enabled() && (qp.get('oobCode') || qp.get('orgverify'))) {               // 기관 메일 인증 링크
+    showModule('pub'); FB.init().then(() => handleOrgLink(location.href).then(() => pubOpen())).catch(e => alert('서버에 연결하지 못했습니다.\n' + (e.message || e)));
+  } else
+  if (FB.enabled() && (qp.get('form') || qp.get('org') || qp.get('q'))) {           // 바로가기 링크: ?form=ID · ?org=기관명 · ?q=검색어
+    pubOrg = qp.get('org') || ''; pubQuery = qp.get('q') || ''; pubTabNow = 'list';
+    showModule('pub'); pubSetBody('<div class="pubmsg">양식을 불러오는 중…</div>');
+    FB.init().then(async () => {
+      pubCache = await FB.listApproved();
+      if (qp.get('form')) { if (pubCache.some(f => f.id === qp.get('form'))) pubUse(qp.get('form')); else { toast('찾는 양식이 없거나 아직 공개되지 않았습니다.'); pubRender(); } }
+      else pubRender();
+    }).catch(e => pubSetBody(`<div class="pubmsg err">서버에 연결하지 못했습니다.<br><small>${esc(e.message || e)}</small></div>`));
+  } else if (m === 'pub') pubOpen(); else if (FB.enabled()) FB.init().catch(() => {});
 })();
 </script>
 </body>
