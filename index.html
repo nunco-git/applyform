@@ -30,6 +30,18 @@
   aside.side { width:250px; flex:none; position:sticky; top:0; height:100vh; overflow:auto; background:#1f2a44; color:#dfe5f3;
                display:flex; flex-direction:column; box-shadow:-2px 0 10px rgba(0,0,0,.08); }
   .sidehead { padding:20px 18px 14px; border-bottom:1px solid rgba(255,255,255,.1); }
+  .topauth { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+  .topauth:empty { display:none; }
+  .tbtn { display:flex; align-items:center; gap:8px; width:100%; text-align:left; font:inherit; font-size:13.5px; color:#1f2a44; background:#fff;
+          border:none; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:600; }
+  .tbtn b { color:#4285f4; font-size:15px; }
+  .tbtn.me { background:rgba(255,255,255,.08); color:#e6ebf7; font-weight:500; }
+  .tbtn.me:hover { background:rgba(255,255,255,.14); }
+  .tbtn .av { width:28px; height:28px; flex:none; border-radius:50%; background:#2f5bd3; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .tbtn .nm { line-height:1.35; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .tbtn .nm em { font-style:normal; font-size:10.5px; background:#ffb300; color:#3a2a00; border-radius:8px; padding:0 5px; }
+  .tbtn small.ok { color:#8ee0b0; } .tbtn small.no { color:#ffcf7a; }
+  .tbtn.small { background:#2f5bd3; color:#fff; font-size:12.5px; justify-content:center; padding:6px 10px; }
   .apptitle { font-size:17px; font-weight:800; line-height:1.35; color:#fff; letter-spacing:-.3px; }
   .tools { padding:10px 8px; flex:1; }
   .grp { margin-bottom:4px; }
@@ -188,10 +200,10 @@
   .sig.signed img { display:block; }
   body.clean .sig:not(.signed) { background:transparent; }
   /* 확대 서명판 */
-  #signOv { position:fixed; inset:0; z-index:100; background:rgba(15,22,40,.72); display:none; padding:max(10px, env(safe-area-inset-top)) 10px 10px; box-sizing:border-box; }
+  #signOv { position:fixed; inset:0; z-index:100; background:#0f1628; display:none; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing:border-box; }
   #signOv.on { display:flex; }
   body.signing { overflow:hidden; }
-  #signOv .stage { flex:1; display:flex; flex-direction:column; background:#fff; border-radius:14px; overflow:hidden; max-width:1100px; margin:0 auto; width:100%; box-shadow:0 12px 50px rgba(0,0,0,.35); }
+  #signOv .stage { flex:1; display:flex; flex-direction:column; background:#fff; overflow:hidden; width:100%; }
   .shead { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #e3e6ee; }
   .shead > div { flex:1; min-width:0; font-size:15px; }
   .shead #sigWho { margin-left:10px; font-size:13px; color:#667; }
@@ -237,6 +249,12 @@
   .ef .en { position:absolute; left:-1px; bottom:100%; font:600 7.5pt/1.25 "Malgun Gothic",sans-serif; color:#fff; background:var(--c); padding:0 3pt; border-radius:2px 2px 0 0;
             white-space:nowrap; pointer-events:none; max-width:160pt; overflow:hidden; text-overflow:ellipsis; opacity:.9; }
   .ef.sel { outline:2px solid #ff8a00; outline-offset:1px; z-index:3; }
+  .ef.sib { outline:2px dashed #ff8a00; outline-offset:1px; }
+  .ef .lk { font-weight:700; background:rgba(255,255,255,.25); border-radius:6px; padding:0 3px; }
+  .marq { position:absolute; border:1.5px dashed #2f5bd3; background:rgba(47,91,211,.08); pointer-events:none; z-index:5; }
+  .msel { font-size:13px; color:#fff; background:rgba(255,138,0,.25); border:1px solid rgba(255,138,0,.6); border-radius:7px; padding:7px 9px; margin:4px 0 6px; }
+  input.dpart { cursor:pointer; caret-color:transparent; }
+  .today.cft { z-index:4; }
   .ef .rh { position:absolute; right:-4px; bottom:-4px; width:8px; height:8px; background:#fff; border:1.5px solid var(--c); border-radius:2px; cursor:nwse-resize; }
   .ef:not(.sel) .rh { display:none; }
   textarea.cf.ml { resize:none; overflow:hidden; line-height:1.35; padding-top:1pt; }
@@ -394,6 +412,7 @@
 <aside class="side">
   <div class="sidehead">
     <div class="apptitle">계약과 신청서류<br>도구모음</div>
+    <div id="topAuth" class="topauth"></div>
   </div>
   <nav class="tools">
     <div class="grp" data-mod="labor">
@@ -589,6 +608,9 @@
     <ul>
       <li>오른쪽 <b>4. 직접 만든 양식 → ＋ 새 양식 만들기</b>에서 PDF를 올리면 원본 그대로 입력 양식이 만들어집니다.</li>
       <li><b>🛠 칸 편집</b>에서 칸을 고치고, <b>✏️ 작성</b>에서 입력·서명·인쇄합니다. 이름이 같은 칸은 함께 입력됩니다.</li>
+      <li><b>여러 칸 묶기</b>: 칸 편집에서 <b>Ctrl(또는 Shift)+클릭</b>으로 여러 칸을 고르거나(쪽이 달라도 됨), Shift+빈 곳 드래그로 영역을 잡은 뒤 <b>🔗 같은 이름으로 묶기</b>를 누르면 한 곳에 입력할 때 모두 채워집니다. 휴대폰·태블릿은 <b>☐ 여러 칸 선택</b>을 켜고 누르세요.</li>
+      <li><b>날짜</b>: ‘년 월 일’ 칸은 자동으로 날짜 하나로 묶입니다(직접 묶을 땐 칸 3개를 골라 📅 날짜로 묶기). 작성할 때 칸을 누르면 달력이 뜨고, 옆의 <b>☑오늘</b>을 체크하면 오늘 날짜가 들어갑니다(인쇄·PDF에는 안 나옴).</li>
+      <li><b>(서명 또는 인)·(인)·(서명)·(날인)</b> 자리는 자동으로 서명 칸이 되고, 누르면 화면 전체 서명판이 열립니다.</li>
       <li><b>양식 파일로 내보내기</b>로 받은 파일을 보내 주면, 다른 사람도 ‘양식·작성 파일 열기’로 같은 양식을 쓸 수 있습니다.</li>
     </ul>
     <h4>🖨 인쇄 · PDF</h4>
@@ -894,11 +916,23 @@ function layoutPad() {
   if (!SP.target) return;
   const c = spc(), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, b = SP.box;
   SP.dpr = dpr; c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
-  const s = Math.min(r.width * 0.72 / b.w, r.height * 0.62 / b.h, 14);      // 1pt = s 화면px
+  const s = Math.min(r.width * 0.62 / b.w, r.height * 0.55 / b.h, 9);       // 1pt = s 화면px (주변 서식도 보이도록)
   SP.s = s; SP.R = { x: b.x + b.w / 2 - r.width / 2 / s, y: b.y + b.h / 2 - r.height / 2 / s, w: r.width / s, h: r.height / s };
   const narrow = r.height > r.width * 1.1;
   document.getElementById('sigTip').style.display = narrow ? '' : 'none';
-  drawPad();
+  SP.hi = null; drawPad(); sharpBg();
+}
+/* 직접 만든 양식: 확대한 부분만 원본 PDF에서 선명하게 다시 그림 */
+async function sharpBg() {
+  const page = SP.page, R = Object.assign({}, SP.R), sc = Math.min(SP.s * SP.dpr, 12);
+  if (!page || !page.classList.contains('cpage') || !CF || typeof cfDoc === 'undefined' || !cfDoc) return;
+  try {
+    const pg = await cfDoc.getPage(+page.dataset.pg + 1), vp = pg.getViewport({ scale: sc, offsetX: -R.x * sc, offsetY: -R.y * sc });
+    const c = document.createElement('canvas'); c.width = Math.ceil(R.w * sc); c.height = Math.ceil(R.h * sc);
+    const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+    await pg.render({ canvas: c, canvasContext: cx, viewport: vp }).promise;
+    if (SP.page === page && SP.R && SP.R.x === R.x && SP.R.y === R.y) { SP.hi = c; drawPad(); }
+  } catch (e) {}
 }
 const toPx = (x, y) => [(x - SP.R.x) * SP.s * SP.dpr, (y - SP.R.y) * SP.s * SP.dpr];
 function padBoxScreen() {
@@ -921,7 +955,10 @@ function drawPad() {
   const c = spc(), ctx = c.getContext('2d'), k = SP.s * SP.dpr, b = SP.box;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
   const bg = SP.page && bgSource(SP.page);                 // 확대한 서식 배경(흐리게)
-  if (bg) { try { ctx.globalAlpha = 0.55; ctx.drawImage(bg.src, SP.R.x * bg.k, SP.R.y * bg.k, SP.R.w * bg.k, SP.R.h * bg.k, 0, 0, c.width, c.height); } catch (e) {} ctx.globalAlpha = 1; }
+  try { ctx.globalAlpha = 0.55;
+    if (SP.hi) ctx.drawImage(SP.hi, 0, 0, c.width, c.height);
+    else if (bg) ctx.drawImage(bg.src, SP.R.x * bg.k, SP.R.y * bg.k, SP.R.w * bg.k, SP.R.h * bg.k, 0, 0, c.width, c.height);
+  } catch (e) {} ctx.globalAlpha = 1;
   const [bx, by] = toPx(b.x, b.y);                          // 서명 칸 표시
   ctx.fillStyle = 'rgba(47,91,211,.06)'; ctx.fillRect(bx, by, b.w * k, b.h * k);
   ctx.setLineDash([8 * SP.dpr, 6 * SP.dpr]); ctx.lineWidth = 1.5 * SP.dpr; ctx.strokeStyle = '#5b7be0'; ctx.strokeRect(bx, by, b.w * k, b.h * k); ctx.setLineDash([]);
@@ -1494,7 +1531,8 @@ function renderMyPanel() {
       ${pubStatusLine()}
       <button class="sb" onclick="exportForm()">📤 양식 파일로 내보내기</button>`
     : `
-      <div class="hint">• 빈 곳을 <b>드래그</b>하면 새 칸이 생깁니다.<br>• 칸을 끌어 옮기고, 오른쪽 아래 □로 크기 조절<br>• 선택 후 <b>Delete</b> 삭제 · 방향키 미세 이동</div>
+      <div class="hint">• 빈 곳을 <b>드래그</b>하면 새 칸이 생깁니다.<br>• 칸을 끌어 옮기고, 오른쪽 아래 □로 크기 조절<br>• 선택 후 <b>Delete</b> 삭제 · 방향키 미세 이동<br>• <b>Ctrl/Shift+클릭</b>으로 여러 칸 선택 → 같은 이름으로 묶기</div>
+      <button class="sb${multiMode ? ' primary' : ''}" onclick="toggleMulti()">${multiMode ? '☑ 여러 칸 선택 켜짐 (끄기)' : '☐ 여러 칸 선택 (휴대폰·태블릿용)'}</button>
       <div class="pt">선택한 칸</div>
       <div id="myProps"></div>
       <div class="pt">양식</div>
@@ -1508,14 +1546,16 @@ function renderMyPanel() {
 }
 function setMode(m) {
   if (!CF) return;
-  cfMode = m; cfSel = null; saveForms(); renderMyPanel(); renderFields();
+  cfMode = m; cfSel = null; cfSelSet = new Set(); saveForms(); renderMyPanel(); renderFields();
 }
 
 /* ---------- 양식 열기 ---------- */
 async function openForm(id, mode = 'fill', doc = null) {
   const f = forms.find(x => x.id === id); if (!f) return;
-  CF = f; cfMode = mode; cfSel = null; cfDoc = null;
+  CF = f; cfMode = mode; cfSel = null; cfSelSet = new Set(); cfDoc = null;
   try { FV = JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}'); } catch (e) { FV = {}; }
+  if (groupDates(f.fields)) saveForms();                                     // 예전 양식: 년·월·일 칸을 날짜 하나로
+  Object.keys(FV).forEach(k => { if (k.startsWith('__today:') && FV[k]) FV[k.slice(8)] = todayISO(); });   // '오늘' 체크한 날짜는 오늘로
   try { localStorage.setItem(CUR_FORM_KEY, f.id); } catch (e) {}
   showModule('my');
   const wrap = myPages();
@@ -1700,7 +1740,7 @@ async function detectFields(doc, pages) {
         checksX.push(chars[j].x1);
       });
       /* 서명: (서명 또는 인) · (인) */
-      const sre = /\(\s*(서\s*명|인|날\s*인)(\s*또\s*는\s*(인|날\s*인))?\s*\)/g; let m;
+      const sre = /[(（]\s*(서\s*명|인|날\s*인|印|도\s*장)(\s*(또\s*는|및)?\s*(인|날\s*인|서\s*명|印|도\s*장))?\s*[)）]|㊞/g; let m;
       const signed = [];
       while ((m = sre.exec(lineText))) {
         const a = chars[m.index], b = chars[m.index + m[0].length - 1], cxm = (a.x0 + b.x1) / 2, cym = (top + bot) / 2;
@@ -1814,9 +1854,12 @@ async function detectFields(doc, pages) {
     if (!clash) keep.push(f);
   });
   keep.sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
+  keep.forEach(f => { if (f.type === 'text' && /^(서명|날인|서명또는날인|서명또는인|서명(\(인\))?|인|도장)$/.test((f.name || '').replace(/\s/g, ''))) f.type = 'sign'; });   // '서명:' 옆 빈칸도 서명판으로
+  groupDates(keep);                                                           // 년·월·일 칸 → 날짜 하나
   const cnt = {};
   keep.forEach(f => {
     delete f.pri;
+    if (f.part) return;
     if (f.type === 'check') { if (!f.name) f.name = ''; else { cnt[f.name] = (cnt[f.name] || 0) + 1; if (cnt[f.name] > 1) f.name += ' ' + cnt[f.name]; } return; }
     const n = f.name || TYPES[f.type]; cnt[n] = (cnt[n] || 0) + 1; f.name = cnt[n] > 1 ? `${n} ${cnt[n]}` : n;
   });
@@ -1825,8 +1868,23 @@ async function detectFields(doc, pages) {
 
 /* ---------- 칸 그리기 ---------- */
 const fStyle = f => `left:${f.x}pt;top:${f.y}pt;width:${f.w}pt;height:${f.h}pt`;
+let cfSelSet = new Set(), multiMode = false;
+const selFields = () => CF ? CF.fields.filter(f => cfSelSet.has(f.id)) : [];
+const groupOf = k => CF.fields.filter(f => fkey(f) === k);
+const PART_TXT = { y: '년', m: '월', d: '일' };
+/* 날짜: 값은 'YYYY-MM-DD'로 저장하고 칸마다 년/월/일 또는 'YYYY. M. D.'로 표시 */
+const todayISO = () => { const t = new Date(); return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`; };
+const isoParts = v => { const iso = /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : toIso(v || ''); if (!iso) return null; const [y, m, d] = iso.split('-'); return { y, m: String(+m), d: String(+d) }; };
+const dateText = v => { const p = isoParts(v); return p ? `${p.y}. ${p.m}. ${p.d}.` : (v || ''); };
+
 function editHTML(f) {
-  return `<div class="ef t-${f.type}${f.id === cfSel ? ' sel' : ''}" data-id="${f.id}" style="${fStyle(f)}"><span class="en">${esc(f.name || TYPES[f.type])}</span><i class="rh"></i></div>`;
+  const n = f.name && !f.part ? groupOf(fkey(f)).length : 1;
+  const label = (f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : '');
+  return `<div class="ef t-${f.type}${cfSelSet.has(f.id) ? ' sel' : ''}" data-id="${f.id}" style="${fStyle(f)}"><span class="en">${f.part ? '📅 ' : ''}${esc(label)}${n > 1 ? ` <b class="lk">🔗${n}</b>` : ''}</span><i class="rh"></i></div>`;
+}
+function todayHTML(f, k, on) {
+  const x = f.part ? f.x + f.w + (f.fs || 11) * 1.3 + 3 : f.x + f.w + 15;
+  return `<label class="today cft" style="left:${r1(x)}pt;top:${r1(f.y + f.h / 2 - 6)}pt" title="체크하면 오늘 날짜가 들어갑니다 (인쇄·PDF에는 안 나옴)"><input type="checkbox" data-todayf="${k}"${on ? ' checked' : ''}>오늘</label>`;
 }
 function fillHTML(f) {
   const k = esc(fkey(f)), v = FV[fkey(f)] ?? '', st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'left'}`;
@@ -1836,7 +1894,14 @@ function fillHTML(f) {
     case 'sign':   return `<div class="sig cf${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
     case 'select': { const ops = f.options || []; return `<select class="in cf" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
                       ['', ...ops, ...(v && !ops.includes(v) ? [v] : [])].map(o => `<option${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('') + '</select>'; }
-    case 'date':   return `<input class="in cf" data-f="${k}" value="${esc(v)}" style="${st}"><button class="dbtn" data-dfor="${k}" title="달력에서 선택" style="left:${r1(f.x + f.w + 1)}pt;top:${r1(f.y + f.h / 2 - 6)}pt">📅</button>`;
+    case 'date': {
+      const on = !!FV['__today:' + fkey(f)];
+      if (f.part) {
+        const p = isoParts(v);
+        return `<input class="in cf dpart" data-f="${k}" data-part="${f.part}" readonly value="${esc(p ? p[f.part] : '')}" title="눌러서 날짜 선택" style="${st}">` + (f.part === 'd' ? todayHTML(f, k, on) : '');
+      }
+      return `<input class="in cf dsingle" data-f="${k}" value="${esc(dateText(v))}" style="${st}"><button class="dbtn" data-dfor="${k}" title="달력에서 선택" style="left:${r1(f.x + f.w + 1)}pt;top:${r1(f.y + f.h / 2 - 6)}pt">📅</button>` + todayHTML(f, k, on);
+    }
     default:       return `<input class="in cf" data-f="${k}" value="${esc(v)}" style="${st}">`;
   }
 }
@@ -1847,22 +1912,64 @@ function renderFields() {
   layers.forEach(l => l.innerHTML = '');
   CF.fields.forEach(f => { const L = layers[f.page]; if (L) L.insertAdjacentHTML('beforeend', cfMode === 'edit' ? editHTML(f) : fillHTML(f)); });
   if (cfMode === 'fill') $$('#myPages input.cf').forEach(fit);
-  if (cfMode === 'edit') renderProps();
+  if (cfMode === 'edit') { markSel(); renderProps(); }
 }
 function refreshBox(f) {
   const el = myPages().querySelector(`.ef[data-id="${f.id}"]`); if (!el) return;
-  el.style.cssText = fStyle(f); el.className = `ef t-${f.type}${f.id === cfSel ? ' sel' : ''}`;
-  el.querySelector('.en').textContent = f.name || TYPES[f.type];
+  el.style.cssText = fStyle(f); el.className = `ef t-${f.type}${cfSelSet.has(f.id) ? ' sel' : ''}`;
+  const n = f.name && !f.part ? groupOf(fkey(f)).length : 1;
+  el.querySelector('.en').innerHTML = `${f.part ? '📅 ' : ''}${esc((f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : ''))}${n > 1 ? ` <b class="lk">🔗${n}</b>` : ''}`;
+}
+/* 선택 표시: 고른 칸은 주황 테두리, 같은 이름으로 묶인 칸은 주황 점선 */
+function markSel() {
+  const one = cfSelSet.size === 1 ? selFields()[0] : null, k = one && one.name ? fkey(one) : null;
+  $$('#myPages .ef').forEach(e => {
+    const f = CF.fields.find(x => x.id === e.dataset.id);
+    e.classList.toggle('sel', cfSelSet.has(e.dataset.id));
+    e.classList.toggle('sib', !!(k && f && fkey(f) === k && !cfSelSet.has(f.id)));
+  });
 }
 
 /* ---------- 칸 속성 ---------- */
+function uniqueName(base, except) {
+  const names = new Set(CF.fields.filter(f => !except || !except.has(f.id)).map(fkey));
+  if (!names.has(base)) return base;
+  for (let i = 2; ; i++) if (!names.has(`${base} ${i}`)) return `${base} ${i}`;
+}
 function renderProps() {
   const box = document.getElementById('myProps'); if (!box) return;
-  const f = CF && CF.fields.find(x => x.id === cfSel);
-  if (!f) { box.innerHTML = '<div class="hint">칸을 클릭하면 여기서 이름·종류·글자 크기를 바꿀 수 있습니다.</div>'; return; }
+  const sel = selFields(), g = id => document.getElementById(id);
+  if (!sel.length) {
+    box.innerHTML = `<div class="hint">칸을 클릭하면 이름·종류·글자 크기를 바꿀 수 있습니다.<br>
+      <b>여러 칸 선택</b>: Ctrl(또는 Shift)을 누른 채 클릭, 또는 Shift를 누른 채 빈 곳을 드래그(영역 선택). 휴대폰·태블릿은 위의 <b>☑ 여러 칸 선택</b>을 켜고 누르세요.</div>`;
+    return;
+  }
+  if (sel.length > 1) {
+    const pages = new Set(sel.map(f => f.page)).size, base = ((sel.find(f => f.name && !f.part) || sel.find(f => f.name) || {}).name || '').replace(/\s+\d+$/, '');
+    box.innerHTML = `
+      <div class="msel">☑ <b>${sel.length}개</b> 칸 선택됨${pages > 1 ? ` · ${pages}개 쪽에 걸쳐` : ''}</div>
+      <label class="pl">묶을 이름</label>
+      <input class="sin" id="mName" value="${esc(base)}" placeholder="예) 성명, 주소">
+      <button class="sb primary" onclick="linkSel()">🔗 같은 이름으로 묶기</button>
+      <div class="hint">묶은 칸은 한 곳에 입력하면 나머지에도 똑같이 들어갑니다.</div>
+      ${sel.length === 3 ? '<button class="sb" onclick="dateSel()">📅 날짜(년·월·일)로 묶기</button>' : ''}
+      <div class="prow">
+        <div><label class="pl">종류 한꺼번에</label><select class="ssel" id="mType"><option value="">그대로</option>${Object.entries(TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
+        <div><label class="pl">글자 크기</label><input class="sin" id="mFs" type="number" min="6" max="30" step="0.5" placeholder="그대로"></div>
+      </div>
+      <div class="prow"><button class="sb" onclick="unlinkSel()">✂ 묶음 풀기</button><button class="sb" onclick="delField()">🗑 모두 삭제</button></div>
+      <button class="sb" onclick="clearSel()">선택 해제</button>`;
+    g('mType').addEventListener('change', e => { if (!e.target.value) return; sel.forEach(f => { f.type = e.target.value; if (f.type !== 'date') delete f.part; refreshBox(f); }); saveFormsSoon(); });
+    g('mFs').addEventListener('input', e => { const v = +e.target.value; if (v) { sel.forEach(f => f.fs = v); saveFormsSoon(); } });
+    return;
+  }
+  const f = sel[0], sibs = f.name ? groupOf(fkey(f)) : [f];
+  const grpInfo = f.part ? `<div class="hint">📅 년·월·일 칸 3개가 <b>‘${esc(f.name)}’</b> 날짜 하나로 묶여 있습니다. 작성할 때 달력에서 한 번에 고르고, ‘오늘’ 체크도 됩니다.</div><button class="sb" onclick="undateSel()">✂ 날짜 묶음 풀기</button>`
+    : sibs.length > 1 ? `<div class="hint">🔗 이 이름의 칸 <b>${sibs.length}개</b>${new Set(sibs.map(s => s.page)).size > 1 ? `(${[...new Set(sibs.map(s => s.page + 1))].join('·')}쪽)` : ''}가 함께 입력됩니다. 묶인 칸은 주황 점선으로 보입니다.</div><button class="sb" onclick="unlinkSel()">✂ 이 칸만 묶음에서 빼기</button>` : '';
   box.innerHTML = `
     <label class="pl">이름 <small>이름이 같은 칸은 함께 입력됩니다</small></label>
     <input class="sin" id="pName" value="${esc(f.name || '')}" placeholder="예) 성명">
+    ${grpInfo}
     <label class="pl">종류</label>
     <select class="ssel" id="pType">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}"${k === f.type ? ' selected' : ''}>${v}</option>`).join('')}</select>
     <div class="prow">
@@ -1871,22 +1978,73 @@ function renderProps() {
     </div>
     <div id="pOptWrap" style="display:${f.type === 'select' ? '' : 'none'}"><label class="pl">선택 항목 (한 줄에 하나)</label><textarea class="sin" id="pOpts" rows="4">${esc((f.options || []).join('\n'))}</textarea></div>
     <div class="prow"><button class="sb" onclick="dupField()">⧉ 복제</button><button class="sb" onclick="delField()">🗑 삭제</button></div>`;
-  const g = id => document.getElementById(id);
-  const upd = () => {
-    f.name = g('pName').value; f.type = g('pType').value; f.fs = +g('pFs').value || 11; f.align = g('pAlign').value;
+  const oldKey = fkey(f);
+  const upd = ev => {
+    const nm = g('pName').value;
+    if (ev && ev.target.id === 'pName' && f.part) groupOf(oldKey).forEach(s => { if (s.part) s.name = nm; });   // 날짜 묶음은 이름을 함께 바꿈
+    f.name = nm; f.type = g('pType').value; f.fs = +g('pFs').value || 11; f.align = g('pAlign').value;
+    if (f.type !== 'date') delete f.part;
     f.options = g('pOpts').value.split('\n').map(s => s.trim()).filter(Boolean);
     g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
-    refreshBox(f); saveFormsSoon();
+    CF.fields.forEach(refreshBox); markSel(); saveFormsSoon();
   };
   ['pName', 'pType', 'pFs', 'pAlign', 'pOpts'].forEach(id => g(id).addEventListener('input', upd));
+  g('pName').addEventListener('change', () => renderProps());
 }
-function delField() { if (!CF || !cfSel) return; CF.fields = CF.fields.filter(f => f.id !== cfSel); cfSel = null; saveFormsSoon(); renderFields(); }
+function linkSel() {
+  const n = (document.getElementById('mName').value || '').trim(); if (!n) { alert('묶을 이름을 적어 주세요.'); return; }
+  const sel = selFields(), clash = CF.fields.some(f => !cfSelSet.has(f.id) && fkey(f) === n);
+  if (clash && !confirm(`‘${n}’ 이름의 칸이 이미 있습니다. 그 칸들과도 함께 묶을까요?`)) return;
+  sel.forEach(f => { f.name = n; delete f.part; if (f.type === 'date') f.type = 'text'; });
+  saveFormsSoon(); renderFields(); toast(`${sel.length}개 칸을 ‘${n}’(으)로 묶었습니다. 한 곳에 입력하면 모두 채워집니다.`);
+}
+function dateSel() {
+  const sel = selFields().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
+  const want = (document.getElementById('mName').value || '').trim().replace(/^(년|월|일)$/, '');
+  const name = uniqueName(want || '날짜', new Set(sel.map(f => f.id)));
+  sel.forEach((f, i) => { f.type = 'date'; f.part = 'ymd'[i]; f.name = name; f.align = f.align || 'right'; });
+  saveFormsSoon(); renderFields(); toast(`왼쪽부터 년·월·일로 묶었습니다(‘${name}’). 작성할 때 날짜를 한 번에 고를 수 있습니다.`);
+}
+function undateSel() {
+  const f = selFields()[0]; if (!f || !f.part) return;
+  groupOf(fkey(f)).filter(s => s.part).forEach(s => { s.name = uniqueName(PART_TXT[s.part]); s.type = 'text'; delete s.part; });
+  saveFormsSoon(); renderFields();
+}
+function unlinkSel() {
+  const sel = selFields(), ids = new Set();
+  sel.forEach(f => { const base = (f.name || TYPES[f.type]).replace(/\s+\d+$/, ''); delete f.part; f.name = uniqueName(base, ids); ids.add(f.id); });
+  saveFormsSoon(); renderFields(); toast('묶음을 풀었습니다. 이제 각 칸에 따로 입력합니다.');
+}
+function clearSel() { cfSelSet = new Set(); cfSel = null; markSel(); renderProps(); }
+function toggleMulti() { multiMode = !multiMode; renderMyPanel(); toast(multiMode ? '여러 칸 선택을 켰습니다. 칸을 누를 때마다 선택에 더하거나 뺍니다.' : '여러 칸 선택을 껐습니다.'); }
+function delField() {
+  if (!CF || !cfSelSet.size) return;
+  if (cfSelSet.size > 1 && !confirm(`선택한 칸 ${cfSelSet.size}개를 삭제할까요?`)) return;
+  CF.fields = CF.fields.filter(f => !cfSelSet.has(f.id)); clearSel(); saveFormsSoon(); renderFields();
+}
 function dupField() {
-  const f = CF && CF.fields.find(x => x.id === cfSel); if (!f) return;
-  const n = Object.assign({}, f, { id: uid('c'), y: r1(f.y + f.h + 4) }); CF.fields.push(n); cfSel = n.id; saveFormsSoon(); renderFields();
+  const f = selFields()[0]; if (!f) return;
+  const n = Object.assign({}, f, { id: uid('c'), y: r1(f.y + f.h + 4), name: uniqueName((f.name || TYPES[f.type]).replace(/\s+\d+$/, '')) }); delete n.part;
+  CF.fields.push(n); cfSelSet = new Set([n.id]); cfSel = n.id; saveFormsSoon(); renderFields();
+}
+/* 예전 양식의 '년·월·일' 칸 3개를 날짜 하나로 묶기 (자동 인식·불러오기 때 사용) */
+function groupDates(fields) {
+  const bare = f => (f.name || '').replace(/\s+\d+$/, '');
+  const isP = (f, ch) => !f.part && (f.type === 'text' || f.type === 'date') && bare(f) === ch;
+  const used = new Set(), names = new Set(fields.map(fkey)); let n = 0, changed = false;
+  fields.filter(f => isP(f, '년')).sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x).forEach(y => {
+    const line = g => g.page === y.page && !used.has(g.id) && Math.abs((g.y + g.h / 2) - (y.y + y.h / 2)) < Math.max(4, y.h * 0.6);
+    const m = fields.filter(g => isP(g, '월') && line(g) && g.x > y.x && g.x - y.x < 170).sort((a, b) => a.x - b.x)[0]; if (!m) return;
+    const d = fields.filter(g => isP(g, '일') && line(g) && g.x > m.x && g.x - m.x < 130).sort((a, b) => a.x - b.x)[0]; if (!d) return;
+    let name; do { n++; name = n === 1 ? '날짜' : `날짜 ${n}`; } while (names.has(name));
+    names.add(name);
+    [[y, 'y'], [m, 'm'], [d, 'd']].forEach(([g, p]) => { g.type = 'date'; g.part = p; g.name = name; used.add(g.id); });
+    changed = true;
+  });
+  return changed;
 }
 
-/* ---------- 칸 편집: 마우스 ---------- */
+/* ---------- 칸 편집: 마우스·터치 ---------- */
 let fdrag = null;
 function ptOf(pageEl, ev) { const r = pageEl.getBoundingClientRect(), p = CF.pages[+pageEl.dataset.pg]; return [(ev.clientX - r.left) * p.w / r.width, (ev.clientY - r.top) * p.h / r.height]; }
 function setupEditor() {
@@ -1895,75 +2053,102 @@ function setupEditor() {
     if (!CF || cfMode !== 'edit' || ev.button !== 0) return;
     const pageEl = ev.target.closest('.cpage'); if (!pageEl) return;
     ev.preventDefault(); document.activeElement && document.activeElement.blur && document.activeElement.blur();
-    const [px, py] = ptOf(pageEl, ev), box = ev.target.closest('.ef');
+    const [px, py] = ptOf(pageEl, ev), box = ev.target.closest('.ef'), plus = ev.shiftKey || ev.ctrlKey || ev.metaKey || multiMode;
     if (box) {
-      const f = CF.fields.find(x => x.id === box.dataset.id); cfSel = f.id;
-      fdrag = { mode: ev.target.classList.contains('rh') ? 'resize' : 'move', f, pageEl, sx: px, sy: py, ox: f.x, oy: f.y, ow: f.w, oh: f.h };
-    } else { cfSel = null; fdrag = { mode: 'new', pageEl, sx: px, sy: py, f: null }; }
+      const id = box.dataset.id, f = CF.fields.find(x => x.id === id);
+      if (plus) { cfSelSet.has(id) ? cfSelSet.delete(id) : cfSelSet.add(id); }
+      else if (!cfSelSet.has(id)) cfSelSet = new Set([id]);
+      cfSel = cfSelSet.has(id) ? id : null;
+      if (cfSelSet.has(id)) fdrag = { mode: ev.target.classList.contains('rh') && !plus ? 'resize' : 'move', f, pageEl, sx: px, sy: py, ow: f.w, oh: f.h,
+                                      orig: selFields().map(g => ({ g, x: g.x, y: g.y })) };
+    } else if (plus) {
+      fdrag = { mode: 'marquee', pageEl, sx: px, sy: py, base: new Set(cfSelSet) };
+      pageEl.querySelector('.flayer').insertAdjacentHTML('beforeend', '<div class="marq"></div>');
+    } else { cfSelSet = new Set(); cfSel = null; fdrag = { mode: 'new', pageEl, sx: px, sy: py, f: null }; }
     pageEl.setPointerCapture(ev.pointerId);
-    $$('#myPages .ef').forEach(e => e.classList.toggle('sel', e.dataset.id === cfSel)); renderProps();
+    markSel(); renderProps();
   });
   wrap.addEventListener('pointermove', ev => {
     if (!fdrag) return;
-    const [px, py] = ptOf(fdrag.pageEl, ev), p = CF.pages[+fdrag.pageEl.dataset.pg], dx = px - fdrag.sx, dy = py - fdrag.sy, f = fdrag.f;
-    if (fdrag.mode === 'move') { f.x = r1(clamp(fdrag.ox + dx, 0, p.w - f.w)); f.y = r1(clamp(fdrag.oy + dy, 0, p.h - f.h)); }
-    else if (fdrag.mode === 'resize') { f.w = r1(clamp(fdrag.ow + dx, 6, p.w - f.x)); f.h = r1(clamp(fdrag.oh + dy, 6, p.h - f.y)); }
-    else {
+    const [px, py] = ptOf(fdrag.pageEl, ev), pg = +fdrag.pageEl.dataset.pg, p = CF.pages[pg], dx = px - fdrag.sx, dy = py - fdrag.sy, f = fdrag.f;
+    if (fdrag.mode === 'move') {
+      if (Math.hypot(dx, dy) < 1.5 && !fdrag.moved) return; fdrag.moved = true;
+      fdrag.orig.forEach(o => { const P = CF.pages[o.g.page]; o.g.x = r1(clamp(o.x + dx, 0, P.w - o.g.w)); o.g.y = r1(clamp(o.y + dy, 0, P.h - o.g.h)); refreshBox(o.g); });
+    } else if (fdrag.mode === 'resize') { f.w = r1(clamp(fdrag.ow + dx, 6, p.w - f.x)); f.h = r1(clamp(fdrag.oh + dy, 6, p.h - f.y)); refreshBox(f); }
+    else if (fdrag.mode === 'marquee') {
+      const x0 = Math.min(px, fdrag.sx), y0 = Math.min(py, fdrag.sy), x1 = Math.max(px, fdrag.sx), y1 = Math.max(py, fdrag.sy);
+      const mq = fdrag.pageEl.querySelector('.marq'); if (mq) mq.style.cssText = `left:${x0}pt;top:${y0}pt;width:${x1 - x0}pt;height:${y1 - y0}pt`;
+      cfSelSet = new Set(fdrag.base);
+      CF.fields.forEach(g => { if (g.page === pg && g.x < x1 && g.x + g.w > x0 && g.y < y1 && g.y + g.h > y0) cfSelSet.add(g.id); });
+      markSel();
+    } else {
       if (!fdrag.f) {
         if (Math.hypot(dx, dy) < 4) return;
-        fdrag.f = { id: uid('c'), page: +fdrag.pageEl.dataset.pg, type: 'text', name: '', fs: 11, align: 'left', x: 0, y: 0, w: 1, h: 1 };
-        CF.fields.push(fdrag.f); cfSel = fdrag.f.id;
+        fdrag.f = { id: uid('c'), page: pg, type: 'text', name: '', fs: 11, align: 'left', x: 0, y: 0, w: 1, h: 1 };
+        CF.fields.push(fdrag.f); cfSelSet = new Set([fdrag.f.id]); cfSel = fdrag.f.id;
         fdrag.pageEl.querySelector('.flayer').insertAdjacentHTML('beforeend', editHTML(fdrag.f));
       }
-      const g = fdrag.f; g.x = r1(Math.min(px, fdrag.sx)); g.y = r1(Math.min(py, fdrag.sy)); g.w = r1(Math.abs(dx)); g.h = r1(Math.abs(dy));
+      const g = fdrag.f; g.x = r1(Math.min(px, fdrag.sx)); g.y = r1(Math.min(py, fdrag.sy)); g.w = r1(Math.abs(dx)); g.h = r1(Math.abs(dy)); refreshBox(g);
     }
-    refreshBox(fdrag.f || {});
   });
   const end = () => {
     if (!fdrag) return;
     const d = fdrag; fdrag = null;
+    if (d.mode === 'marquee') { const mq = d.pageEl.querySelector('.marq'); if (mq) mq.remove(); renderProps(); return; }
     if (d.mode === 'new' && d.f) {
       d.f.w = Math.max(d.f.w, 20); d.f.h = Math.max(d.f.h, 10);
-      d.f.fs = r1(clamp(d.f.h * 0.62, 7, 14)); d.f.name = '칸 ' + CF.fields.length;
+      d.f.fs = r1(clamp(d.f.h * 0.62, 7, 14)); d.f.name = uniqueName('칸');
     }
-    if (d.mode !== 'new' || d.f) { saveFormsSoon(); renderFields(); }
+    if ((d.mode === 'move' && d.moved) || d.mode === 'resize' || (d.mode === 'new' && d.f)) { saveFormsSoon(); renderFields(); }
   };
   wrap.addEventListener('pointerup', end); wrap.addEventListener('pointercancel', end);
 
   /* 작성 모드: 입력·체크·서명·날짜 */
-  wrap.addEventListener('input', ev => { const e = ev.target; if (e.dataset && e.dataset.f != null && cfMode === 'fill') setFV(e.dataset.f, e.value, e); });
+  wrap.addEventListener('input', ev => {
+    const e = ev.target; if (!e.dataset || e.dataset.f == null || cfMode !== 'fill') return;
+    if (e.classList.contains('dsingle')) { FV['__today:' + e.dataset.f] = false; syncToday(e.dataset.f); }
+    setFV(e.dataset.f, e.value, e);
+  });
+  wrap.addEventListener('change', ev => {
+    const c = ev.target; if (!c.dataset || c.dataset.todayf == null) return;
+    const k = c.dataset.todayf; FV['__today:' + k] = c.checked; syncToday(k); setFV(k, c.checked ? todayISO() : '');
+  });
+  const openPicker = (k, el) => {
+    const dp = document.getElementById('dPick'), r = el.getBoundingClientRect();
+    dp.dataset.for = k; dp.value = isoParts(FV[k]) ? toIso(dateText(FV[k])) : '';
+    dp.style.left = r.left + 'px'; dp.style.top = r.bottom + 'px';
+    try { dp.showPicker(); } catch (e) { dp.focus(); dp.click(); }
+  };
   wrap.addEventListener('click', ev => {
     if (!CF || cfMode !== 'fill') return;
     const c = ev.target.closest('.chk[data-f]'); if (c) { setFV(c.dataset.f, FV[c.dataset.f] ? '' : '√'); return; }
     const s = ev.target.closest('.sig[data-f]');
     if (s) { const k = s.dataset.f; openSigFor(s.dataset.title, v => setFV(k, v), s); return; }
-    const d = ev.target.closest('.dbtn');
-    if (d) {
-      const dp = document.getElementById('dPick'), r = d.getBoundingClientRect();
-      dp.dataset.for = d.dataset.dfor; dp.value = toIso(FV[d.dataset.dfor] || '');
-      dp.style.left = r.left + 'px'; dp.style.top = r.bottom + 'px';
-      try { dp.showPicker(); } catch (e) { dp.focus(); dp.click(); }
-    }
+    const d = ev.target.closest('.dbtn'); if (d) { openPicker(d.dataset.dfor, d); return; }
+    const p = ev.target.closest('.dpart'); if (p) openPicker(p.dataset.f, p);
   });
   document.getElementById('dPick').addEventListener('change', ev => {
-    const v = ev.target.value; if (!v) return; const [y, m, d] = v.split('-');
-    setFV(ev.target.dataset.for, `${y}. ${+m}. ${+d}.`);
+    const v = ev.target.value, k = ev.target.dataset.for; if (!v || !k) return;
+    if (k in FV || CF) { FV['__today:' + k] = false; syncToday(k); setFV(k, v); }
   });
   document.addEventListener('keydown', ev => {
-    if (!CF || cfMode !== 'edit' || !cfSel || !document.querySelector('.module[data-mod="my"].on')) return;
+    if (!CF || cfMode !== 'edit' || !cfSelSet.size || !document.querySelector('.module[data-mod="my"].on')) return;
     if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
-    const f = CF.fields.find(x => x.id === cfSel); if (!f) return;
     const st = ev.shiftKey ? 5 : 0.5, mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[ev.key];
     if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); delField(); }
-    else if (mv) { ev.preventDefault(); f.x = r1(f.x + mv[0]); f.y = r1(f.y + mv[1]); refreshBox(f); saveFormsSoon(); }
+    else if (ev.key === 'Escape') clearSel();
+    else if (mv) { ev.preventDefault(); selFields().forEach(f => { f.x = r1(f.x + mv[0]); f.y = r1(f.y + mv[1]); refreshBox(f); }); saveFormsSoon(); }
   });
 }
+function syncToday(k) { $$('#myPages [data-todayf]').forEach(c => { if (c.dataset.todayf === k) c.checked = !!FV['__today:' + k]; }); }
 function setFV(k, v, from) {
   FV[k] = v;
   $$('#myPages [data-f]').forEach(e => {
     if (e.dataset.f !== k) return;
     if (e.classList.contains('chk')) e.classList.toggle('on', !!v);
     else if (e.classList.contains('sig')) { e.classList.toggle('signed', !!v); const im = e.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); }
+    else if (e.classList.contains('dpart')) { const p = isoParts(v); e.value = p ? p[e.dataset.part] : ''; fit(e); }
+    else if (e.classList.contains('dsingle')) { if (e !== from) e.value = dateText(v); fit(e); }
     else { if (e !== from) e.value = v ?? ''; if (e.tagName === 'INPUT') fit(e); }
   });
   saveFVSoon();
@@ -1989,7 +2174,8 @@ function saveFormData() {
   const nameField = CF.fields.find(f => /성명|이름/.test(f.name || '') && FV[fkey(f)]) || CF.fields.find(f => f.type === 'text' && FV[fkey(f)]);
   const who = nameField ? safeName(FV[fkey(nameField)]) : '';
   saveJsonAs(`${safeName(CF.title)}${who ? '_' + who : ''}_${ds}.json`,
-    { _type: 'form-data', _version: 1, formId: CF.id, formTitle: CF.title, savedAt: t.toISOString(), values: FV }, '작성 내용 파일');
+    { _type: 'form-data', _version: 1, formId: CF.id, formTitle: CF.title, savedAt: t.toISOString(),
+      values: Object.fromEntries(Object.entries(FV).filter(([k]) => !k.startsWith('__today:'))) }, '작성 내용 파일');   // 날짜는 저장한 날로 고정
 }
 function clearFormData() {
   if (!CF || !confirm('이 양식에 입력한 내용을 모두 지울까요?')) return;
@@ -2189,7 +2375,19 @@ function copyLink(url, what) {
 const tsText = t => { const d = t && (t.toDate ? t.toDate() : (t.seconds ? new Date(t.seconds * 1000) : new Date(t))); return d && !isNaN(d) ? `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}` : ''; };
 const STATUS_TXT = { pending: ['승인 대기', 'st-wait'], approved: ['공개 중', 'st-ok'], rejected: ['반려', 'st-no'], hidden: ['숨김', 'st-no'] };
 
+function renderTopAuth() {
+  const t = document.getElementById('topAuth'); if (!t) return;
+  const u = FB.user;
+  if (!FB.enabled()) { t.innerHTML = ''; return; }
+  if (!u) { t.innerHTML = `<button class="tbtn" onclick="pubSignIn()"><b>G</b> 구글로 로그인</button>`; return; }
+  const ok = FB.orgEmail();
+  t.innerHTML = `<button class="tbtn me" onclick="pubTab('list'); pubOpen()" title="계정 메뉴 열기">
+      <span class="av">${esc((u.displayName || u.email || '?').slice(0, 1))}</span>
+      <span class="nm">${esc(u.displayName || u.email)}${FB.admin ? ' <em>관리자</em>' : ''}<br><small class="${ok ? 'ok' : 'no'}">${ok ? '✔ 기관 메일 인증됨' : '⚠ 기관 메일 미인증'}</small></span></button>
+    ${ok ? '' : '<button class="tbtn small" onclick="openOrgVerify()">📧 기관 메일 인증하기</button>'}`;
+}
 function pubAuthChanged() {
+  renderTopAuth();
   const el = document.getElementById('pubAuth'); if (!el) return;
   const u = FB.user;
   el.innerHTML = !FB.enabled() ? '<div class="hint">아직 서버가 연결되지 않았습니다.</div>'
@@ -2211,7 +2409,10 @@ function pubAuthChanged() {
   if (document.querySelector('.module[data-mod="pub"].on')) pubRender();
   if (CF) renderMyPanel();
 }
-async function pubSignIn() { try { await FB.init(); await FB.signIn(); } catch (e) { alert('로그인하지 못했습니다.\n' + (e.message || e)); } }
+async function pubSignIn() {
+  if (location.protocol === 'file:') { alert('로그인은 인터넷 주소(GitHub Pages 등)로 연 화면에서만 됩니다.\n지금은 내 컴퓨터의 파일을 바로 연 상태라 로그인할 수 없습니다.'); return; }
+  try { await FB.init(); await FB.signIn(); } catch (e) { alert('로그인하지 못했습니다.\n' + (e.message || e)); }
+}
 async function pubSignOut() { try { await FB.signOut(); } catch (e) {} }
 function pubOpen() {
   showModule('pub');
