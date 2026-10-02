@@ -120,7 +120,9 @@
   @media print {
     @page { size:A4; margin:0; }
     body { background:#fff; }
-    .toolbar, .rowbtns, .today, aside.side, .module:not(.on) { display:none !important; }
+    #signOv, .sigfly, .toolbar, .rowbtns, .today, aside.side, .module:not(.on), .modhead, .soon, .ef, .dbtn, #dPick, .toast, .dropzone, .pop { display:none !important; }
+    .page.cpage { height:calc(var(--h) - 1pt) !important; }
+    #myPages { padding:0 !important; }
     .app, .main, .module { display:block; margin:0 !important; padding:0 !important; min-height:0 !important; }
     html, body { margin:0 !important; padding:0 !important; }
     .page { height:840pt !important; }
@@ -182,19 +184,105 @@
   .sig.signed { border-color:transparent; background:transparent; }
   .sig.signed::after { content:none; }
   .sig.signed:hover { border-color:#7d93d6; }
-  .sig img { max-width:100%; max-height:100%; display:none; pointer-events:none; }
+  .sig img { position:absolute; left:-20%; top:-20%; width:140%; height:140%; object-fit:contain; display:none; pointer-events:none; }
   .sig.signed img { display:block; }
   body.clean .sig:not(.signed) { background:transparent; }
-  dialog#sigDlg { border:none; border-radius:12px; padding:0; width:min(760px,96vw); box-shadow:0 10px 40px rgba(0,0,0,.25); }
-  dialog#sigDlg::backdrop { background:rgba(20,30,50,.45); }
-  .sigwrap { padding:14px 18px 6px; }
-  .sigwrap .who { font-size:13.5px; color:#556; margin-bottom:8px; }
-  #sigPad { width:100%; height:260px; border:1.5px solid #c9d2e6; border-radius:10px; touch-action:none; cursor:crosshair; display:block;
-            background:#fff linear-gradient(transparent calc(75% - 1px), #d9dfec calc(75% - 1px), #d9dfec 75%, transparent 75%); }
-  .sigopt { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:6px 18px 0; font-size:13px; color:#445; }
-  .sigopt label { display:flex; align-items:center; gap:5px; cursor:pointer; }
-  .ink { width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #bbb; cursor:pointer; }
-  .ink.on { box-shadow:0 0 0 2px #2f5bd3; }
+  /* 확대 서명판 */
+  #signOv { position:fixed; inset:0; z-index:100; background:rgba(15,22,40,.72); display:none; padding:max(10px, env(safe-area-inset-top)) 10px 10px; box-sizing:border-box; }
+  #signOv.on { display:flex; }
+  body.signing { overflow:hidden; }
+  #signOv .stage { flex:1; display:flex; flex-direction:column; background:#fff; border-radius:14px; overflow:hidden; max-width:1100px; margin:0 auto; width:100%; box-shadow:0 12px 50px rgba(0,0,0,.35); }
+  .shead { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #e3e6ee; }
+  .shead > div { flex:1; min-width:0; font-size:15px; }
+  .shead #sigWho { margin-left:10px; font-size:13px; color:#667; }
+  .spadwrap { position:relative; flex:1; min-height:160px; }
+  #sigPad { position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; display:block; }
+  .stip { position:absolute; left:50%; bottom:8px; transform:translateX(-50%); font-size:12px; color:#556; background:rgba(255,255,255,.9); padding:3px 10px; border-radius:12px; pointer-events:none; white-space:nowrap; }
+  .sfoot { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-top:1px solid #e3e6ee; }
+  .sopts, .sacts { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .same2 { font-size:13px; color:#445; display:flex; align-items:center; gap:5px; cursor:pointer; }
+  .big2 { font-size:15px !important; padding:9px 22px !important; }
+  .ink { width:24px; height:24px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #bbb; cursor:pointer; }
+  .ink.on { box-shadow:0 0 0 2.5px #2f5bd3; }
+  @media screen { .page { zoom:var(--pz, 1); } }
+  .sigfly { position:fixed; z-index:120; pointer-events:none; object-fit:contain; transform-origin:0 0; }
+  @media (max-width:600px) { .shead #sigWho { display:block; margin:2px 0 0; } .sfoot .b { padding:7px 9px; font-size:12.5px; } }
+  /* 직접 만든 양식 */
+  .grp .subs.mylist { display:block; padding:0 0 4px 8px; }
+  .grp:not(.on) .subs.mylist { display:none; }
+  .hint { font-size:12px; color:#9aa6c4; line-height:1.6; margin:2px 4px 8px; }
+  .hint b { color:#dfe5f3; }
+  .seg { display:flex; background:rgba(255,255,255,.08); border-radius:8px; padding:3px; margin:10px 0 8px; }
+  .seg button { flex:1; font:inherit; font-size:13px; border:none; background:none; color:#c4cce0; padding:7px 4px; border-radius:6px; cursor:pointer; }
+  .seg button.on { background:#fff; color:#1f2a44; font-weight:700; }
+  .pl { display:block; font-size:12px; color:#c4cce0; margin:6px 2px 3px; }
+  .pl small { color:#8792ae; font-size:11px; margin-left:4px; }
+  .sin { width:100%; font:inherit; font-size:13px; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.15); background:#fff; color:#223; box-sizing:border-box; }
+  textarea.sin { resize:vertical; }
+  .prow { display:flex; gap:6px; } .prow > * { flex:1; min-width:0; }
+  .mbadge { margin-left:10px; font-size:12px; padding:2px 8px; border-radius:10px; background:#eef2fd; color:#2f5bd3; font-weight:600; }
+  .mbadge.edit { background:#fff3e0; color:#c76b00; } .mbadge:empty { display:none; }
+  .modhead { display:flex; align-items:center; }
+  .soon.wide { max-width:620px; text-align:left; }
+  .soon.wide h2, .soon.wide .ico { text-align:center; }
+  .soon .steps { font-size:14px; color:#445; line-height:1.7; padding-left:22px; margin:14px 0 18px; }
+  .soon .big { display:block; margin:0 auto 12px; font-size:15px; padding:11px 20px; }
+  .soon p.sub { text-align:center; }
+  #myPages { padding:4px 0 30px; }
+  .cpage canvas.bgc { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
+  .flayer { position:absolute; inset:0; }
+  #myPages.editing .cpage { cursor:crosshair; }
+  .ef { --c:#2f5bd3; position:absolute; box-sizing:border-box; border:1.2px solid var(--c); background:color-mix(in srgb, var(--c) 13%, transparent); border-radius:2px; cursor:move; }
+  .ef.t-check { --c:#d98a00; } .ef.t-sign { --c:#a43fc7; } .ef.t-date { --c:#16a05a; } .ef.t-select { --c:#0f8fa6; } .ef.t-multi { --c:#5b6bd6; }
+  .ef .en { position:absolute; left:-1px; bottom:100%; font:600 7.5pt/1.25 "Malgun Gothic",sans-serif; color:#fff; background:var(--c); padding:0 3pt; border-radius:2px 2px 0 0;
+            white-space:nowrap; pointer-events:none; max-width:160pt; overflow:hidden; text-overflow:ellipsis; opacity:.9; }
+  .ef.sel { outline:2px solid #ff8a00; outline-offset:1px; z-index:3; }
+  .ef .rh { position:absolute; right:-4px; bottom:-4px; width:8px; height:8px; background:#fff; border:1.5px solid var(--c); border-radius:2px; cursor:nwse-resize; }
+  .ef:not(.sel) .rh { display:none; }
+  textarea.cf.ml { resize:none; overflow:hidden; line-height:1.35; padding-top:1pt; }
+  .dbtn { position:absolute; width:12pt; height:12pt; font-size:7.5pt; line-height:12pt; padding:0; border:none; background:#eef2fd; border-radius:3px; cursor:pointer; }
+  #dPick { position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; border:0; padding:0; }
+  /* 공개 양식 모음 */
+  #pubBody { padding:14px 22px 40px; max-width:1100px; margin:0 auto; }
+  .pbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; }
+  .pq { flex:1; min-width:200px; font:inherit; font-size:14px; padding:9px 12px; border:1px solid #c9d0de; border-radius:8px; }
+  .pchips { display:flex; flex-wrap:wrap; gap:4px; }
+  .chip { font:inherit; font-size:13px; padding:6px 11px; border-radius:16px; border:1px solid #c9d0de; background:#fff; cursor:pointer; }
+  .chip.on { background:#2f5bd3; border-color:#2f5bd3; color:#fff; }
+  .pnote { font-size:13px; color:#556; background:#fff; border:1px solid #e1e5ee; border-radius:8px; padding:9px 12px; margin:4px 0 14px; line-height:1.6; }
+  .pgrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(330px, 1fr)); gap:12px; }
+  .pcard { display:flex; gap:12px; background:#fff; border:1px solid #e1e5ee; border-radius:12px; padding:12px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+  .pthumb { width:96px; flex:none; aspect-ratio:210/297; border:1px solid #e6e9f0; border-radius:4px; overflow:hidden; background:#f7f8fb; display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .pthumb img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .pinfo { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .ptitle { font-weight:700; font-size:15px; color:#1f2a44; }
+  .pmeta, .pby { font-size:12px; color:#778; }
+  .pcat { background:#eef2fd; color:#2f5bd3; border-radius:10px; padding:1px 7px; font-weight:600; }
+  .pdesc { font-size:13px; color:#445; line-height:1.5; }
+  .preason { font-size:12.5px; color:#b3261e; }
+  .pacts { display:flex; flex-wrap:wrap; gap:5px; margin-top:auto; padding-top:6px; }
+  .pacts .b { padding:5px 10px; font-size:12.5px; }
+  .b.ghost { border-color:transparent; color:#778; background:none; }
+  .pst { font-weight:700; border-radius:10px; padding:1px 7px; font-size:11.5px; }
+  .st-wait { background:#fff3e0; color:#c76b00; } .st-ok { background:#e6f6ec; color:#16834a; } .st-no { background:#fdecea; color:#b3261e; }
+  .pubmsg { text-align:center; color:#667; padding:40px 10px; font-size:14px; grid-column:1/-1; line-height:1.7; }
+  .pubmsg.small { padding:14px; } .pubmsg.err { color:#b3261e; }
+  .psec { font-size:15px; margin:18px 0 8px; } .psec span { background:#2f5bd3; color:#fff; border-radius:10px; padding:1px 8px; font-size:12px; margin-left:4px; }
+  .plist { display:flex; flex-direction:column; gap:6px; }
+  .prow { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; align-items:center; background:#fff; border:1px solid #e1e5ee; border-radius:8px; padding:9px 12px; font-size:13.5px; }
+  .who2 { font-size:13px; color:#dfe5f3; margin:2px 4px 8px; line-height:1.5; } .who2 em { font-style:normal; font-size:11px; background:#ffb300; color:#3a2a00; border-radius:8px; padding:0 6px; } .who2 small { color:#8f9bbd; }
+  .ptab[hidden] { display:none !important; }
+  .ptab.on { color:#fff; border-left-color:#7fa0ff; font-weight:600; }
+  dialog.pdlg { border:none; border-radius:12px; padding:0; width:min(520px,94vw); box-shadow:0 10px 40px rgba(0,0,0,.25); }
+  dialog.pdlg.wide { width:min(900px,96vw); }
+  dialog.pdlg::backdrop { background:rgba(20,30,50,.4); }
+  .fl { display:block; font-size:13px; font-weight:600; color:#334; margin:10px 0 4px; } .fl small { font-weight:400; color:#889; margin-left:4px; }
+  .fi { width:100%; box-sizing:border-box; font:inherit; font-size:14px; padding:8px 10px; border:1px solid #c9d0de; border-radius:7px; }
+  .okline { display:flex; gap:6px; align-items:flex-start; font-size:13.5px; margin:14px 0 6px; cursor:pointer; line-height:1.5; }
+  .hint2 { font-size:12.5px; color:#667; line-height:1.6; margin-top:4px; }
+  .prevbox { display:flex; flex-direction:column; align-items:center; gap:10px; background:#eef0f4; max-height:75vh; }
+  .prevbox canvas { max-width:100%; height:auto; box-shadow:0 1px 6px rgba(0,0,0,.15); background:#fff; }
+  .soon code { background:#eef0f5; padding:1px 5px; border-radius:4px; font-size:12.5px; }
 </style>
 </head>
 <body data-print="current">
@@ -240,6 +328,31 @@
 </div>
 
 <div class="page" id="p2" data-tab="p2"><div class="scaler" id="sc2"></div></div>
+</section>
+
+<section class="module" data-mod="my">
+  <div class="modhead"><div class="brand" id="myTitle">직접 만든 양식</div><span class="mbadge" id="myBadge"></span></div>
+  <div class="soon wide" id="myEmpty">
+    <div class="ico">🧩</div>
+    <h2>내 신청서 양식 만들기</h2>
+    <p>가지고 있는 신청서·계약서 양식을 <b>PDF</b>로 올리면, 원본 모양 그대로 입력할 수 있는 양식으로 만들어 줍니다.</p>
+    <ol class="steps">
+      <li><b>PDF 올리기</b> – 입력칸을 자동으로 찾아 줍니다.</li>
+      <li><b>칸 편집</b> – 칸을 끌어 옮기거나 크기를 바꾸고, 빈 곳을 드래그해 새 칸을 그립니다. 칸마다 종류(글자·체크·날짜·서명·선택 목록)를 정합니다.</li>
+      <li><b>작성</b> – 입력·서명하고 인쇄하거나 PDF로 저장합니다. 작성 내용은 파일로 저장해 두고 다시 열 수 있습니다.</li>
+      <li><b>공유</b> – ‘양식 파일로 내보내기’로 받은 파일을 다른 사람이 ‘양식·작성 파일 열기’로 가져오면 같은 양식을 바로 쓸 수 있습니다.</li>
+    </ol>
+    <button class="b primary big" onclick="pickPdf()">＋ PDF 올려서 양식 만들기</button>
+    <p class="sub">PDF나 양식 파일을 이 화면에 끌어다 놓아도 됩니다.<br>
+      글자가 선택되는 PDF는 칸을 자동으로 찾고, 스캔한 PDF는 칸을 직접 그려야 합니다.<br>
+      개인정보가 들어 있지 않은 <b>빈 서식</b>을 올려 주세요.</p>
+  </div>
+  <div id="myPages"></div>
+</section>
+
+<section class="module" data-mod="pub">
+  <div class="modhead"><div class="brand">공개 양식 모음</div></div>
+  <div id="pubBody"></div>
 </section>
 
 <section class="module" data-mod="labor">
@@ -304,6 +417,28 @@
         <button class="sb" onclick="document.getElementById('helpDlg').showModal()">❓ 사용법</button>
       </div>
     </div>
+    <div class="grp" data-mod="my">
+      <button class="cat" onclick="showModule('my')"><span class="n">4</span>직접 만든 양식</button>
+      <div class="panel">
+        <button class="sb primary" onclick="pickPdf()">＋ 새 양식 만들기 (PDF)</button>
+        <button class="sb" onclick="pickJson()">📂 양식·작성 파일 열기</button>
+        <div class="pt">내 양식</div>
+        <div class="subs mylist" id="myList"></div>
+        <div id="myPanel"></div>
+      </div>
+    </div>
+    <div class="grp" data-mod="pub">
+      <button class="cat" onclick="pubOpen()"><span class="n">5</span>공개 양식 모음</button>
+      <div class="panel">
+        <div class="subs" style="display:block;padding-left:8px">
+          <button class="sub ptab" data-t="list" onclick="pubTab('list')">🌐 공개 양식 목록</button>
+          <button class="sub ptab" data-t="mine" onclick="pubTab('mine')">📮 내가 공개 신청한 양식</button>
+          <button class="sub ptab" data-t="admin" onclick="pubTab('admin')" hidden>🛡 승인·신고 관리</button>
+        </div>
+        <div class="pt">계정</div>
+        <div id="pubAuth"></div>
+      </div>
+    </div>
   </nav>
   <div class="sidefoot">양식은 계속 추가됩니다.</div>
 </aside>
@@ -311,27 +446,47 @@
 
 <datalist id="instNames"></datalist>
 <div class="toast" id="toast"></div>
-<dialog id="sigDlg">
-  <div class="dh"><h3 id="sigTitle">서명</h3><button class="b" onclick="closeSig()">닫기</button></div>
-  <div class="sigwrap">
-    <div class="who" id="sigWho">아래 칸에 마우스(또는 터치·펜)로 크게 서명하세요. 적용하면 서식 크기에 맞게 줄어들어 들어갑니다.</div>
-    <canvas id="sigPad"></canvas>
+<dialog id="pubDlg" class="pdlg">
+  <div class="dh"><h3>공개 목록에 올리기</h3><button class="b" onclick="document.getElementById('pubDlg').close()">닫기</button></div>
+  <div class="db">
+    <label class="fl">양식 이름</label><input class="fi" id="pubT" maxlength="60">
+    <label class="fl">설명 <small>어디에 쓰는 양식인지, 제출처 등</small></label><textarea class="fi" id="pubD" rows="3" maxlength="300" placeholder="예) ○○군 장애인 주간보호시설 이용 신청 시 제출"></textarea>
+    <label class="fl">분류</label><select class="fi" id="pubC"></select>
+    <label class="okline"><input type="checkbox" id="pubOk"> 개인정보(이름·주민번호·서명 등)가 들어 있지 않은 <b>빈 서식</b>입니다.</label>
+    <div class="hint2" id="pubDlgNote"></div>
+    <div class="hint2">관리자가 확인·승인하면 ‘공개 양식 목록’에 올라가 누구나 쓸 수 있게 됩니다. 입력해 둔 내용과 서명은 올라가지 않습니다.</div>
   </div>
-  <div class="sigopt">
-    <span>펜 색</span>
-    <span class="ink on" data-ink="#111" style="background:#111" onclick="setInk(this)"></span>
-    <span class="ink" data-ink="#1c3faa" style="background:#1c3faa" onclick="setInk(this)"></span>
-    <span class="ink" data-ink="#c0262d" style="background:#c0262d" onclick="setInk(this)"></span>
-    <label id="sigSameWrap"><input type="checkbox" id="sigSame" checked> 수급자(또는 보호자) 서명란 2곳에 함께 넣기</label>
-  </div>
-  <div class="df">
-    <button class="b" onclick="clearPad()">다시 쓰기</button>
-    <button class="b" onclick="removeSig()">서명 삭제</button>
-    <span class="sp"></span>
-    <button class="b" onclick="closeSig()">취소</button>
-    <button class="b primary" onclick="applySig()">적용</button>
-  </div>
+  <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('pubDlg').close()">취소</button><button class="b primary" id="pubGo" onclick="submitPublish()">공개 신청</button></div>
 </dialog>
+<dialog id="pubPrev" class="pdlg wide">
+  <div class="dh"><h3 id="pubPrevTitle">미리보기</h3><span id="pubPrevActs"></span><button class="b" onclick="document.getElementById('pubPrev').close()">닫기</button></div>
+  <div class="db prevbox" id="pubPrevBody"></div>
+</dialog>
+<div id="signOv" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+  <div class="stage">
+    <div class="shead">
+      <div><b id="sigTitle">서명</b><span id="sigWho"></span></div>
+      <button class="b" onclick="closeSig()">✕ 닫기</button>
+    </div>
+    <div class="spadwrap"><canvas id="sigPad"></canvas><div class="stip" id="sigTip">📱 휴대폰을 가로로 돌리면 더 크게 쓸 수 있어요</div></div>
+    <div class="sfoot">
+      <div class="sopts">
+        <span class="ink on" data-ink="#111" style="background:#111" onclick="setInk(this)" title="검정"></span>
+        <span class="ink" data-ink="#1c3faa" style="background:#1c3faa" onclick="setInk(this)" title="파랑"></span>
+        <span class="ink" data-ink="#c0262d" style="background:#c0262d" onclick="setInk(this)" title="빨강"></span>
+        <button class="b" onclick="undoPad()">↶ 한 획 지우기</button>
+        <button class="b" onclick="clearPad()">다시 쓰기</button>
+        <button class="b" onclick="document.getElementById('stampPick').click()">🔴 도장 이미지</button>
+        <input type="file" id="stampPick" accept="image/*" hidden onchange="loadStamp(this)">
+        <label id="sigSameWrap" class="same2"><input type="checkbox" id="sigSame" checked> 수급자(또는 보호자) 서명란 2곳에 함께</label>
+      </div>
+      <div class="sacts">
+        <button class="b" onclick="removeSig()">서명 삭제</button>
+        <button class="b primary big2" onclick="applySig()">✔ 서명 넣기</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="pop" id="periodPop">
   <h5>대여기간 선택</h5>
   <div class="r"><label>시작일</label><input type="date" id="pStart"></div>
@@ -340,7 +495,10 @@
   <label class="same"><input type="checkbox" id="pSame"> 아래 줄도 모두 같은 기간으로 입력</label>
   <div class="btns"><button class="b" onclick="clearPeriod()">지우기</button><button class="b" onclick="closePeriod()">취소</button><button class="b primary" onclick="applyPeriod()">적용</button></div>
 </div>
-<div class="dropzone">여기에 놓으면 저장한 신청서를 불러옵니다</div>
+<div class="dropzone">여기에 놓으세요 · PDF는 새 양식으로, .json은 양식·작성 파일로 엽니다</div>
+<input type="file" id="pdfPick" accept=".pdf,application/pdf" hidden onchange="routeFile(this.files[0]); this.value=''">
+<input type="file" id="jsonPick" accept=".json,application/json" hidden onchange="routeFile(this.files[0]); this.value=''">
+<input type="date" id="dPick" tabindex="-1" aria-hidden="true">
 <input type="file" id="loader" accept=".json,application/json" hidden onchange="loadFromInput(this)">
 <dialog id="helpDlg">
   <div class="dh"><h3>사용법</h3><button class="b" onclick="document.getElementById('helpDlg').close()">닫기</button></div>
@@ -350,7 +508,7 @@
       <li>칸을 클릭해서 바로 입력합니다. <b>초록 칸</b>은 두 양식에 동시에 들어가고, <b>파란 칸</b>은 그 양식에만 들어갑니다.</li>
       <li>수급자와의 관계를 <b>본인</b>으로 고르면 신청인 성명·전화번호·주소가 수급자 칸에 자동으로 들어갑니다.</li>
       <li>수급자 주소를 넣으면 ‘○○군수 귀하’ 같은 단체장 명칭이 자동으로 바뀝니다.</li>
-      <li><b>(서명 또는 인)</b> 자리의 <b>✍ 서명</b> 칸을 누르면 큰 서명판이 열립니다. 마우스·터치펜으로 서명하고 ‘적용’하면 서식 크기로 줄어 들어갑니다. 다시 누르면 새로 쓰거나 삭제할 수 있습니다. 서명은 저장 파일에도 함께 저장됩니다.</li>
+      <li><b>✍ 서명</b> 칸을 누르면 그 부분이 화면 가득 <b>확대</b>됩니다. 점선 칸 안에 손가락·펜(휴대폰·태블릿)이나 마우스로 서명하고 <b>✔ 서명 넣기</b>를 누르면 원래 크기로 줄어들며 제자리에 들어갑니다. <b>🔴 도장 이미지</b>로 도장 사진을 찍을 수도 있습니다(흰 배경은 자동으로 지워짐). 다시 누르면 고쳐 쓰거나 삭제할 수 있고, 서명은 저장 파일에도 함께 저장됩니다.</li>
       <li>복지용구 <b>대여기간</b> 칸을 누르면 달력이 뜹니다. ‘아래 줄도 모두 같은 기간으로 입력’을 체크하면 그 아래 줄에 한 번에 들어갑니다.</li>
       <li>날짜 옆 <b>☑오늘</b>을 체크하면 오늘 날짜가 들어갑니다(인쇄에는 안 나옵니다).</li>
       <li>상단 <b>장기요양기관</b> 목록에서 기관을 고르면 희망기관과 이용희망기관이 한 번에 채워집니다. 기관은 <b>⚙ 기관 관리</b>에서 등록합니다.</li>
@@ -370,6 +528,12 @@
       <li>불러온 뒤 필요한 부분만 고쳐서 다시 인쇄하거나, 갱신·변경 신청에 그대로 활용하세요.<br>
           고친 내용을 남기려면 다시 <b>💾 이 신청서 저장</b>을 누르세요(같은 이름으로 덮어쓰거나 새 이름으로 저장).</li>
       <li>지금 화면에 작성 중인 내용이 있으면 불러오기 전에 한 번 더 확인합니다.</li>
+    </ul>
+    <h4>🧩 직접 만든 양식</h4>
+    <ul>
+      <li>오른쪽 <b>4. 직접 만든 양식 → ＋ 새 양식 만들기</b>에서 PDF를 올리면 원본 그대로 입력 양식이 만들어집니다.</li>
+      <li><b>🛠 칸 편집</b>에서 칸을 고치고, <b>✏️ 작성</b>에서 입력·서명·인쇄합니다. 이름이 같은 칸은 함께 입력됩니다.</li>
+      <li><b>양식 파일로 내보내기</b>로 받은 파일을 보내 주면, 다른 사람도 ‘양식·작성 파일 열기’로 같은 양식을 쓸 수 있습니다.</li>
     </ul>
     <h4>🖨 인쇄 · PDF</h4>
     <ul>
@@ -404,6 +568,32 @@
 
 
 <script>
+/* ======================================================================
+   ★ 공개 양식 모음 서버 설정 (Firebase)
+   Firebase 콘솔 → 프로젝트 설정(⚙) → 일반 → 내 앱(웹 </>) 의 firebaseConfig 값을
+   아래 { } 안에 그대로 붙여 넣으세요. 비워 두면 공개 양식 기능만 꺼지고 나머지는 그대로 동작합니다.
+   ====================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAMfr105bAxeUnhfKnyBIkXQGECMf7YiXo",
+  authDomain: "applyform-2522d.firebaseapp.com",
+  projectId: "applyform-2522d",
+  storageBucket: "applyform-2522d.firebasestorage.app",
+  messagingSenderId: "1067875616336",
+  appId: "1:1067875616336:web:435b3deb7e9cba661e7355",
+  measurementId: "G-D4SQE2BDNM"
+};
+const PUB_SETUP_HTML = `<div class="soon wide">
+  <div class="ico">🌐</div><h2>공개 양식 모음 – 서버 연결 전</h2>
+  <p>여러 사람이 만든 양식을 함께 쓰는 기능입니다. 관리자가 한 번만 아래처럼 설정하면 켜집니다.</p>
+  <ol class="steps">
+    <li><b>Firebase 콘솔</b>(console.firebase.google.com)에서 프로젝트를 만들고 <b>웹 앱</b>을 추가합니다.</li>
+    <li><b>Authentication → 로그인 방법 → Google</b>을 사용 설정하고, <b>설정 → 승인된 도메인</b>에 <code>아이디.github.io</code>를 추가합니다.</li>
+    <li><b>Firestore Database</b>를 만들고, <b>규칙</b> 탭에 함께 받은 <code>firestore.rules</code> 내용을 붙여 넣어 게시합니다.</li>
+    <li>Firestore에 <b>admins</b> 컬렉션을 만들고, <b>문서 ID에 관리자 구글 이메일</b>을 넣어 문서를 하나 만듭니다(필드는 아무거나).</li>
+    <li>이 HTML 파일 맨 위 <code>FIREBASE_CONFIG</code>에 웹 앱 설정값을 붙여 넣고 GitHub에 다시 올립니다.</li>
+  </ol>
+  <p class="sub">서버에는 빈 양식(원본 PDF와 칸 위치)만 올라가며, 사람들이 입력한 내용과 서명은 절대 올라가지 않습니다.</p>
+</div>`;
 const $$ = s => [...document.querySelectorAll(s)];
 const els = k => $$(`[data-k="${k}"]`);
 const KEEP = ['chief'];                                    // 단체장: 새로 작성해도 유지
@@ -591,68 +781,160 @@ function render2() {
   sc.querySelectorAll('.chk').forEach(c => c.addEventListener('click', () => toggleChk(c.dataset.k)));
 }
 
-/* ---------- 마우스 서명 ---------- */
+/* ---------- 확대 서명판 (모든 서식 공통) ----------
+   서명 칸을 누르면 그 부분의 서식이 화면 가득 확대되고, 손가락·펜·마우스로 서명한 뒤
+   '서명 넣기'를 누르면 원래 크기로 줄어들며 제자리에 들어간다.
+   서명은 서명 칸보다 사방 20% 넓은 영역을 그림으로 저장해 칸 밖으로 조금 넘친 획도 그대로 살린다. */
 const SIG_NAME = { sigApp:'신청인 서명', sigCon1:'수급자(또는 보호자) 서명', sigCon2:'수급자(또는 보호자) 서명 – 행정정보 공동이용 동의' };
-let sigKey = null, sigInk = '#111', sigDirty = false, strokes = [];
-const pad = () => document.getElementById('sigPad');
+const SIG_PAD = 0.2;                                      // 서명 칸 바깥 여유(사방 20%)
+let sigKey = null, sigCb = null;
+const SP = { target: null, page: null, box: null, R: null, s: 1, strokes: [], stamp: null, ink: '#111', onApply: null, dpr: 1 };
+const spc = () => document.getElementById('sigPad');
+
 function refreshSigs() {
-  $$('.sig').forEach(d => { const v = getVal(d.dataset.sig); d.classList.toggle('signed', !!v); const im = d.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); });
+  $$('.sig[data-sig]').forEach(d => { const v = getVal(d.dataset.sig); d.classList.toggle('signed', !!v); const im = d.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); });
 }
-function openSig(key) {
-  sigKey = key;
-  document.getElementById('sigTitle').textContent = SIG_NAME[key];
-  document.getElementById('sigSameWrap').style.display = key === 'sigApp' ? 'none' : '';
+function openSig(key) {                                   // 장기요양 서식
+  sigKey = key; sigCb = null;
   const who = key === 'sigApp' ? getVal('appName') : getVal('consentName');
-  document.getElementById('sigWho').textContent = `${who ? who + ' 님, ' : ''}아래 칸에 마우스(또는 터치·펜)로 크게 서명하세요. 적용하면 서식 크기에 맞게 줄어들어 들어갑니다.`;
-  document.getElementById('sigDlg').showModal();
-  const c = pad(), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
-  clearPad();
+  openSignPad({ title: SIG_NAME[key], who, target: document.querySelector(`.sig[data-sig="${key}"]`), showSame: key !== 'sigApp',
+    onApply: (v, same) => { (key !== 'sigApp' && same ? ['sigCon1', 'sigCon2'] : [key]).forEach(k => S[k] = v); refreshSigs(); saveDraft(); } });
 }
-function closeSig() { document.getElementById('sigDlg').close(); sigKey = null; }
-function setInk(el) { sigInk = el.dataset.ink; $$('.ink').forEach(x => x.classList.toggle('on', x === el)); redraw(); }
-function clearPad() { strokes = []; sigDirty = false; redraw(); }
-function redraw() {
-  const c = pad(), ctx = c.getContext('2d'); ctx.clearRect(0, 0, c.width, c.height);
-  const lw = c.width / 110;                               // 칸 크기에 맞춘 펜 굵기
-  ctx.strokeStyle = sigInk; ctx.fillStyle = sigInk; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = lw;
-  strokes.forEach(pts => {
-    if (pts.length === 1) { ctx.beginPath(); ctx.arc(pts[0][0], pts[0][1], lw / 2, 0, 7); ctx.fill(); return; }
-    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length - 1; i++) { const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2; ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my); }
-    const l = pts[pts.length - 1]; ctx.lineTo(l[0], l[1]); ctx.stroke();
+function openSigFor(title, cb, el) {                      // 직접 만든 양식 등
+  sigKey = '__custom'; sigCb = cb;
+  openSignPad({ title: title || '서명', target: el, showSame: false, onApply: cb });
+}
+
+/* 서명 칸 위치(pt)와 배경 그림 */
+function boxOf(el) { const st = el.style; return { x: parseFloat(st.left), y: parseFloat(st.top), w: parseFloat(st.width), h: parseFloat(st.height) }; }
+function bgSource(page) {
+  const c = page.querySelector('canvas.bgc'); if (c && c.width) return { src: c, k: c.width / parseFloat(page.style.width || 595) };
+  const im = page.querySelector('img.bg'); if (im && im.naturalWidth) return { src: im, k: im.naturalWidth / 595 };
+  return null;
+}
+function openSignPad({ title, who, target, showSame, onApply }) {
+  if (!target) return;
+  Object.assign(SP, { target, page: target.closest('.page'), box: boxOf(target), strokes: [], stamp: null, onApply });
+  document.getElementById('sigTitle').textContent = title;
+  document.getElementById('sigWho').textContent = (who ? who + ' 님, ' : '') + '점선 칸 안에 크게 서명하세요.';
+  document.getElementById('sigSameWrap').style.display = showSame ? '' : 'none';
+  const ov = document.getElementById('signOv');
+  ov.classList.add('on'); document.body.classList.add('signing');
+  layoutPad();
+  /* 서명 칸에서 화면 가득 커지는 효과 */
+  const from = target.getBoundingClientRect(), to = padBoxScreen();
+  if (from.width && to.width && ov.animate) {
+    const sx = from.width / to.width, tx = from.left - to.left * sx, ty = from.top - to.top * sx;
+    document.querySelector('#signOv .stage').animate([{ transform: `translate(${tx}px,${ty}px) scale(${sx})`, opacity: .3, transformOrigin: '0 0' },
+      { transform: 'none', opacity: 1, transformOrigin: '0 0' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+}
+function closeSig() {
+  document.getElementById('signOv').classList.remove('on'); document.body.classList.remove('signing');
+  sigKey = null; sigCb = null; SP.target = null;
+}
+/* 화면 크기에 맞춰 확대 비율 계산 */
+function layoutPad() {
+  if (!SP.target) return;
+  const c = spc(), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, b = SP.box;
+  SP.dpr = dpr; c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  const s = Math.min(r.width * 0.72 / b.w, r.height * 0.62 / b.h, 14);      // 1pt = s 화면px
+  SP.s = s; SP.R = { x: b.x + b.w / 2 - r.width / 2 / s, y: b.y + b.h / 2 - r.height / 2 / s, w: r.width / s, h: r.height / s };
+  const narrow = r.height > r.width * 1.1;
+  document.getElementById('sigTip').style.display = narrow ? '' : 'none';
+  drawPad();
+}
+const toPx = (x, y) => [(x - SP.R.x) * SP.s * SP.dpr, (y - SP.R.y) * SP.s * SP.dpr];
+function padBoxScreen() {
+  const c = spc().getBoundingClientRect(), b = SP.box;
+  return { left: c.left + (b.x - SP.R.x) * SP.s, top: c.top + (b.y - SP.R.y) * SP.s, width: b.w * SP.s, height: b.h * SP.s };
+}
+const penW = () => clamp(SP.box.h * 0.055, 0.9, 1.9);    // 펜 굵기(pt) – 서명 칸 크기에 맞춤
+function paintInk(ctx, map, scale) {
+  if (SP.stamp) { const t = SP.stamp, [x, y] = map(t.x, t.y); ctx.drawImage(t.img, x, y, t.w * scale, t.h * scale); }
+  ctx.strokeStyle = ctx.fillStyle = SP.ink; ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = penW() * scale;
+  SP.strokes.forEach(pts => {
+    const P = pts.map(p => map(p[0], p[1]));
+    if (P.length === 1) { ctx.beginPath(); ctx.arc(P[0][0], P[0][1], ctx.lineWidth / 2, 0, 7); ctx.fill(); return; }
+    ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]);
+    for (let i = 1; i < P.length - 1; i++) ctx.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
+    ctx.lineTo(P[P.length - 1][0], P[P.length - 1][1]); ctx.stroke();
   });
 }
+function drawPad() {
+  const c = spc(), ctx = c.getContext('2d'), k = SP.s * SP.dpr, b = SP.box;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  const bg = SP.page && bgSource(SP.page);                 // 확대한 서식 배경(흐리게)
+  if (bg) { try { ctx.globalAlpha = 0.55; ctx.drawImage(bg.src, SP.R.x * bg.k, SP.R.y * bg.k, SP.R.w * bg.k, SP.R.h * bg.k, 0, 0, c.width, c.height); } catch (e) {} ctx.globalAlpha = 1; }
+  const [bx, by] = toPx(b.x, b.y);                          // 서명 칸 표시
+  ctx.fillStyle = 'rgba(47,91,211,.06)'; ctx.fillRect(bx, by, b.w * k, b.h * k);
+  ctx.setLineDash([8 * SP.dpr, 6 * SP.dpr]); ctx.lineWidth = 1.5 * SP.dpr; ctx.strokeStyle = '#5b7be0'; ctx.strokeRect(bx, by, b.w * k, b.h * k); ctx.setLineDash([]);
+  if (!SP.strokes.length && !SP.stamp) {
+    ctx.fillStyle = 'rgba(47,91,211,.45)'; ctx.font = `${Math.min(b.h * k * 0.32, 34 * SP.dpr)}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('여기에 서명', bx + b.w * k / 2, by + b.h * k / 2);
+  }
+  paintInk(ctx, toPx, k);
+}
 (function setupPad() {
-  const c = pad(); let drawing = false;
-  const pt = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
-  c.addEventListener('pointerdown', e => { drawing = true; c.setPointerCapture(e.pointerId); strokes.push([pt(e)]); sigDirty = true; redraw(); });
-  c.addEventListener('pointermove', e => { if (!drawing) return; strokes[strokes.length - 1].push(pt(e)); redraw(); });
+  const c = spc(); let drawing = false;
+  const pt = e => { const r = c.getBoundingClientRect(); return [SP.R.x + (e.clientX - r.left) / SP.s, SP.R.y + (e.clientY - r.top) / SP.s]; };
+  c.addEventListener('pointerdown', e => { e.preventDefault(); drawing = true; c.setPointerCapture(e.pointerId); SP.strokes.push([pt(e)]); drawPad(); });
+  c.addEventListener('pointermove', e => {
+    if (!drawing) return; e.preventDefault();
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; const s = SP.strokes[SP.strokes.length - 1];
+    (evs.length ? evs : [e]).forEach(ev => s.push(pt(ev))); drawPad();
+  });
   const end = () => { drawing = false; };
   c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => { if (SP.target) layoutPad(); });
 })();
-function trimmedPNG() {                                   // 서명한 부분만 잘라서 PNG로
-  const c = pad(), ctx = c.getContext('2d'), { width: w, height: h } = c, d = ctx.getImageData(0, 0, w, h).data;
-  let x0 = w, y0 = h, x1 = -1, y1 = -1;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 10) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-  if (x1 < 0) return '';
-  const p = Math.round(w / 100); x0 = Math.max(0, x0 - p); y0 = Math.max(0, y0 - p); x1 = Math.min(w - 1, x1 + p); y1 = Math.min(h - 1, y1 + p);
-  const sw = x1 - x0 + 1, sh = y1 - y0 + 1, maxW = 600, k = Math.min(1, maxW / sw);
-  const o = document.createElement('canvas'); o.width = Math.round(sw * k); o.height = Math.round(sh * k);
-  o.getContext('2d').drawImage(c, x0, y0, sw, sh, 0, 0, o.width, o.height);
+function clearPad() { SP.strokes = []; SP.stamp = null; drawPad(); }
+function undoPad() { SP.strokes.pop(); drawPad(); }
+function setInk(el) { SP.ink = el.dataset.ink; $$('.ink').forEach(x => x.classList.toggle('on', x === el)); drawPad(); }
+/* 도장 이미지: 흰 배경을 지워 서명 칸에 찍기 */
+function loadStamp(input) {
+  const f = input.files[0]; input.value = ''; if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.createElement('canvas'), m = Math.min(1, 600 / Math.max(img.width, img.height));
+    cv.width = Math.round(img.width * m); cv.height = Math.round(img.height * m);
+    const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0, cv.width, cv.height);
+    const d = cx.getImageData(0, 0, cv.width, cv.height), a = d.data;
+    for (let i = 0; i < a.length; i += 4) { const l = Math.min(a[i], a[i + 1], a[i + 2]); if (l > 215) a[i + 3] = 0; else if (l > 170) a[i + 3] = Math.round(a[i + 3] * (215 - l) / 45); }
+    cx.putImageData(d, 0, 0);
+    const b = SP.box, h = Math.min(b.h * 1.25, b.w * 1.1 * cv.height / cv.width), w = h * cv.width / cv.height;
+    SP.stamp = { img: cv, x: b.x + b.w / 2 - w / 2, y: b.y + b.h / 2 - h / 2, w, h }; drawPad();
+    URL.revokeObjectURL(img.src);
+  };
+  img.src = URL.createObjectURL(f);
+}
+/* 서명 칸(+여유) 영역만 깨끗한 그림으로 */
+function signImage() {
+  if (!SP.strokes.length && !SP.stamp) return '';
+  const b = SP.box, E = { x: b.x - b.w * SIG_PAD, y: b.y - b.h * SIG_PAD, w: b.w * (1 + 2 * SIG_PAD), h: b.h * (1 + 2 * SIG_PAD) };
+  const sc = Math.min(8, 900 / E.w), o = document.createElement('canvas');
+  o.width = Math.round(E.w * sc); o.height = Math.round(E.h * sc);
+  paintInk(o.getContext('2d'), (x, y) => [(x - E.x) * sc, (y - E.y) * sc], sc);
   return o.toDataURL('image/png');
 }
-function putSig(v) {
-  const keys = sigKey !== 'sigApp' && document.getElementById('sigSame').checked ? ['sigCon1', 'sigCon2'] : [sigKey];
-  keys.forEach(k => S[k] = v); refreshSigs(); saveDraft();
-}
 function applySig() {
-  if (!sigDirty) { alert('서명 칸에 먼저 서명하세요.'); return; }
-  const v = trimmedPNG(); if (!v) { alert('서명 칸에 먼저 서명하세요.'); return; }
-  putSig(v); closeSig(); toast('서명을 넣었습니다.');
+  const v = signImage(); if (!v) { alert('점선 칸 안에 먼저 서명하세요.'); return; }
+  const target = SP.target, from = padBoxScreen(), to = target.getBoundingClientRect(), cb = SP.onApply, same = document.getElementById('sigSame').checked;
+  closeSig();
+  /* 원래 자리로 줄어들며 들어가는 효과 */
+  const fx = document.createElement('img'), ex = SIG_PAD;
+  fx.src = v; fx.className = 'sigfly';
+  Object.assign(fx.style, { left: from.left - from.width * ex + 'px', top: from.top - from.height * ex + 'px', width: from.width * (1 + 2 * ex) + 'px', height: from.height * (1 + 2 * ex) + 'px' });
+  document.body.appendChild(fx);
+  const dx = (to.left - to.width * ex) - (from.left - from.width * ex), dy = (to.top - to.height * ex) - (from.top - from.height * ex), k = to.width / from.width;
+  const done = () => { fx.remove(); cb(v, same); toast('서명을 넣었습니다.'); };
+  if (fx.animate && to.width) fx.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px,${dy}px) scale(${k})`, opacity: 1 }],
+    { duration: 480, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = done;
+  else done();
 }
-function removeSig() { putSig(''); closeSig(); }
-$$('.sig').forEach(d => d.addEventListener('click', () => openSig(d.dataset.sig)));
+function removeSig() { const cb = SP.onApply, same = document.getElementById('sigSame').checked; closeSig(); cb && cb('', same); }
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && SP.target) closeSig(); });
+$$('.sig[data-sig]').forEach(d => d.addEventListener('click', () => openSig(d.dataset.sig)));
 
 /* ---------- 대여기간: 달력에서 선택 ---------- */
 let periodRow = null;
@@ -726,6 +1008,7 @@ function compactS() {
   return rows.length;
 }
 function beforePrint() {
+  if (!document.querySelector('.module[data-mod="ltc"].on')) return;
   const filled = compactS();
   printRowsS = Math.min(S_ROWS, filled + 1);
   render2(); saveDraft();
@@ -866,7 +1149,7 @@ document.addEventListener('focusout', ev => {
   if (e.closest && e.closest('#sc2')) setTimeout(() => { if (!document.activeElement.closest('#sc2')) render2(); }, 0);
 });
 document.addEventListener('keydown', ev => {                    // 2줄 칸: Enter로 한 번만 줄바꿈
-  if (ev.key === 'Enter' && ev.target.tagName === 'TEXTAREA' && ev.target.value.includes('\n')) ev.preventDefault();
+  if (ev.key === 'Enter' && ev.target.classList && ev.target.classList.contains('wrap') && ev.target.value.includes('\n')) ev.preventDefault();
 });
 
 function toggleChk(k) {
@@ -967,13 +1250,22 @@ window.addEventListener('dragover', e => { if (isFileDrag(e)) e.preventDefault()
 window.addEventListener('dragleave', e => { if (!isFileDrag(e)) return; if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); } });
 window.addEventListener('drop', e => {
   if (!isFileDrag(e)) return; e.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging');
-  const f = e.dataTransfer.files[0]; if (f) f.text().then(t => loadText(t, f.name));
+  routeFile(e.dataTransfer.files[0]);
 });
 function resetAll() {
   if (!confirm('두 양식의 입력 내용을 모두 지울까요?\n(단체장 명칭과 기관 프리셋은 유지됩니다)')) return;
   const keep = {}; KEEP.forEach(k => keep[k] = getVal(k));
   apply(keep); setToday('apply', true); saveDraft();
 }
+
+/* ---------- 화면이 좁으면(휴대폰) 서식을 화면 폭에 맞춰 축소 ---------- */
+function fitPages() {
+  const m = document.querySelector('.main'); if (!m) return;
+  const avail = Math.min(m.clientWidth, (window.visualViewport && innerWidth > screen.width ? screen.width : innerWidth));
+  const z = Math.min(1, (avail - 12) / (595 * 4 / 3));
+  document.documentElement.style.setProperty('--pz', Math.max(0.3, z).toFixed(3));
+}
+window.addEventListener('resize', fitPages);
 
 /* ---------- 오른쪽 도구모음: 분류 전환 ---------- */
 function showModule(m) {
@@ -985,8 +1277,8 @@ function showModule(m) {
 
 /* ---------- 화면 ---------- */
 function showPage(id) {
-  $$('.page').forEach(p => p.classList.toggle('show', p.dataset.tab === id));
-  $$('.sub').forEach(t => t.classList.toggle('on', t.dataset.p === id));
+  $$('.module[data-mod="ltc"] .page').forEach(p => p.classList.toggle('show', p.dataset.tab === id));
+  $$('.sub[data-p]').forEach(t => t.classList.toggle('on', t.dataset.p === id));
 }
 
 /* ---------- 시작 ---------- */
@@ -1076,6 +1368,923 @@ function importInsts(inputEl) {
   inputEl.value = '';
 }
 
+/* =====================================================================
+   직접 만든 양식 – PDF를 올리면 원본 그대로 입력 양식으로 만들기
+   · 원본 PDF는 PDF.js로 그대로 배경에 그림
+   · 입력칸은 글자·선 위치를 읽어 자동 제안 → 마우스로 다듬기
+   · 양식(빈 서식 + 칸 정보)과 작성 내용은 각각 .json 파일로 저장·공유
+   ===================================================================== */
+const PDFJS_BASE = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/';
+let pdfjsReady = null;
+function loadPdfJs() {                                    // PDF 엔진은 처음 쓸 때만 불러옴
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (!pdfjsReady) pdfjsReady = import(PDFJS_BASE + 'legacy/build/pdf.min.mjs').then(m => {
+    m.GlobalWorkerOptions.workerSrc = PDFJS_BASE + 'legacy/build/pdf.worker.min.mjs';
+    window.pdfjsLib = m; return m;
+  }).catch(e => { pdfjsReady = null; throw new Error('PDF 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요.'); });
+  return pdfjsReady;
+}
+const b64ToBytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+function bytesToB64(bytes) { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
+async function openPdf(bytes) {
+  const lib = await loadPdfJs();
+  return lib.getDocument({ data: bytes, cMapUrl: PDFJS_BASE + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS_BASE + 'standard_fonts/', wasmUrl: PDFJS_BASE + 'wasm/' }).promise;
+}
+
+const FORMS_KEY = 'kit-forms', CUR_FORM_KEY = 'kit-cur-form';
+const TYPES = { text:'글자', multi:'여러 줄', check:'체크(√)', date:'날짜', sign:'서명', select:'선택 목록' };
+let forms = [];
+try { forms = JSON.parse(localStorage.getItem(FORMS_KEY) || '[]'); } catch (e) {}
+let CF = null, cfMode = 'fill', cfSel = null, cfDoc = null, FV = {};
+const myPages = () => document.getElementById('myPages');
+const fkey = f => (f.name || '').trim() || f.id;
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const r1 = n => Math.round(n * 10) / 10;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function saveForms() {
+  try { localStorage.setItem(FORMS_KEY, JSON.stringify(forms)); return true; }
+  catch (e) { toast('브라우저 저장 공간이 부족합니다. ‘양식 파일로 내보내기’로 따로 보관하세요.'); return false; }
+}
+let tForms, tFV;
+const saveFormsSoon = () => { clearTimeout(tForms); tForms = setTimeout(saveForms, 400); };
+const draftKey = id => 'kit-fdraft-' + id;
+const saveFVSoon = () => { clearTimeout(tFV); tFV = setTimeout(() => { try { CF && localStorage.setItem(draftKey(CF.id), JSON.stringify(FV)); } catch (e) {} }, 300); };
+
+/* ---------- 목록·패널 ---------- */
+function refreshMyList() {
+  const el = document.getElementById('myList'); if (!el) return;
+  el.innerHTML = forms.length
+    ? forms.map(f => `<button class="sub fsub${CF && CF.id === f.id ? ' on' : ''}" onclick="openForm('${f.id}')">${esc(f.title)}</button>`).join('')
+    : '<div class="hint">아직 만든 양식이 없습니다.</div>';
+}
+function renderMyPanel() {
+  const p = document.getElementById('myPanel');
+  document.getElementById('myTitle').textContent = CF ? CF.title : '직접 만든 양식';
+  document.getElementById('myBadge').textContent = CF ? (cfMode === 'edit' ? '🛠 칸 편집 중' : '✏️ 작성') : '';
+  document.getElementById('myBadge').className = 'mbadge' + (CF ? ' ' + cfMode : '');
+  if (!CF) { p.innerHTML = ''; return; }
+  p.innerHTML = `
+    <div class="seg"><button class="${cfMode === 'fill' ? 'on' : ''}" onclick="setMode('fill')">✏️ 작성</button><button class="${cfMode === 'edit' ? 'on' : ''}" onclick="setMode('edit')">🛠 칸 편집</button></div>
+    ${cfMode === 'fill' ? `
+      <button class="sb primary" onclick="printForm()">🖨 인쇄 / PDF</button>
+      <div class="pt">작성 내용</div>
+      <button class="sb" onclick="saveFormData()">💾 작성 내용 저장</button>
+      <button class="sb" onclick="pickJson()">📂 작성 내용 열기</button>
+      <button class="sb" onclick="clearFormData()">🧹 새로 작성</button>
+      <label class="sopt"><input type="checkbox" ${document.body.classList.contains('clean') ? 'checked' : ''} onchange="document.body.classList.toggle('clean',this.checked)"> 입력칸 음영 숨기기</label>
+      <div class="pt">양식 공유</div>
+      <button class="sb" onclick="openPublish()">🌐 공개 목록에 올리기</button>
+      ${pubStatusLine()}
+      <button class="sb" onclick="exportForm()">📤 양식 파일로 내보내기</button>`
+    : `
+      <div class="hint">• 빈 곳을 <b>드래그</b>하면 새 칸이 생깁니다.<br>• 칸을 끌어 옮기고, 오른쪽 아래 □로 크기 조절<br>• 선택 후 <b>Delete</b> 삭제 · 방향키 미세 이동</div>
+      <div class="pt">선택한 칸</div>
+      <div id="myProps"></div>
+      <div class="pt">양식</div>
+      <button class="sb" onclick="redetect()">🔍 자동 인식 다시 하기</button>
+      <button class="sb" onclick="renameForm()">✎ 양식 이름 바꾸기</button>
+      <button class="sb" onclick="openPublish()">🌐 공개 목록에 올리기</button>
+      ${pubStatusLine()}
+      <button class="sb" onclick="exportForm()">📤 양식 파일로 내보내기</button>
+      <button class="sb" onclick="deleteForm()">🗑 이 양식 삭제</button>`}`;
+  if (cfMode === 'edit') renderProps();
+}
+function setMode(m) {
+  if (!CF) return;
+  cfMode = m; cfSel = null; saveForms(); renderMyPanel(); renderFields();
+}
+
+/* ---------- 양식 열기 ---------- */
+async function openForm(id, mode = 'fill', doc = null) {
+  const f = forms.find(x => x.id === id); if (!f) return;
+  CF = f; cfMode = mode; cfSel = null; cfDoc = null;
+  try { FV = JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}'); } catch (e) { FV = {}; }
+  try { localStorage.setItem(CUR_FORM_KEY, f.id); } catch (e) {}
+  showModule('my');
+  const wrap = myPages();
+  wrap.innerHTML = f.pages.map((p, i) => `<div class="page show cpage" data-pg="${i}" style="width:${p.w}pt;height:${p.h}pt;--h:${p.h}pt"><canvas class="bgc"></canvas><div class="flayer"></div></div>`).join('');
+  document.getElementById('myEmpty').style.display = 'none';
+  refreshMyList(); renderMyPanel(); renderFields();
+  try {
+    cfDoc = doc || await openPdf(b64ToBytes(f.pdf));
+    for (let i = 0; i < f.pages.length; i++) {
+      if (CF !== f) return;
+      const pg = await cfDoc.getPage(i + 1), vp = pg.getViewport({ scale: 3 });
+      const c = wrap.querySelectorAll('.cpage')[i]?.querySelector('canvas'); if (!c) return;
+      c.width = vp.width; c.height = vp.height;
+      await pg.render({ canvas: c, canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    }
+  } catch (e) { toast('PDF 배경을 그리지 못했습니다: ' + (e.message || e)); }
+}
+function closeForm() {
+  CF = null; cfDoc = null; FV = {};
+  myPages().innerHTML = ''; document.getElementById('myEmpty').style.display = '';
+  try { localStorage.removeItem(CUR_FORM_KEY); } catch (e) {}
+  refreshMyList(); renderMyPanel();
+}
+
+/* ---------- 새 양식: PDF 올리기 ---------- */
+function pickPdf() { document.getElementById('pdfPick').click(); }
+function pickJson() { document.getElementById('jsonPick').click(); }
+async function newFormFromFile(file) {
+  if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') { alert('PDF 파일을 올려 주세요.'); return; }
+  if (file.size > 4 * 1024 * 1024) { alert('4MB 이하의 PDF만 양식으로 만들 수 있습니다.'); return; }
+  showModule('my'); toast('PDF를 읽는 중입니다…');
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const doc = await openPdf(bytes.slice());
+    if (doc.numPages > 10) { alert('10쪽 이하의 양식만 만들 수 있습니다.'); return; }
+    const pages = [];
+    for (let i = 1; i <= doc.numPages; i++) { const vp = (await doc.getPage(i)).getViewport({ scale: 1 }); pages.push({ w: r1(vp.width), h: r1(vp.height) }); }
+    const f = { id: uid('f'), title: file.name.replace(/\.pdf$/i, '').replace(/[_]+/g, ' ').trim() || '새 양식',
+                createdAt: new Date().toISOString(), pdf: bytesToB64(bytes), pages, fields: [] };
+    forms.push(f);
+    await openForm(f.id, 'edit', doc);
+    f.fields = await detectFields(doc, pages);
+    saveForms(); renderFields(); refreshMyList();
+    toast(f.fields.length ? `입력칸 ${f.fields.length}개를 자동으로 찾았습니다. 확인·수정 후 ‘작성’으로 바꾸세요.`
+                          : '자동으로 찾은 칸이 없습니다(스캔한 PDF일 수 있음). 빈 곳을 드래그해 칸을 그려 주세요.');
+  } catch (e) { alert('PDF를 열 수 없습니다.\n' + (e.message || e)); }
+}
+async function redetect() {
+  if (!CF || !confirm('자동 인식한 칸으로 모두 바꿀까요?\n지금 있는 칸은 모두 지워집니다.')) return;
+  toast('다시 인식하는 중…');
+  CF.fields = await detectFields(cfDoc || await openPdf(b64ToBytes(CF.pdf)), CF.pages);
+  cfSel = null; saveForms(); renderFields(); toast(`입력칸 ${CF.fields.length}개를 찾았습니다.`);
+}
+
+/* ---------- 입력칸 자동 인식 ----------
+   ① 표의 선을 읽어 '빈 칸'을 찾고, 왼쪽(또는 위) 칸의 글자를 이름으로 붙임
+   ② 글자 단서: [ ]·( )·□ 체크, 년·월·일, (서명 또는 인)·(인), '전화:   ', '   인/만원/㎞' 같은 단위 앞 빈자리, ____
+   ③ 표가 없는 곳: '성명', '주소:' 같은 항목명 오른쪽(또는 아래) 빈자리 */
+const UNIT_RE = /^(인|명|원|만원|천원|㎞|km|㎡|평|분|시간|개|개월|매|부|세|회|장|건|대|%)/;
+async function detectFields(doc, pages) {
+  const out = [];
+  for (let pi = 0; pi < pages.length; pi++) {
+    const pg = await doc.getPage(pi + 1), vp = pg.getViewport({ scale: 1 });
+    const tc = await pg.getTextContent();
+    /* 흑백 이미지 (1pt = 2px) */
+    const K = 2, rv = pg.getViewport({ scale: K }), cvs = document.createElement('canvas');
+    cvs.width = Math.ceil(rv.width); cvs.height = Math.ceil(rv.height);
+    const cx = cvs.getContext('2d', { willReadFrequently: true }); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cvs.width, cvs.height);
+    await pg.render({ canvas: cvs, canvasContext: cx, viewport: rv }).promise;
+    const img = cx.getImageData(0, 0, cvs.width, cvs.height).data, IW = cvs.width, IH = cvs.height;
+    const dpx = (x, y) => { const i = (y * IW + x) * 4; return img[i] + img[i + 1] + img[i + 2] < 510; };
+    const dark = (x, y) => { x = Math.round(x * K); y = Math.round(y * K); return x >= 0 && y >= 0 && x < IW && y < IH && dpx(x, y); };
+    const vline = (x, y0, y1) => { let n = 0, t = 0; for (let y = y0; y <= y1; y += 0.5) { t++; if (dark(x, y) || dark(x + 0.5, y)) n++; } return t && n / t > 0.85; };
+    const hline = (y, x0, x1) => { let n = 0, t = 0; for (let x = x0; x <= x1; x += 0.5) { t++; if (dark(x, y) || dark(x, y + 0.5)) n++; } return t && n / t > 0.85; };
+
+    /* 글자 → 위치(pt) */
+    const items = tc.items.filter(it => it.str && it.str.trim()).map(it => {
+      const t = pdfjsLib.Util.transform(vp.transform, it.transform), fs = Math.hypot(t[2], t[3]) || 10;
+      const x0 = t[4], base = t[5], w = it.width * (vp.scale || 1);
+      return { s: it.str, x0, x1: x0 + w, base, fs, top: base - fs * 0.88, bot: base + fs * 0.22 };
+    }).filter(o => o.x1 > o.x0);
+    if (!items.length) continue;
+    const fsMed = items.map(o => o.fs).sort((a, b) => a - b)[items.length >> 1];
+    const textRight = Math.max(...items.map(o => o.x1)), textLeft = Math.min(...items.map(o => o.x0));
+    const hits = (b, ex) => items.some(o => !(ex && ex.has(o)) && o.x1 > b.x + 1 && o.x0 < b.x + b.w - 1 && o.bot > b.y + 1 && o.top < b.y + b.h - 1);
+    const add = (f, pri) => { if (f.w >= 6 && f.h >= 6) out.push(Object.assign({ id: uid('c'), page: pi, type: 'text', name: '', fs: r1(clamp(fsMed, 8, 13)), align: 'left', pri }, f)); };
+    const clean = s => s.replace(/\s+/g, '').replace(/^.*[)）](?=[가-힣A-Za-z])/, '').replace(/[:：]$/, '').replace(/^[(（○◦·•\-]+/, '').slice(0, 20);
+
+    /* ===== ① 표 칸 찾기: 긴 선만 남긴 그림에서 선으로 둘러싸인 영역 ===== */
+    const mask = new Uint8Array(IW * IH), hRun = Math.round(16 * K), vRun = Math.round(9 * K);
+    for (let y = 0; y < IH; y++) { let run = 0; for (let x = 0; x <= IW; x++) { if (x < IW && dpx(x, y)) run++; else { if (run >= hRun) for (let k = x - run; k < x; k++) mask[y * IW + k] = 1; run = 0; } } }
+    for (let x = 0; x < IW; x++) { let run = 0; for (let y = 0; y <= IH; y++) { if (y < IH && dpx(x, y)) run++; else { if (run >= vRun) for (let k = y - run; k < y; k++) mask[k * IW + x] = 1; run = 0; } } }
+    const m2 = mask.slice();                                   // 선 끝이 살짝 떨어진 곳 메우기
+    for (let y = 1; y < IH - 1; y++) for (let x = 1; x < IW - 1; x++) if (mask[y * IW + x]) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) m2[(y + dy) * IW + x + dx] = 1;
+    const lab = new Int32Array(IW * IH), cells = [], stack = [];
+    for (let s0 = 0; s0 < IW * IH; s0++) {
+      if (m2[s0] || lab[s0]) continue;
+      const id = cells.length + 1; let x0 = IW, y0 = IH, x1 = 0, y1 = 0, n = 0, edge = false;
+      stack.push(s0); lab[s0] = id;
+      while (stack.length) {
+        const p = stack.pop(), x = p % IW, y = (p / IW) | 0; n++;
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+        if (x === 0 || y === 0 || x === IW - 1 || y === IH - 1) edge = true;
+        if (x > 0 && !m2[p - 1] && !lab[p - 1]) { lab[p - 1] = id; stack.push(p - 1); }
+        if (x < IW - 1 && !m2[p + 1] && !lab[p + 1]) { lab[p + 1] = id; stack.push(p + 1); }
+        if (y > 0 && !m2[p - IW] && !lab[p - IW]) { lab[p - IW] = id; stack.push(p - IW); }
+        if (y < IH - 1 && !m2[p + IW] && !lab[p + IW]) { lab[p + IW] = id; stack.push(p + IW); }
+      }
+      const c = { x: x0 / K, y: y0 / K, w: (x1 - x0 + 1) / K, h: (y1 - y0 + 1) / K, fill: n / ((x1 - x0 + 1) * (y1 - y0 + 1)) };
+      cells.push(c);
+      c.ok = !edge && c.fill > 0.8 && c.w >= 10 && c.h >= 8 && c.w * c.h < 0.2 * vp.width * vp.height;
+    }
+    const tcells = cells.filter(c => c.ok);
+    tcells.forEach(c => {
+      c.items = items.filter(o => { const mx = (o.x0 + o.x1) / 2, my = (o.top + o.bot) / 2; return mx > c.x && mx < c.x + c.w && my > c.y && my < c.y + c.h; });
+      c.text = c.items.map(o => o.s).join('');
+      if (!c.items.length) {                               // 대각선 등 그림이 있는 칸은 제외
+        let d = 0, t = 0;
+        for (let y = Math.ceil((c.y + 2) * K); y < (c.y + c.h - 2) * K; y += 2) for (let x = Math.ceil((c.x + 2) * K); x < (c.x + c.w - 2) * K; x += 2) { t++; if (dpx(x, y)) d++; }
+        c.drawn = t && d / t > 0.004;
+      }
+    });
+    const ov = (a0, a1, b0, b1) => Math.max(0, Math.min(a1, b1) - Math.max(a0, b0));
+    const leftOf = c => tcells.filter(d => d !== c && Math.abs(d.x + d.w - c.x) < 3.5 && ov(d.y, d.y + d.h, c.y, c.y + c.h) > 0.6 * Math.min(c.h, d.h) && d.h < c.h * 1.8 && c.h < d.h * 1.8).sort((a, b) => b.x - a.x)[0];
+    const aboveOf = c => tcells.filter(d => d !== c && Math.abs(d.y + d.h - c.y) < 3.5 && ov(d.x, d.x + d.w, c.x, c.x + c.w) > 0.6 * Math.min(c.w, d.w) && c.w < d.w * 1.6).sort((a, b) => b.y - a.y)[0];
+    const nameFor = c => {
+      const ok = d => d.text.replace(/\s/g, '').length <= 24 && d.h < 60;   // 문장이 든 큰 칸은 이름으로 안 씀
+      for (let d = leftOf(c), k = 0; d && k < 4; d = leftOf(d), k++) if (d.items.length) { if (ok(d)) return { name: clean(d.text), fs: d.items[0].fs }; break; }
+      for (let d = aboveOf(c), k = 0; d && k < 12; d = aboveOf(d), k++) if (d.items.length) { if (ok(d)) return { name: clean(d.text), fs: d.items[0].fs }; break; }
+      return { name: '', fs: fsMed };
+    };
+    tcells.forEach(c => {
+      if (c.items.length) {                                // 글자가 오른쪽에 치우친 칸: 왼쪽 빈자리 ('   (전화:  )', '   인')
+        const tx0 = Math.min(...c.items.map(o => o.x0)), spacedHead = c.items.length > 1 && c.items.every(o => /^[가-힣]$/.test(o.s.trim()));
+        const nm0 = tx0 - c.x > 50 && !spacedHead ? nameFor(c) : null;
+        if (nm0 && nm0.name) {
+          const nm = nm0, my = (Math.min(...c.items.map(o => o.top)) + Math.max(...c.items.map(o => o.bot))) / 2, h = Math.min(c.h - 3, Math.max(nm.fs * 1.6, 14));
+          add({ x: r1(c.x + 1.5), y: r1(Math.max(c.y + 1.5, my - h / 2)), w: r1(tx0 - c.x - 5), h: r1(h), name: nm.name, fs: r1(clamp(nm.fs, 7, 14)) }, 2);
+        }
+        return;
+      }
+      if (c.drawn) return;
+      const nm = nameFor(c), multi = c.h > Math.max(nm.fs, 9) * 3.2 && c.h > 40 && c.w > 90;
+      if (!nm.name && c.h < 18) return;                    // 이름 없는 얇은 띠(이중선 사이 등)
+      add({ type: multi ? 'multi' : 'text', x: r1(c.x + 1.5), y: r1(c.y + 1.5), w: r1(c.w - 3), h: r1(c.h - 3), name: nm.name, fs: r1(clamp(nm.fs, 7, 14)) }, 2);
+    });
+
+    /* ===== ② 글자 단서 ===== */
+    items.sort((a, b) => a.base - b.base || a.x0 - b.x0);
+    const lines = [];
+    items.forEach(o => { const L = lines.find(l => Math.abs(l.base - o.base) < o.fs * 0.35); L ? L.items.push(o) : lines.push({ base: o.base, items: [o] }); });
+    lines.sort((a, b) => a.base - b.base);
+    lines.forEach((L, li) => {
+      L.items.sort((a, b) => a.x0 - b.x0);
+      const chars = [];
+      L.items.forEach(o => { const n = o.s.length, cw = (o.x1 - o.x0) / n; [...o.s].forEach((ch, i) => chars.push({ ch, x0: o.x0 + cw * i, x1: o.x0 + cw * (i + 1), o })); });
+      const lineText = chars.map(c => c.ch).join('');
+      const fsL = Math.max(...L.items.map(o => o.fs)), top = Math.min(...L.items.map(o => o.top)), bot = Math.max(...L.items.map(o => o.bot));
+      const note = /해당되는\s*곳|표를\s*합니다|해당란에/.test(lineText);
+      const handled = new Set(), checksX = [];
+      const prevNon = i => { let k = i - 1; while (k >= 0 && !chars[k].ch.trim()) k--; return k; };
+      const nextNon = i => { let k = i + 1; while (k < chars.length && !chars[k].ch.trim()) k++; return k; };
+      /* 왼쪽 경계: 앞 글자 또는 세로선 */
+      const leftEdge = (i, x) => { const k = prevNon(i); let lb = k >= 0 ? chars[k].x1 : textLeft - 2;
+        for (let xx = x - 1.5; xx > lb; xx -= 0.5) if (vline(xx, top + 1, bot - 1)) return xx + 1; return lb; };
+      /* 체크칸: [ ] □ */
+      chars.forEach((c, i) => {
+        if ('□☐'.includes(c.ch)) { add({ type: 'check', x: r1(c.x0), y: r1(top + 0.5), w: r1(Math.max(c.x1 - c.x0, fsL * 0.8)), h: r1(bot - top - 1), fs: r1(fsL) }, 0); checksX.push(c.x1); handled.add(c.o); return; }
+        const close = { '[': ']', '［': '］', '(': ')', '（': '）' }[c.ch]; if (!close || note) return;
+        const j = nextNon(i); if (j >= chars.length || chars[j].ch !== close) return;
+        const gap = chars[j].x0 - c.x1, k = prevNon(i);
+        if (c.ch === '(' || c.ch === '（') {                 // '자가(   )' 처럼 앞 글자에 붙은 빈 괄호만
+          if (gap < fsL * 0.8 || k < 0 || c.x0 - chars[k].x1 > fsL * 0.6 || !/[가-힣A-Za-z]/.test(chars[k].ch)) return;
+          let a = k; while (a > 0 && chars[a - 1].ch.trim() && !')）'.includes(chars[a - 1].ch) && chars[a].x0 - chars[a - 1].x1 < fsL * 0.3 && (chars[a].o === chars[a - 1].o || !vline((chars[a].x0 + chars[a - 1].x1) / 2, top + 1, bot - 1))) a--;
+          const w = Math.min(gap, fsL * 1.2);
+          add({ type: 'check', x: r1(c.x1 + (gap - w) / 2), y: r1(top + 0.5), w: r1(w), h: r1(bot - top - 1), fs: r1(fsL), name: chars.slice(a, k + 1).map(z => z.ch).join('') }, 0);
+        } else {
+          if (gap > fsL * 3) return;
+          const w = Math.max(gap, fsL * 0.6);
+          add({ type: 'check', x: r1(c.x1 + (gap - w) / 2), y: r1(top + 0.5), w: r1(w), h: r1(bot - top - 1), fs: r1(fsL) }, 0);
+        }
+        checksX.push(chars[j].x1);
+      });
+      /* 서명: (서명 또는 인) · (인) */
+      const sre = /\(\s*(서\s*명|인|날\s*인)(\s*또\s*는\s*(인|날\s*인))?\s*\)/g; let m;
+      const signed = [];
+      while ((m = sre.exec(lineText))) {
+        const a = chars[m.index], b = chars[m.index + m[0].length - 1], cxm = (a.x0 + b.x1) / 2, cym = (top + bot) / 2;
+        const own = new Set(L.items.filter(o => o.x1 > a.x0 && o.x0 < b.x1));
+        const w = Math.max(b.x1 - a.x0 + 16, 44); let h = clamp(fsL * 2.3, 20, 30);
+        while (h > fsL * 1.4 && hits({ x: cxm - w / 2, y: cym - h / 2, w, h }, own)) h -= 1;
+        add({ type: 'sign', x: r1(cxm - w / 2), y: r1(cym - h / 2), w: r1(w), h: r1(h), name: '서명' }, 0);
+        own.forEach(o => handled.add(o)); signed.push([m.index, m.index + m[0].length]);
+      }
+      const inSign = i => signed.some(([a, b]) => i >= a && i < b);
+      /* 날짜: '  년  월  일' 앞 빈자리 */
+      const dateLine = /년.*월.*일|월.*일/.test(lineText.replace(/\s/g, ''));
+      chars.forEach((c, i) => {
+        if (!dateLine || !'년월일'.includes(c.ch)) return;
+        const lb = leftEdge(i, c.x0), gap = c.x0 - lb;
+        if (gap < fsL * 1.1) return;
+        const w = Math.min(gap - 4, c.ch === '년' ? 46 : 32);
+        add({ x: r1(c.x0 - 2 - w), y: r1(top), w: r1(w), h: r1(bot - top), name: c.ch, fs: r1(fsL), align: 'right' }, 1);
+        handled.add(c.o);
+      });
+      /* 단위 앞 빈자리: '   인', '   만원', '   ㎞', '(   분소요)' */
+      chars.forEach((c, i) => {
+        if (inSign(i) || (i > 0 && chars[i - 1].ch.trim() && !'(（'.includes(chars[i - 1].ch))) return;
+        const rest = chars.slice(i, i + 3).map(z => z.ch).join(''), mu = rest.match(UNIT_RE); if (!mu || '년월일'.includes(c.ch) && dateLine) return;
+        const after = chars[i + mu[0].length]; if (after && /[가-힣]/.test(after.ch) && !/^(소요|정도|이상|이내)/.test(chars.slice(i + mu[0].length, i + mu[0].length + 2).map(z => z.ch).join(''))) return;
+        const lb = leftEdge(i, c.x0), gap = c.x0 - lb;
+        if (gap < fsL * 1.6) return;
+        const w = Math.min(gap - 4, 90);
+        add({ x: r1(c.x0 - 2 - w), y: r1(top), w: r1(w), h: r1(bot - top), name: mu[0], fs: r1(fsL), align: 'right' }, 2.5);
+      });
+      /* '전화:      )' 처럼 쌍점 뒤 빈자리 */
+      chars.forEach((c, i) => {
+        if (c.ch !== ':' && c.ch !== '：') return;
+        const j = nextNon(i), rb = j < chars.length ? chars[j].x0 : Math.min(textRight + 2, c.x1 + 200);
+        if (j < chars.length && !')）'.includes(chars[j].ch)) return;
+        if (rb - c.x1 < fsL * 2) return;
+        let a = i; while (a > 0 && chars[a - 1].ch.trim() && !'(（'.includes(chars[a - 1].ch)) a--;
+        add({ x: r1(c.x1 + 2), y: r1(top), w: r1(rb - c.x1 - 4), h: r1(bot - top), name: chars.slice(a, i).map(z => z.ch).join(''), fs: r1(fsL) }, 1);
+      });
+      /* 밑줄 빈칸: ____ */
+      const ure = /_{3,}/g;
+      while ((m = ure.exec(lineText))) {
+        const a = chars[m.index], b = chars[m.index + m[0].length - 1];
+        add({ x: r1(a.x0), y: r1(L.base - fsL * 1.05), w: r1(b.x1 - a.x0), h: r1(fsL * 1.25), fs: r1(fsL) }, 2);
+      }
+
+      /* ===== ③ 항목명 오른쪽(또는 아래) 빈자리 ===== */
+      const prevL = lines[li - 1], nextL = lines[li + 1];
+      const noLineBetween = (A, B) => { const ya = Math.max(...A.items.map(o => o.bot)), yb = Math.min(...B.items.map(o => o.top)), xa = B.items[0].x0;
+        for (let y = ya; y <= yb; y += 0.5) if (hline(y, xa, xa + 20)) return false; return true; };
+      const spacedLine = phr => phr.length > 1 && phr.every(p => /^[가-힣]$/.test(p.s.trim()));
+      const wrapped = prevL && L.base - prevL.base < L.items[0].fs * 1.7 && Math.max(...prevL.items.map(o => o.x1)) > textRight - 12 && noLineBetween(prevL, L);
+      const DT = s => /^[년월일]$/.test(s.trim());
+      const phr = [];
+      L.items.forEach(o => {
+        const p = phr[phr.length - 1], g = p ? o.x0 - p.x1 : 0, last = p && p.list[p.list.length - 1];
+        const spaced = p && /^[가-힣]{1,2}$/.test(o.s.trim()) && /^[가-힣]{1,2}$/.test(last.s.trim()) && g < o.fs * 2.4 && !DT(o.s) && !DT(last.s);
+        if (p && (g < o.fs * 0.45 || spaced) && Math.abs(o.base - p.base) < 1.5 && Math.abs(o.fs - p.fs) < 1.5) { p.s += ' ' + o.s; p.x1 = o.x1; p.list.push(o); }
+        else phr.push({ s: o.s, x0: o.x0, x1: o.x1, fs: o.fs, list: [o] });
+      });
+      if (spacedLine(phr)) return;                        // '수   령   증' 같은 띄어 쓴 제목
+      phr.forEach((P, i) => {
+        let s = P.s.trim(); if (/^[(（].*[:：]$/.test(s)) s = s.slice(1);
+        const core = s.replace(/\s+/g, '');
+        if (!core || core.length < 2 || core.length > 16 || P.fs > 15 || /[.。다]$/.test(core) || /[\[\]［］_]/.test(core) || /^[(（]|[(（]$/.test(core) || /^[※■▶☞【〔<〈「『]/.test(core) || /^\d+[.)]/.test(core)) return;
+        if (P.list.some(o => handled.has(o)) || wrapped || !/[가-힣A-Za-z]/.test(core) || /^(귀하|귀중|드림|올림|끝|이하여백)$/.test(core)) return;
+        if (checksX.some(x => P.x0 - x > -1 && P.x0 - x < P.fs * 2.5)) return;
+        if (nextL && nextL.base - L.base < P.fs * 1.9 && Math.abs(nextL.items[0].x0 - P.x0) < P.fs && noLineBetween(L, nextL)) return;   // 목록·문단의 머리말
+        const prev = phr[i - 1], next = phr[i + 1], limit = next ? next.x0 : textRight + 2;
+        let x0 = P.x1 + 2, x1 = limit - 2;
+        const ty = top + (bot - top) * 0.15, by = bot - (bot - top) * 0.15;
+        for (let x = x0 + 1; x < x1; x += 0.5) if (vline(x, ty, by)) { x1 = x - 2; break; }
+        let lb = prev ? prev.x1 : textLeft - 2;
+        for (let x = P.x0 - 2; x > lb; x -= 0.5) if (vline(x, ty, by)) { lb = x; break; }
+        const ls = P.x0 - lb, rs = x1 - P.x1;
+        const nextInCell = next && next.x0 <= x1 + 4;
+        if (!nextInCell && !/[:：]$/.test(core) && ls > 12 && Math.abs(ls - rs) < 0.3 * (ls + rs)) return;   // 가운데 정렬된 제목
+        let upLine = false;
+        for (let y = top - 0.5; y > top - P.fs * 0.9; y -= 0.5) if (hline(y, P.x0, P.x0 + 16)) { upLine = true; break; }
+        if (x1 - x0 < 70 && upLine && ls < 10) {             // 칸 위쪽 항목명 → 아래 빈자리
+          let dn2 = null;
+          for (let y = bot + 1; y < bot + 45; y += 0.5) if (hline(y, P.x0, P.x0 + 16)) { dn2 = y; break; }
+          if (dn2 != null && dn2 - bot >= P.fs * 1.05) {
+            let bx1 = textRight + 2; const yy0 = bot + 1, yy1 = dn2 - 1.5;
+            for (let x = P.x0 + 2; x < bx1; x += 0.5) if (vline(x, yy0 + 1, yy1 - 1)) { bx1 = x - 2; break; }
+            const bb = { x: r1(P.x0 - 1), y: r1(yy0), w: r1(bx1 - P.x0 + 1), h: r1(yy1 - yy0) };
+            if (bb.w >= 40 && bb.h >= 9 && !hits(bb)) { add(Object.assign(bb, { name: clean(core), fs: r1(clamp(P.fs, 7, 16)) }), 3); return; }
+          }
+        }
+        if (x1 - x0 < 28) return;
+        const xm = (x0 + x1) / 2, ym = (top + bot) / 2, xs = [x0 + 4, xm, x1 - 4];
+        const isH = y => xs.filter(x => dark(x, y)).length >= 2 && hline(y, xm - 6, xm + 6);
+        let up = null, dn = null;
+        for (let y = ym; y > ym - 26; y -= 0.5) if (isH(y)) { up = y; break; }
+        for (let y = ym; y < ym + 26; y += 0.5) if (isH(y)) { dn = y; break; }
+        let y0 = top - P.fs * 0.2, y1 = bot + P.fs * 0.2;
+        if (up != null && dn != null && dn - up < P.fs * 4) { y0 = up + 1.5; y1 = dn - 1.5; }
+        else if (dn != null && dn - bot < P.fs) { y1 = dn - 1; y0 = y1 - P.fs * 1.5; }
+        const box = { x: r1(x0 + 1), y: r1(y0), w: r1(x1 - x0 - 1), h: r1(y1 - y0) };
+        if (hits(box)) { box.y = r1(top - 1); box.h = r1(bot - top + 2); if (hits(box)) return; }
+        add(Object.assign(box, { name: clean(core), fs: r1(clamp(P.fs, 7, 16)) }), 3);
+      });
+    });
+  }
+  /* 우선순위 순으로 겹치는 칸 정리 + 같은 이름에 번호 */
+  out.sort((a, b) => a.pri - b.pri);
+  const keep = [];
+  out.forEach(f => {
+    const area = g => g.w * g.h;
+    const clash = keep.find(g => g.page === f.page && Math.max(0, Math.min(g.x + g.w, f.x + f.w) - Math.max(g.x, f.x)) * Math.max(0, Math.min(g.y + g.h, f.y + f.h) - Math.max(g.y, f.y)) > 0.4 * Math.min(area(g), area(f)));
+    if (!clash) keep.push(f);
+  });
+  keep.sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
+  const cnt = {};
+  keep.forEach(f => {
+    delete f.pri;
+    if (f.type === 'check') { if (!f.name) f.name = ''; else { cnt[f.name] = (cnt[f.name] || 0) + 1; if (cnt[f.name] > 1) f.name += ' ' + cnt[f.name]; } return; }
+    const n = f.name || TYPES[f.type]; cnt[n] = (cnt[n] || 0) + 1; f.name = cnt[n] > 1 ? `${n} ${cnt[n]}` : n;
+  });
+  return keep;
+}
+
+/* ---------- 칸 그리기 ---------- */
+const fStyle = f => `left:${f.x}pt;top:${f.y}pt;width:${f.w}pt;height:${f.h}pt`;
+function editHTML(f) {
+  return `<div class="ef t-${f.type}${f.id === cfSel ? ' sel' : ''}" data-id="${f.id}" style="${fStyle(f)}"><span class="en">${esc(f.name || TYPES[f.type])}</span><i class="rh"></i></div>`;
+}
+function fillHTML(f) {
+  const k = esc(fkey(f)), v = FV[fkey(f)] ?? '', st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'left'}`;
+  switch (f.type) {
+    case 'multi':  return `<textarea class="in cf ml" data-f="${k}" spellcheck="false" style="${st}">${esc(v)}</textarea>`;
+    case 'check':  return `<span class="chk cf${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
+    case 'sign':   return `<div class="sig cf${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
+    case 'select': { const ops = f.options || []; return `<select class="in cf" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
+                      ['', ...ops, ...(v && !ops.includes(v) ? [v] : [])].map(o => `<option${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('') + '</select>'; }
+    case 'date':   return `<input class="in cf" data-f="${k}" value="${esc(v)}" style="${st}"><button class="dbtn" data-dfor="${k}" title="달력에서 선택" style="left:${r1(f.x + f.w + 1)}pt;top:${r1(f.y + f.h / 2 - 6)}pt">📅</button>`;
+    default:       return `<input class="in cf" data-f="${k}" value="${esc(v)}" style="${st}">`;
+  }
+}
+function renderFields() {
+  if (!CF) return;
+  const wrap = myPages(), layers = $$('#myPages .flayer');
+  wrap.classList.toggle('editing', cfMode === 'edit');
+  layers.forEach(l => l.innerHTML = '');
+  CF.fields.forEach(f => { const L = layers[f.page]; if (L) L.insertAdjacentHTML('beforeend', cfMode === 'edit' ? editHTML(f) : fillHTML(f)); });
+  if (cfMode === 'fill') $$('#myPages input.cf').forEach(fit);
+  if (cfMode === 'edit') renderProps();
+}
+function refreshBox(f) {
+  const el = myPages().querySelector(`.ef[data-id="${f.id}"]`); if (!el) return;
+  el.style.cssText = fStyle(f); el.className = `ef t-${f.type}${f.id === cfSel ? ' sel' : ''}`;
+  el.querySelector('.en').textContent = f.name || TYPES[f.type];
+}
+
+/* ---------- 칸 속성 ---------- */
+function renderProps() {
+  const box = document.getElementById('myProps'); if (!box) return;
+  const f = CF && CF.fields.find(x => x.id === cfSel);
+  if (!f) { box.innerHTML = '<div class="hint">칸을 클릭하면 여기서 이름·종류·글자 크기를 바꿀 수 있습니다.</div>'; return; }
+  box.innerHTML = `
+    <label class="pl">이름 <small>이름이 같은 칸은 함께 입력됩니다</small></label>
+    <input class="sin" id="pName" value="${esc(f.name || '')}" placeholder="예) 성명">
+    <label class="pl">종류</label>
+    <select class="ssel" id="pType">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}"${k === f.type ? ' selected' : ''}>${v}</option>`).join('')}</select>
+    <div class="prow">
+      <div><label class="pl">글자 크기(pt)</label><input class="sin" id="pFs" type="number" min="6" max="30" step="0.5" value="${f.fs || 11}"></div>
+      <div><label class="pl">정렬</label><select class="ssel" id="pAlign">${[['left', '왼쪽'], ['center', '가운데'], ['right', '오른쪽']].map(([k, v]) => `<option value="${k}"${k === (f.align || 'left') ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+    </div>
+    <div id="pOptWrap" style="display:${f.type === 'select' ? '' : 'none'}"><label class="pl">선택 항목 (한 줄에 하나)</label><textarea class="sin" id="pOpts" rows="4">${esc((f.options || []).join('\n'))}</textarea></div>
+    <div class="prow"><button class="sb" onclick="dupField()">⧉ 복제</button><button class="sb" onclick="delField()">🗑 삭제</button></div>`;
+  const g = id => document.getElementById(id);
+  const upd = () => {
+    f.name = g('pName').value; f.type = g('pType').value; f.fs = +g('pFs').value || 11; f.align = g('pAlign').value;
+    f.options = g('pOpts').value.split('\n').map(s => s.trim()).filter(Boolean);
+    g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
+    refreshBox(f); saveFormsSoon();
+  };
+  ['pName', 'pType', 'pFs', 'pAlign', 'pOpts'].forEach(id => g(id).addEventListener('input', upd));
+}
+function delField() { if (!CF || !cfSel) return; CF.fields = CF.fields.filter(f => f.id !== cfSel); cfSel = null; saveFormsSoon(); renderFields(); }
+function dupField() {
+  const f = CF && CF.fields.find(x => x.id === cfSel); if (!f) return;
+  const n = Object.assign({}, f, { id: uid('c'), y: r1(f.y + f.h + 4) }); CF.fields.push(n); cfSel = n.id; saveFormsSoon(); renderFields();
+}
+
+/* ---------- 칸 편집: 마우스 ---------- */
+let fdrag = null;
+function ptOf(pageEl, ev) { const r = pageEl.getBoundingClientRect(), p = CF.pages[+pageEl.dataset.pg]; return [(ev.clientX - r.left) * p.w / r.width, (ev.clientY - r.top) * p.h / r.height]; }
+function setupEditor() {
+  const wrap = myPages();
+  wrap.addEventListener('pointerdown', ev => {
+    if (!CF || cfMode !== 'edit' || ev.button !== 0) return;
+    const pageEl = ev.target.closest('.cpage'); if (!pageEl) return;
+    ev.preventDefault(); document.activeElement && document.activeElement.blur && document.activeElement.blur();
+    const [px, py] = ptOf(pageEl, ev), box = ev.target.closest('.ef');
+    if (box) {
+      const f = CF.fields.find(x => x.id === box.dataset.id); cfSel = f.id;
+      fdrag = { mode: ev.target.classList.contains('rh') ? 'resize' : 'move', f, pageEl, sx: px, sy: py, ox: f.x, oy: f.y, ow: f.w, oh: f.h };
+    } else { cfSel = null; fdrag = { mode: 'new', pageEl, sx: px, sy: py, f: null }; }
+    pageEl.setPointerCapture(ev.pointerId);
+    $$('#myPages .ef').forEach(e => e.classList.toggle('sel', e.dataset.id === cfSel)); renderProps();
+  });
+  wrap.addEventListener('pointermove', ev => {
+    if (!fdrag) return;
+    const [px, py] = ptOf(fdrag.pageEl, ev), p = CF.pages[+fdrag.pageEl.dataset.pg], dx = px - fdrag.sx, dy = py - fdrag.sy, f = fdrag.f;
+    if (fdrag.mode === 'move') { f.x = r1(clamp(fdrag.ox + dx, 0, p.w - f.w)); f.y = r1(clamp(fdrag.oy + dy, 0, p.h - f.h)); }
+    else if (fdrag.mode === 'resize') { f.w = r1(clamp(fdrag.ow + dx, 6, p.w - f.x)); f.h = r1(clamp(fdrag.oh + dy, 6, p.h - f.y)); }
+    else {
+      if (!fdrag.f) {
+        if (Math.hypot(dx, dy) < 4) return;
+        fdrag.f = { id: uid('c'), page: +fdrag.pageEl.dataset.pg, type: 'text', name: '', fs: 11, align: 'left', x: 0, y: 0, w: 1, h: 1 };
+        CF.fields.push(fdrag.f); cfSel = fdrag.f.id;
+        fdrag.pageEl.querySelector('.flayer').insertAdjacentHTML('beforeend', editHTML(fdrag.f));
+      }
+      const g = fdrag.f; g.x = r1(Math.min(px, fdrag.sx)); g.y = r1(Math.min(py, fdrag.sy)); g.w = r1(Math.abs(dx)); g.h = r1(Math.abs(dy));
+    }
+    refreshBox(fdrag.f || {});
+  });
+  const end = () => {
+    if (!fdrag) return;
+    const d = fdrag; fdrag = null;
+    if (d.mode === 'new' && d.f) {
+      d.f.w = Math.max(d.f.w, 20); d.f.h = Math.max(d.f.h, 10);
+      d.f.fs = r1(clamp(d.f.h * 0.62, 7, 14)); d.f.name = '칸 ' + CF.fields.length;
+    }
+    if (d.mode !== 'new' || d.f) { saveFormsSoon(); renderFields(); }
+  };
+  wrap.addEventListener('pointerup', end); wrap.addEventListener('pointercancel', end);
+
+  /* 작성 모드: 입력·체크·서명·날짜 */
+  wrap.addEventListener('input', ev => { const e = ev.target; if (e.dataset && e.dataset.f != null && cfMode === 'fill') setFV(e.dataset.f, e.value, e); });
+  wrap.addEventListener('click', ev => {
+    if (!CF || cfMode !== 'fill') return;
+    const c = ev.target.closest('.chk[data-f]'); if (c) { setFV(c.dataset.f, FV[c.dataset.f] ? '' : '√'); return; }
+    const s = ev.target.closest('.sig[data-f]');
+    if (s) { const k = s.dataset.f; openSigFor(s.dataset.title, v => setFV(k, v), s); return; }
+    const d = ev.target.closest('.dbtn');
+    if (d) {
+      const dp = document.getElementById('dPick'), r = d.getBoundingClientRect();
+      dp.dataset.for = d.dataset.dfor; dp.value = toIso(FV[d.dataset.dfor] || '');
+      dp.style.left = r.left + 'px'; dp.style.top = r.bottom + 'px';
+      try { dp.showPicker(); } catch (e) { dp.focus(); dp.click(); }
+    }
+  });
+  document.getElementById('dPick').addEventListener('change', ev => {
+    const v = ev.target.value; if (!v) return; const [y, m, d] = v.split('-');
+    setFV(ev.target.dataset.for, `${y}. ${+m}. ${+d}.`);
+  });
+  document.addEventListener('keydown', ev => {
+    if (!CF || cfMode !== 'edit' || !cfSel || !document.querySelector('.module[data-mod="my"].on')) return;
+    if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+    const f = CF.fields.find(x => x.id === cfSel); if (!f) return;
+    const st = ev.shiftKey ? 5 : 0.5, mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[ev.key];
+    if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); delField(); }
+    else if (mv) { ev.preventDefault(); f.x = r1(f.x + mv[0]); f.y = r1(f.y + mv[1]); refreshBox(f); saveFormsSoon(); }
+  });
+}
+function setFV(k, v, from) {
+  FV[k] = v;
+  $$('#myPages [data-f]').forEach(e => {
+    if (e.dataset.f !== k) return;
+    if (e.classList.contains('chk')) e.classList.toggle('on', !!v);
+    else if (e.classList.contains('sig')) { e.classList.toggle('signed', !!v); const im = e.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); }
+    else { if (e !== from) e.value = v ?? ''; if (e.tagName === 'INPUT') fit(e); }
+  });
+  saveFVSoon();
+}
+
+/* ---------- 작성 내용 저장·열기 ---------- */
+async function saveJsonAs(name, obj, desc) {
+  const text = JSON.stringify(obj);
+  if (window.showSaveFilePicker) {
+    try {
+      const h = await window.showSaveFilePicker({ suggestedName: name, id: 'kit-forms', types: [{ description: desc, accept: { 'application/json': ['.json'] } }] });
+      const w = await h.createWritable(); await w.write(text); await w.close(); toast(`저장했습니다: ${h.name}`); return;
+    } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast(`다운로드 폴더에 저장했습니다: ${name}`);
+}
+const safeName = s => String(s || '').replace(/[\\/:*?"<>|\s]+/g, '').slice(0, 30);
+function saveFormData() {
+  if (!CF) return;
+  const t = new Date(), ds = `${t.getFullYear()}${pad2(t.getMonth() + 1)}${pad2(t.getDate())}`;
+  const nameField = CF.fields.find(f => /성명|이름/.test(f.name || '') && FV[fkey(f)]) || CF.fields.find(f => f.type === 'text' && FV[fkey(f)]);
+  const who = nameField ? safeName(FV[fkey(nameField)]) : '';
+  saveJsonAs(`${safeName(CF.title)}${who ? '_' + who : ''}_${ds}.json`,
+    { _type: 'form-data', _version: 1, formId: CF.id, formTitle: CF.title, savedAt: t.toISOString(), values: FV }, '작성 내용 파일');
+}
+function clearFormData() {
+  if (!CF || !confirm('이 양식에 입력한 내용을 모두 지울까요?')) return;
+  FV = {}; saveFVSoon(); renderFields();
+}
+async function loadFormData(o, fname) {
+  const f = forms.find(x => x.id === o.formId) || forms.find(x => x.title === o.formTitle);
+  if (!f) { alert(`이 작성 파일의 양식(‘${o.formTitle || '알 수 없음'}’)이 목록에 없습니다.\n먼저 양식 파일을 가져온 다음 다시 여세요.`); return; }
+  let cur = {}; try { cur = JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}'); } catch (e) {}
+  if (Object.values(cur).some(v => v) && !confirm(`‘${f.title}’에 작성 중인 내용이 ‘${fname}’ 내용으로 바뀝니다. 계속할까요?`)) return;
+  try { localStorage.setItem(draftKey(f.id), JSON.stringify(o.values || {})); } catch (e) {}
+  await openForm(f.id, 'fill'); toast(`불러왔습니다: ${fname}`);
+}
+
+/* ---------- 양식 파일 내보내기·가져오기·삭제 ---------- */
+function exportForm() {
+  if (!CF) return; saveForms();
+  const { id, title, createdAt, pdf, pages, fields } = CF;
+  saveJsonAs(`양식_${safeName(title)}.json`, { _type: 'form-template', _version: 1, form: { id, title, createdAt, pdf, pages, fields } }, '양식 파일');
+}
+function importTemplate(o) {
+  const t = o.form;
+  if (!t || !t.pdf || !Array.isArray(t.pages) || !Array.isArray(t.fields)) { alert('양식 파일이 올바르지 않습니다.'); return; }
+  const i = forms.findIndex(x => x.id === t.id);
+  if (i >= 0) {
+    if (confirm(`‘${forms[i].title}’ 양식이 이미 있습니다. 새 파일 내용으로 바꿀까요?\n(취소하면 사본으로 추가합니다)`)) forms[i] = t;
+    else { t.id = uid('f'); t.title += ' (사본)'; forms.push(t); }
+  } else forms.push(t);
+  saveForms(); refreshMyList(); openForm(t.id, 'fill'); toast(`양식을 가져왔습니다: ${t.title}`);
+}
+function renameForm() {
+  if (!CF) return; const n = prompt('양식 이름', CF.title); if (!n || !n.trim()) return;
+  CF.title = n.trim(); saveForms(); refreshMyList(); renderMyPanel();
+}
+function deleteForm() {
+  if (!CF || !confirm(`‘${CF.title}’ 양식을 삭제할까요?\n이 양식에 작성 중이던 내용도 함께 지워집니다.`)) return;
+  try { localStorage.removeItem(draftKey(CF.id)); } catch (e) {}
+  forms = forms.filter(f => f.id !== CF.id); saveForms(); closeForm();
+}
+
+/* ---------- 인쇄 ---------- */
+function printForm() {
+  if (!CF) return;
+  if (cfMode !== 'fill') setMode('fill');
+  const p = CF.pages[0]; let st = document.getElementById('pgSize');
+  if (!st) { st = document.createElement('style'); st.id = 'pgSize'; document.head.appendChild(st); }
+  st.textContent = `@media print { @page { size:${p.w}pt ${p.h}pt; margin:0; } }`;
+  document.body.dataset.print = 'current'; window.print();
+}
+window.addEventListener('afterprint', () => { const st = document.getElementById('pgSize'); if (st) st.textContent = ''; });
+
+/* ---------- 파일 받기(선택·끌어다 놓기) ---------- */
+function routeFile(f) {
+  if (!f) return;
+  if (/\.pdf$/i.test(f.name) || f.type === 'application/pdf') return newFormFromFile(f);
+  f.text().then(t => handleJsonText(t, f.name));
+}
+function handleJsonText(text, fname) {
+  let o; try { o = JSON.parse(text); } catch (e) { alert('JSON 파일이 아닙니다.'); return; }
+  if (o && o._type === 'form-template') return importTemplate(o);
+  if (o && o._type === 'form-data') return loadFormData(o, fname);
+  if (o && typeof o === 'object' && (o._type === FILE_TYPE || !o._type)) { showModule('ltc'); return loadText(text, fname); }
+  alert('이 도구에서 쓰는 파일이 아닙니다.');
+}
+
+/* =====================================================================
+   공개 양식 모음 (Firebase)
+   · 서버에는 '빈 양식'(원본 PDF + 칸 정보)만 올라감. 작성 내용·서명은 절대 올라가지 않음
+   · 로그인(구글)한 사람이 공개 신청 → 관리자 승인 → 누구나 목록에서 골라 사용
+   · 관리자는 Firestore의 admins 컬렉션에 문서 ID = 관리자 이메일 로 등록
+   ===================================================================== */
+const FB_VER = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const PUB_CATS = ['복지·돌봄', '계약', '행정·민원', '교육', '기타'];
+const realFB = {
+  ready: null, m: null, app: null, auth: null, db: null, user: null, admin: false,
+  enabled() { return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId); },
+  init() {
+    if (this.ready) return this.ready;
+    this.ready = (async () => {
+      const [a, au, fs] = await Promise.all([import(FB_VER + 'firebase-app.js'), import(FB_VER + 'firebase-auth.js'), import(FB_VER + 'firebase-firestore.js')]);
+      this.m = Object.assign({}, a, au, fs);
+      this.app = a.initializeApp(FIREBASE_CONFIG); this.auth = au.getAuth(this.app); this.db = fs.getFirestore(this.app);
+      try { await au.getRedirectResult(this.auth); } catch (e) {}
+      await new Promise(res => {
+        let first = true;
+        au.onAuthStateChanged(this.auth, async u => {
+          this.user = u; this.admin = false;
+          if (u && u.email) { try { this.admin = (await fs.getDoc(fs.doc(this.db, 'admins', u.email))).exists(); } catch (e) {} }
+          pubAuthChanged(); if (first) { first = false; res(); }
+        });
+      });
+    })().catch(e => { this.ready = null; throw e; });
+    return this.ready;
+  },
+  async signIn() {
+    const { GoogleAuthProvider, signInWithPopup, signInWithRedirect } = this.m, p = new GoogleAuthProvider();
+    try { await signInWithPopup(this.auth, p); }
+    catch (e) {
+      if (/popup-blocked|operation-not-supported/.test(e.code || '')) return signInWithRedirect(this.auth, p);
+      if (!/popup-closed|cancelled-popup/.test(e.code || '')) throw e;
+    }
+  },
+  signOut() { return this.m.signOut(this.auth); },
+  async listWhere(field, val) {
+    const { collection, query, where, getDocs } = this.m;
+    const s = await getDocs(query(collection(this.db, 'forms'), where(field, '==', val)));
+    return s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+  },
+  listApproved() { return this.listWhere('status', 'approved'); },
+  listPending() { return this.listWhere('status', 'pending'); },
+  listHidden() { return this.listWhere('status', 'hidden'); },
+  listMine() { return this.listWhere('ownerUid', this.user.uid); },
+  async getBody(id) {
+    const { doc, getDoc, collection, getDocs } = this.m;
+    const b = await getDoc(doc(this.db, 'formBodies', id)); if (!b.exists()) throw new Error('양식 내용을 찾을 수 없습니다.');
+    const body = b.data(), arr = [];
+    (await getDocs(collection(this.db, 'formBodies', id, 'parts'))).forEach(p => { const d = p.data(); arr[d.i] = d.d; });
+    body.pdf = arr.join(''); return body;
+  },
+  async publish(meta, f, pubId) {
+    const { doc, collection, writeBatch, getDoc, serverTimestamp } = this.m, uid = this.user.uid;
+    const ref = pubId ? doc(this.db, 'forms', pubId) : doc(collection(this.db, 'forms'));
+    const CH = 800000, chunks = []; for (let i = 0; i < f.pdf.length; i += CH) chunks.push(f.pdf.slice(i, i + CH));
+    let oldParts = 0;
+    if (pubId) { try { const b = await getDoc(doc(this.db, 'formBodies', pubId)); if (b.exists()) oldParts = b.data().parts || 0; } catch (e) {} }
+    const base = Object.assign({}, meta, { ownerUid: uid, ownerName: this.user.displayName || '익명', status: 'pending', reason: '', updatedAt: serverTimestamp() });
+    if (!pubId) base.createdAt = serverTimestamp();
+    const batch = writeBatch(this.db);
+    batch.set(ref, base, { merge: true });
+    batch.set(doc(this.db, 'formBodies', ref.id), { ownerUid: uid, pages: f.pages, fields: f.fields, parts: chunks.length });
+    chunks.forEach((d, i) => batch.set(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i), { ownerUid: uid, i, d }));
+    for (let i = chunks.length; i < oldParts; i++) batch.delete(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i));
+    await batch.commit();
+    return ref.id;
+  },
+  setStatus(id, status, reason) {
+    const { doc, updateDoc, serverTimestamp } = this.m;
+    return updateDoc(doc(this.db, 'forms', id), { status, reason: reason || '', reviewedAt: serverTimestamp() });
+  },
+  async remove(id) {
+    const { doc, collection, getDocs, writeBatch } = this.m, batch = writeBatch(this.db);
+    try { (await getDocs(collection(this.db, 'formBodies', id, 'parts'))).forEach(p => batch.delete(p.ref)); } catch (e) {}
+    batch.delete(doc(this.db, 'formBodies', id)); batch.delete(doc(this.db, 'forms', id));
+    await batch.commit();
+  },
+  report(id, title, reason) {
+    const { addDoc, collection, serverTimestamp } = this.m;
+    return addDoc(collection(this.db, 'reports'), { formId: id, formTitle: title, reason, uid: this.user.uid, at: serverTimestamp() });
+  },
+  async listReports() {
+    const { collection, getDocs } = this.m;
+    return (await getDocs(collection(this.db, 'reports'))).docs.map(d => Object.assign({ id: d.id }, d.data()));
+  },
+  delReport(id) { const { doc, deleteDoc } = this.m; return deleteDoc(doc(this.db, 'reports', id)); },
+};
+const FB = window.FB_OVERRIDE || realFB;
+
+/* ---------- 상태 ---------- */
+let pubTabNow = 'list', pubCache = null, pubQuery = '', pubCat = '';
+const tsText = t => { const d = t && (t.toDate ? t.toDate() : (t.seconds ? new Date(t.seconds * 1000) : new Date(t))); return d && !isNaN(d) ? `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}` : ''; };
+const STATUS_TXT = { pending: ['승인 대기', 'st-wait'], approved: ['공개 중', 'st-ok'], rejected: ['반려', 'st-no'], hidden: ['숨김', 'st-no'] };
+
+function pubAuthChanged() {
+  const el = document.getElementById('pubAuth'); if (!el) return;
+  const u = FB.user;
+  el.innerHTML = !FB.enabled() ? '<div class="hint">아직 서버가 연결되지 않았습니다.</div>'
+    : u ? `<div class="who2"><b>${esc(u.displayName || u.email)}</b>${FB.admin ? ' <em>관리자</em>' : ''}<br><small>${esc(u.email || '')}</small></div><button class="sb" onclick="pubSignOut()">로그아웃</button>`
+        : `<button class="sb primary" onclick="pubSignIn()">G 구글로 로그인</button><div class="hint">양식 사용은 로그인 없이 됩니다.<br>공개 신청·신고는 로그인이 필요합니다.</div>`;
+  const adm = document.querySelector('.ptab[data-t="admin"]'); if (adm) adm.hidden = !FB.admin;
+  if (pubTabNow === 'admin' && !FB.admin) pubTabNow = 'list';
+  if (document.querySelector('.module[data-mod="pub"].on')) pubRender();
+  if (CF) renderMyPanel();
+}
+async function pubSignIn() { try { await FB.init(); await FB.signIn(); } catch (e) { alert('로그인하지 못했습니다.\n' + (e.message || e)); } }
+async function pubSignOut() { try { await FB.signOut(); } catch (e) {} }
+function pubOpen() {
+  showModule('pub');
+  if (!FB.enabled()) { pubRender(); return; }
+  pubSetBody('<div class="pubmsg">서버에 연결하는 중…</div>');
+  FB.init().then(() => { pubCache = null; pubRender(); }).catch(e => pubSetBody(`<div class="pubmsg err">서버에 연결하지 못했습니다.<br><small>${esc(e.message || e)}</small></div>`));
+}
+function pubTab(t) { pubTabNow = t; showModule('pub'); pubRender(); }
+const pubSetBody = h => { document.getElementById('pubBody').innerHTML = h; };
+
+/* ---------- 화면 ---------- */
+async function pubRender() {
+  $$('.ptab').forEach(b => b.classList.toggle('on', b.dataset.t === pubTabNow));
+  if (!FB.enabled()) { pubSetBody(PUB_SETUP_HTML); return; }
+  if (!FB.ready) return pubOpen();
+  try {
+    if (pubTabNow === 'list') return pubRenderList();
+    if (pubTabNow === 'mine') return pubRenderMine();
+    if (pubTabNow === 'admin') return pubRenderAdmin();
+  } catch (e) { pubSetBody(`<div class="pubmsg err">불러오지 못했습니다.<br><small>${esc(e.message || e)}</small></div>`); }
+}
+function cardHTML(f, actions) {
+  const st = STATUS_TXT[f.status] || ['', ''];
+  return `<div class="pcard" data-id="${f.id}">
+    <div class="pthumb">${f.thumb ? `<img src="${f.thumb}" alt="">` : '<span>📄</span>'}</div>
+    <div class="pinfo">
+      <div class="ptitle">${esc(f.title)}</div>
+      <div class="pmeta"><span class="pcat">${esc(f.category || '기타')}</span> ${f.pages || 1}쪽 · 칸 ${f.fields || 0}개${f.status !== 'approved' ? ` · <span class="pst ${st[1]}">${st[0]}</span>` : ''}</div>
+      ${f.desc ? `<div class="pdesc">${esc(f.desc)}</div>` : ''}
+      <div class="pby">${esc(f.ownerName || '')} · ${tsText(f.updatedAt || f.createdAt)}</div>
+      ${f.status === 'rejected' && f.reason ? `<div class="preason">반려 사유: ${esc(f.reason)}</div>` : ''}
+      <div class="pacts">${actions}</div>
+    </div></div>`;
+}
+async function pubRenderList() {
+  if (!pubCache) { pubSetBody('<div class="pubmsg">목록을 불러오는 중…</div>'); pubCache = await FB.listApproved(); }
+  const q = pubQuery.trim().toLowerCase();
+  const list = pubCache.filter(f => (!pubCat || f.category === pubCat) && (!q || [f.title, f.desc, f.ownerName].join(' ').toLowerCase().includes(q)))
+                       .sort((a, b) => String(a.title).localeCompare(String(b.title), 'ko'));
+  pubSetBody(`
+    <div class="pbar">
+      <input class="pq" id="pubQ" placeholder="양식 이름·설명으로 찾기" value="${esc(pubQuery)}">
+      <div class="pchips">${['', ...PUB_CATS].map(c => `<button class="chip${c === pubCat ? ' on' : ''}" data-c="${c}">${c || '전체'}</button>`).join('')}</div>
+      <button class="b" onclick="pubCache=null; pubRender()">↻ 새로고침</button>
+    </div>
+    <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 내 컴퓨터의 ‘직접 만든 양식’에 담기고, 입력한 내용은 내 컴퓨터에만 남습니다.</div>
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+      : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
+  const qi = document.getElementById('pubQ');
+  qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
+  $$('.pchips .chip').forEach(c => c.addEventListener('click', () => { pubCat = c.dataset.c; pubRenderList(); }));
+}
+async function pubRenderMine() {
+  if (!FB.user) { pubSetBody('<div class="pubmsg">공개 신청한 양식을 보려면 먼저 로그인하세요.<br><br><button class="b primary" onclick="pubSignIn()">G 구글로 로그인</button></div>'); return; }
+  pubSetBody('<div class="pubmsg">불러오는 중…</div>');
+  const list = (await FB.listMine()).sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+  list.forEach(p => { const lf = forms.find(f => f.pub && f.pub.id === p.id); if (lf) { lf.pub.status = p.status; lf.pub.reason = p.reason || ''; } }); saveForms();
+  pubSetBody(`<div class="pnote">내가 공개 신청한 양식입니다. 관리자가 승인하면 ‘공개 양식 목록’에 올라갑니다. 양식을 고쳐서 다시 신청하려면 ‘직접 만든 양식’에서 수정한 뒤 <b>공개 목록에 올리기</b>를 다시 누르세요.</div>
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b ghost" onclick="pubDelete('${f.id}')">공개 취소·삭제</button>`)).join('')
+      : '<div class="pubmsg">아직 공개 신청한 양식이 없습니다.</div>'}</div>`);
+}
+async function pubRenderAdmin() {
+  pubSetBody('<div class="pubmsg">불러오는 중…</div>');
+  const [pend, reps, hid] = await Promise.all([FB.listPending(), FB.listReports(), FB.listHidden()]);
+  const title = id => (pubCache || []).concat(pend, hid).find(f => f.id === id)?.title;
+  pubSetBody(`
+    <h3 class="psec">승인 대기 <span>${pend.length}</span></h3>
+    <div class="pgrid">${pend.length ? pend.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b primary" onclick="pubDecide('${f.id}','approved')">승인</button><button class="b" onclick="pubDecide('${f.id}','rejected')">반려</button><button class="b ghost" onclick="pubDelete('${f.id}')">삭제</button>`)).join('') : '<div class="pubmsg small">대기 중인 신청이 없습니다.</div>'}</div>
+    <h3 class="psec">신고 <span>${reps.length}</span></h3>
+    <div class="plist">${reps.length ? reps.map(r => `<div class="prow"><div><b>${esc(r.formTitle || title(r.formId) || r.formId)}</b><br><small>${esc(r.reason)} · ${tsText(r.at)}</small></div>
+        <div class="pacts"><button class="b" onclick="pubPreview('${r.formId}')">미리보기</button><button class="b" onclick="pubDecide('${r.formId}','hidden')">양식 숨기기</button><button class="b ghost" onclick="pubDelReport('${r.id}')">신고 처리 완료</button></div></div>`).join('') : '<div class="pubmsg small">신고가 없습니다.</div>'}</div>
+    <h3 class="psec">숨긴 양식 <span>${hid.length}</span></h3>
+    <div class="pgrid">${hid.length ? hid.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b primary" onclick="pubDecide('${f.id}','approved')">다시 공개</button><button class="b ghost" onclick="pubDelete('${f.id}')">삭제</button>`)).join('') : '<div class="pubmsg small">숨긴 양식이 없습니다.</div>'}</div>
+    <div class="pnote">공개 중인 양식을 내리려면 ‘공개 양식 목록’의 미리보기에서 <b>숨기기</b>를 누르세요.</div>`);
+}
+
+/* ---------- 동작 ---------- */
+async function pubUse(id) {
+  try {
+    toast('양식을 내려받는 중…');
+    const meta = (pubCache || []).find(f => f.id === id) || {}, body = await FB.getBody(id), lid = 'pub_' + id;
+    const t = { id: lid, title: meta.title || '공개 양식', createdAt: new Date().toISOString(), pdf: body.pdf, pages: body.pages, fields: body.fields, source: { pubId: id } };
+    const i = forms.findIndex(f => f.id === lid);
+    if (i >= 0) { if (!confirm(`‘${forms[i].title}’ 양식이 이미 내 양식에 있습니다. 최신 공개본으로 바꿀까요?\n(입력해 둔 내용은 그대로 남습니다)`)) { openForm(lid, 'fill'); return; } forms[i] = t; }
+    else forms.push(t);
+    saveForms(); refreshMyList(); await openForm(lid, 'fill'); toast(`‘${t.title}’ 양식을 내 양식에 담았습니다.`);
+  } catch (e) { alert('양식을 가져오지 못했습니다.\n' + (e.message || e)); }
+}
+async function pubPreview(id) {
+  const dlg = document.getElementById('pubPrev'), box = document.getElementById('pubPrevBody');
+  const meta = [].concat(pubCache || []).find(f => f.id === id);
+  document.getElementById('pubPrevTitle').textContent = meta ? meta.title : '미리보기';
+  document.getElementById('pubPrevActs').innerHTML = FB.admin ? `<button class="b" onclick="pubDecide('${id}','hidden'); document.getElementById('pubPrev').close()">숨기기</button>` : '';
+  box.innerHTML = '<div class="pubmsg">불러오는 중…</div>'; dlg.showModal();
+  try {
+    const body = await FB.getBody(id), doc = await openPdf(b64ToBytes(body.pdf)); box.innerHTML = '';
+    for (let i = 0; i < body.pages.length; i++) {
+      const pg = await doc.getPage(i + 1), vp = pg.getViewport({ scale: 1.3 }), c = document.createElement('canvas');
+      c.width = vp.width; c.height = vp.height; box.appendChild(c);
+      const ctx = c.getContext('2d'); await pg.render({ canvas: c, canvasContext: ctx, viewport: vp }).promise;
+      ctx.lineWidth = 1.5;
+      body.fields.filter(f => f.page === i).forEach(f => {
+        ctx.strokeStyle = { check: '#d98a00', sign: '#a43fc7', date: '#16a05a', select: '#0f8fa6' }[f.type] || '#2f5bd3';
+        ctx.fillStyle = 'rgba(47,91,211,.08)'; ctx.fillRect(f.x * 1.3, f.y * 1.3, f.w * 1.3, f.h * 1.3); ctx.strokeRect(f.x * 1.3, f.y * 1.3, f.w * 1.3, f.h * 1.3);
+      });
+    }
+  } catch (e) { box.innerHTML = `<div class="pubmsg err">미리보기를 열 수 없습니다.<br><small>${esc(e.message || e)}</small></div>`; }
+}
+async function pubDecide(id, status) {
+  let reason = '';
+  if (status === 'rejected') { reason = prompt('반려 사유를 적어 주세요. (신청자에게 보입니다)', '개인정보가 포함되어 있습니다.'); if (reason === null) return; }
+  if (status === 'hidden' && !confirm('이 양식을 공개 목록에서 숨길까요?')) return;
+  try { await FB.setStatus(id, status, reason); pubCache = null; toast({ approved: '승인했습니다. 공개 목록에 올라갔습니다.', rejected: '반려했습니다.', hidden: '숨겼습니다.' }[status]); pubRender(); }
+  catch (e) { alert('처리하지 못했습니다.\n' + (e.message || e)); }
+}
+async function pubDelete(id) {
+  if (!confirm('이 양식을 서버에서 삭제할까요?\n(내 컴퓨터의 ‘직접 만든 양식’에 있는 양식은 그대로 남습니다)')) return;
+  try { await FB.remove(id); forms.forEach(f => { if (f.pub && f.pub.id === id) delete f.pub; }); saveForms(); pubCache = null; toast('삭제했습니다.'); pubRender(); if (CF) renderMyPanel(); }
+  catch (e) { alert('삭제하지 못했습니다.\n' + (e.message || e)); }
+}
+async function pubReport(id) {
+  if (!FB.user) { if (confirm('신고하려면 로그인이 필요합니다. 로그인할까요?')) pubSignIn(); return; }
+  const r = prompt('신고 사유를 적어 주세요.\n(예: 개인정보 포함, 광고, 저작권 문제, 내용 오류)'); if (!r || !r.trim()) return;
+  try { await FB.report(id, ((pubCache || []).find(f => f.id === id) || {}).title || '', r.trim()); toast('신고했습니다. 관리자가 확인합니다.'); }
+  catch (e) { alert('신고하지 못했습니다.\n' + (e.message || e)); }
+}
+function pubDelReport(id) { FB.delReport(id).then(() => { toast('처리 완료로 표시했습니다.'); pubRender(); }).catch(e => alert(e.message || e)); }
+
+/* ---------- 직접 만든 양식 → 공개 신청 ---------- */
+async function makeThumb(f) {
+  try {
+    const doc = cfDoc && CF === f ? cfDoc : await openPdf(b64ToBytes(f.pdf));
+    const pg = await doc.getPage(1), v1 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: 260 / v1.width });
+    const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    await pg.render({ canvas: c, canvasContext: ctx, viewport: vp }).promise;
+    return c.toDataURL('image/jpeg', 0.72);
+  } catch (e) { return ''; }
+}
+async function openPublish() {
+  if (!CF) return;
+  if (!FB.enabled()) { alert('아직 공개 양식 서버가 연결되지 않았습니다.\n관리자가 Firebase 설정을 넣으면 사용할 수 있습니다.'); return; }
+  try { await FB.init(); } catch (e) { alert('서버에 연결하지 못했습니다.\n' + (e.message || e)); return; }
+  if (!FB.user) { if (!confirm('공개 신청은 로그인이 필요합니다. 구글로 로그인할까요?')) return; await pubSignIn(); if (!FB.user) return; }
+  if (CF.source && CF.source.pubId && !(CF.pub && CF.pub.id)) {
+    if (!confirm('다른 사람이 공개한 양식을 가져온 것입니다.\n고친 양식을 새 양식으로 공개 신청할까요?')) return;
+  }
+  const d = document.getElementById('pubDlg');
+  document.getElementById('pubT').value = CF.title;
+  document.getElementById('pubD').value = (CF.pub && CF.pub.desc) || '';
+  document.getElementById('pubC').innerHTML = PUB_CATS.map(c => `<option${(CF.pub && CF.pub.category) === c ? ' selected' : ''}>${c}</option>`).join('');
+  document.getElementById('pubOk').checked = false;
+  document.getElementById('pubDlgNote').textContent = CF.pub && CF.pub.id ? '이미 공개 신청한 양식입니다. 다시 신청하면 고친 내용으로 바뀌고, 관리자 승인을 다시 받습니다.' : '';
+  d.showModal();
+}
+async function submitPublish() {
+  const title = document.getElementById('pubT').value.trim(), desc = document.getElementById('pubD').value.trim(), category = document.getElementById('pubC').value;
+  if (!title) { alert('양식 이름을 적어 주세요.'); return; }
+  if (!document.getElementById('pubOk').checked) { alert('개인정보가 없는 빈 서식인지 확인하고 체크해 주세요.'); return; }
+  if (!CF.fields.length) { alert('입력칸이 하나도 없습니다. 칸을 만든 뒤 신청하세요.'); return; }
+  if (CF.pdf.length > 5.5e6) { alert('PDF가 너무 큽니다(약 4MB 이하만 공개할 수 있습니다).'); return; }
+  const btn = document.getElementById('pubGo'); btn.disabled = true; btn.textContent = '올리는 중…';
+  try {
+    const thumb = await makeThumb(CF);
+    const id = await FB.publish({ title, desc, category, pages: CF.pages.length, fields: CF.fields.length, thumb }, CF, CF.pub && CF.pub.id);
+    CF.pub = { id, status: 'pending', desc, category, at: new Date().toISOString() }; CF.title = title;
+    saveForms(); refreshMyList(); renderMyPanel(); document.getElementById('pubDlg').close(); pubCache = null;
+    toast('공개 신청했습니다. 관리자 승인 후 공개 목록에 올라갑니다.');
+  } catch (e) { alert('공개 신청하지 못했습니다.\n' + (e.message || e)); }
+  btn.disabled = false; btn.textContent = '공개 신청';
+}
+function pubStatusLine() {
+  if (!CF || !CF.pub || !CF.pub.id) return '';
+  const st = STATUS_TXT[CF.pub.status] || STATUS_TXT.pending;
+  return `<div class="hint">공개 상태: <span class="pst ${st[1]}">${st[0]}</span>${CF.pub.status === 'rejected' && CF.pub.reason ? `<br>사유: ${esc(CF.pub.reason)}` : ''}</div>`;
+}
+
 (function init() {
   document.querySelector('#p1 [data-k="iName"]').setAttribute('list', 'instNames');
   document.querySelector('#p1 [data-k="iName"]').setAttribute('autocomplete', 'off');
@@ -1089,6 +2298,11 @@ function importInsts(inputEl) {
   refreshInstUI();
   let m = 'ltc'; try { m = localStorage.getItem('kit-module') || 'ltc'; } catch (e) {}
   showModule(document.querySelector(`.module[data-mod="${m}"]`) ? m : 'ltc'); showPage('p1');
+  setupEditor(); refreshMyList(); renderMyPanel(); fitPages();
+  let cur = null; try { cur = localStorage.getItem(CUR_FORM_KEY); } catch (e) {}
+  if (m === 'my' && cur && forms.some(f => f.id === cur)) openForm(cur, 'fill');
+  pubAuthChanged();
+  if (m === 'pub') pubOpen(); else if (FB.enabled()) FB.init().catch(() => {});
 })();
 </script>
 </body>
