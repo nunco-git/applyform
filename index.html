@@ -146,7 +146,10 @@
     body[data-print="current"] .page:not(.show) { display:none !important; }
     .in, .chk { background:transparent !important; }
     input.chief.filled, .mask.filled { background:#fff !important; }
-    .in::placeholder { color:transparent; }
+    .cf.cmask, .cover { background:#fff !important; box-shadow:none !important; }
+    .dpop, .tipbub, .tipdot { display:none !important; }
+    .kitdata { display:block !important; position:absolute; left:3pt; right:3pt; bottom:0.5pt; font:1px/1.1px monospace; color:#fff; word-break:break-all; pointer-events:none; }
+    .in::placeholder { color:transparent; opacity:0; }
   }
 
   .inst { display:flex; align-items:center; gap:6px; padding:4px 8px; border:1px solid #cfd6e6; border-radius:8px; background:#f6f8fd; }
@@ -260,6 +263,60 @@
   textarea.cf.ml { resize:none; overflow:hidden; line-height:1.35; padding-top:1pt; }
   .dbtn { position:absolute; width:12pt; height:12pt; font-size:7.5pt; line-height:12pt; padding:0; border:none; background:#eef2fd; border-radius:3px; cursor:pointer; }
   #dPick { position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; border:0; padding:0; }
+  /* 원래 글자 가리기 · 가림 상자 */
+  .cf.cmask, .cover { background:#fff !important; box-shadow:inset 0 0 0 300pt rgba(47,91,211,.08); -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .cf.cmask:focus { box-shadow:inset 0 0 0 300pt rgba(255,214,0,.3); }
+  .cover { position:absolute; box-shadow:inset 0 0 0 0.6pt rgba(120,130,150,.45); pointer-events:none; }
+  body.clean .cf.cmask:not(:focus), body.clean .cover { box-shadow:none; }
+  .ef.mk { background-color:rgba(255,255,255,.86); background-image:repeating-linear-gradient(45deg, color-mix(in srgb, var(--c) 22%, transparent) 0 2px, transparent 2px 6px); }
+  .ef.t-cover { --c:#6b7280; background-color:rgba(255,255,255,.92); border-style:dashed; }
+  input.dsingle { cursor:pointer; caret-color:transparent; }
+  input.dsingle::placeholder { font-size:.85em; color:#6f86c6; }
+  .dpop { position:fixed; z-index:60; width:236px; background:#fff; border:1px solid #c9d2e6; border-radius:10px; box-shadow:0 8px 28px rgba(20,30,60,.22);
+          padding:10px; font:13px/1.4 "Malgun Gothic",sans-serif; color:#223; }
+  .dpop[hidden] { display:none; }
+  .kitdata { display:none; }
+  /* 제출 PDF 모아 엑셀로 */
+  .colwrap { padding:16px 22px 40px; max-width:1200px; margin:0 auto; }
+  .colcard { background:#fff; border:1px solid #e1e5ee; border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .colcard h3 { margin:0 0 8px; font-size:15px; }
+  .colcard p { margin:4px 0; font-size:13px; color:#556; line-height:1.6; }
+  .colrow { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .colrow select { font:inherit; font-size:14px; padding:7px 10px; border-radius:7px; border:1px solid #c9d0de; min-width:260px; max-width:100%; }
+  .cdrop { border:2px dashed #9fb2e6; background:#f5f8ff; border-radius:12px; padding:22px; text-align:center; font-size:14px; color:#3a4f8f; cursor:pointer; }
+  .cdrop.over { background:#e7eeff; border-color:#2f5bd3; }
+  .cbtn { font:inherit; font-size:14px; padding:8px 14px; border-radius:8px; border:1px solid #c6cfe4; background:#fff; color:#2747a8; cursor:pointer; }
+  .cbtn.primary { background:#2f5bd3; border-color:#2f5bd3; color:#fff; }
+  .cbtn:disabled { opacity:.5; cursor:default; }
+  .ctable { overflow:auto; max-height:62vh; border:1px solid #e1e5ee; border-radius:10px; background:#fff; }
+  .ctable table { border-collapse:collapse; font-size:12.5px; min-width:100%; }
+  .ctable th, .ctable td { border-bottom:1px solid #eef0f5; border-right:1px solid #f1f2f6; padding:5px 8px; white-space:nowrap; max-width:260px; overflow:hidden; text-overflow:ellipsis; text-align:left; }
+  .ctable th { position:sticky; top:0; background:#f3f5fb; z-index:1; font-weight:600; color:#334; }
+  .ctable tr.warn td { background:#fff8e6; }
+  .ctable tr.bad td { background:#fdeeee; color:#933; }
+  .ctable .x { border:none; background:none; color:#99a; cursor:pointer; font-size:14px; }
+  .ctag { display:inline-block; font-size:11px; padding:0 6px; border-radius:8px; background:#e6f4ec; color:#1d7a46; }
+  .ctag.pos { background:#eef2fd; color:#2f5bd3; }
+  /* 입력 도움말 풍선 (인쇄 안 됨) */
+  .tipbub { position:fixed; z-index:55; max-width:min(280px, calc(100vw - 16px)); background:#1f2a44; color:#fff; font:12.5px/1.5 "Malgun Gothic",sans-serif;
+            padding:7px 11px; border-radius:8px; box-shadow:0 6px 18px rgba(10,20,40,.28); white-space:pre-wrap; word-break:keep-all; pointer-events:none;
+            animation:tipIn .12s ease-out; }
+  .tipbub[hidden] { display:none; }
+  .tipbub::before { content:"💡 "; }
+  .tipbub::after { content:""; position:absolute; left:var(--ax, 50%); top:100%; margin-left:-6px; border:6px solid transparent; border-top-color:#1f2a44; }
+  .tipbub.below::after { top:auto; bottom:100%; border-top-color:transparent; border-bottom-color:#1f2a44; }
+  @keyframes tipIn { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:none; } }
+  .tipdot { position:absolute; width:7pt; height:7pt; margin:-3.5pt 0 0 -3.5pt; border-radius:50%; background:#f5a623; box-shadow:0 0 0 1.2pt #fff; pointer-events:none; z-index:3; }
+  .dpop .dph { font-weight:700; font-size:13px; margin-bottom:2px; }
+  .dpop .dps { font-size:12px; color:#667; margin-bottom:6px; }
+  .dpop .dpg { display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; margin:6px 0; }
+  .dpop button { font:inherit; font-size:12.5px; padding:6px 4px; border:1px solid #c6cfe4; background:#f5f7fd; color:#2747a8; border-radius:6px; cursor:pointer; }
+  .dpop button:hover { background:#e6ecfb; }
+  .dpop button.on { background:#2f5bd3; border-color:#2f5bd3; color:#fff; }
+  .dpop .dpc { display:flex; align-items:center; gap:6px; margin-top:4px; }
+  .dpop .dpc label { font-size:12px; color:#556; white-space:nowrap; }
+  .dpop .dpc input { flex:1; min-width:0; font:inherit; font-size:13px; padding:5px 6px; border:1px solid #c6cfe4; border-radius:6px; }
+  .dpop .dpx { width:100%; margin-top:6px; color:#667; background:#fff; }
   /* 공개 양식 모음 */
   #pubBody { padding:14px 22px 40px; max-width:1100px; margin:0 auto; }
   .pbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; }
@@ -383,6 +440,31 @@
   <div id="myPages"></div>
 </section>
 
+<section class="module" data-mod="collect">
+  <div class="modhead"><div class="brand">제출 PDF 모아 엑셀로</div></div>
+  <div class="colwrap">
+    <div class="colcard">
+      <h3>① 원래 서식 고르기</h3>
+      <div class="colrow"><select id="colForm" onchange="colRender()"></select></div>
+      <p>이 도구모음으로 작성해 PDF로 저장(전자 서명 포함)한 신청서들을 한꺼번에 올리면, 신청인이 입력한 내용을 한 사람당 한 줄씩 엑셀로 정리합니다.</p>
+    </div>
+    <div class="colcard">
+      <h3>② 제출받은 PDF 올리기 <small style="font-weight:400;color:#889">여러 개를 한 번에</small></h3>
+      <div class="cdrop" id="colDrop" onclick="document.getElementById('colPick').click()">📥 PDF 파일들을 여기에 끌어다 놓거나 <b>눌러서 고르세요</b></div>
+      <input type="file" id="colPick" accept=".pdf,application/pdf" multiple hidden onchange="colAdd([...this.files]); this.value=''">
+      <p id="colMsg"></p>
+    </div>
+    <div class="colcard">
+      <div class="colrow" style="justify-content:space-between">
+        <h3 style="margin:0">③ 확인하고 엑셀로 받기 <span id="colCount" style="font-weight:400;color:#667;font-size:13px"></span></h3>
+        <div class="colrow"><button class="cbtn" onclick="colClear()">🧹 목록 비우기</button><button class="cbtn primary" id="colXlsx" onclick="colDownload()">📊 엑셀 파일로 받기</button></div>
+      </div>
+      <p><span class="ctag">파일 정보</span> 이 도구모음으로 만든 PDF에 함께 들어 있는 작성 정보로 정확히 읽은 것 · <span class="ctag pos">글자 위치</span> 그 정보가 없어 입력칸 위치의 글자를 읽은 것(인쇄 배율·여백을 바꿔 저장한 PDF는 틀릴 수 있음) · 노란 줄은 확인이 필요한 파일입니다.</p>
+      <div class="ctable" id="colTable"></div>
+    </div>
+  </div>
+</section>
+
 <section class="module" data-mod="pub">
   <div class="modhead"><div class="brand">공개 양식 모음</div></div>
   <div id="pubBody"></div>
@@ -471,6 +553,15 @@
         </div>
         <div class="pt">계정</div>
         <div id="pubAuth"></div>
+      </div>
+    </div>
+    <div class="grp" data-mod="collect">
+      <button class="cat" onclick="colOpen()"><span class="n">6</span>제출 PDF 모아 엑셀로</button>
+      <div class="panel">
+        <button class="sb primary" onclick="document.getElementById('colPick').click()">📥 PDF 올리기 (여러 개)</button>
+        <button class="sb" onclick="colDownload()">📊 엑셀 파일로 받기</button>
+        <button class="sb" onclick="colClear()">🧹 목록 비우기</button>
+        <div class="hint">올린 PDF는 이 컴퓨터 안에서만 읽고 어디에도 보내지 않습니다.</div>
       </div>
     </div>
   </nav>
@@ -574,6 +665,8 @@
 <input type="file" id="pdfPick" accept=".pdf,application/pdf" hidden onchange="routeFile(this.files[0]); this.value=''">
 <input type="file" id="jsonPick" accept=".json,application/json" hidden onchange="routeFile(this.files[0]); this.value=''">
 <input type="date" id="dPick" tabindex="-1" aria-hidden="true">
+<div id="datePop" class="dpop" hidden></div>
+<div id="tipBub" class="tipbub" hidden role="tooltip"></div>
 <input type="file" id="loader" accept=".json,application/json" hidden onchange="loadFromInput(this)">
 <dialog id="helpDlg">
   <div class="dh"><h3>사용법</h3><button class="b" onclick="document.getElementById('helpDlg').close()">닫기</button></div>
@@ -609,9 +702,19 @@
       <li>오른쪽 <b>4. 직접 만든 양식 → ＋ 새 양식 만들기</b>에서 PDF를 올리면 원본 그대로 입력 양식이 만들어집니다.</li>
       <li><b>🛠 칸 편집</b>에서 칸을 고치고, <b>✏️ 작성</b>에서 입력·서명·인쇄합니다. 이름이 같은 칸은 함께 입력됩니다.</li>
       <li><b>여러 칸 묶기</b>: 칸 편집에서 <b>Ctrl(또는 Shift)+클릭</b>으로 여러 칸을 고르거나(쪽이 달라도 됨), Shift+빈 곳 드래그로 영역을 잡은 뒤 <b>🔗 같은 이름으로 묶기</b>를 누르면 한 곳에 입력할 때 모두 채워집니다. 휴대폰·태블릿은 <b>☐ 여러 칸 선택</b>을 켜고 누르세요.</li>
-      <li><b>날짜</b>: ‘년 월 일’ 칸은 자동으로 날짜 하나로 묶입니다(직접 묶을 땐 칸 3개를 골라 📅 날짜로 묶기). 작성할 때 칸을 누르면 달력이 뜨고, 옆의 <b>☑오늘</b>을 체크하면 오늘 날짜가 들어갑니다(인쇄·PDF에는 안 나옴).</li>
+      <li><b>날짜</b>: ‘&nbsp;&nbsp;년&nbsp;&nbsp;월&nbsp;&nbsp;일’ 자리는 자동으로 <b>날짜 칸 하나</b>로 합쳐지고 원래 ‘년·월·일’ 글자는 가려집니다. 작성할 때 칸을 누르면 달력이 뜨고 한 번에 입력되며(예: 2026년 10월 2일), <b>☑오늘</b>을 체크하면 오늘 날짜가 들어갑니다(인쇄·PDF에는 안 나옴). 날짜 모양은 칸 편집에서 바꿀 수 있습니다. 직접 합치려면 칸 여러 개를 골라 <b>📅 날짜 칸 하나로 합치기</b>를 누르세요.</li>
+      <li><b>기간</b>: 날짜 칸 바로 옆에 또 날짜 칸이 있으면 ‘기간’으로 인식합니다. 두 번째(끝) 날짜를 누르면 <b>오늘·1개월·3개월·6개월·1년·2년·달력 입력</b>이 나와, 시작일 기준으로 끝 날짜가 자동 계산됩니다(예: 10월 2일부터 1개월 → 11월 1일). 시작일을 바꾸면 끝 날짜도 따라 바뀝니다.</li>
+      <li><b>💬 입력 도움말</b>: 칸 편집에서 칸을 고르고 ‘입력 도움말’을 적어 두면, 작성할 때 그 칸을 누르거나 마우스를 올릴 때 칸 위에 작은 풍선으로 뜹니다. 도움말이 있는 칸은 오른쪽 위에 주황 점이 보이며, 인쇄·PDF에는 나오지 않습니다.</li>
+      <li><b>원래 글자 가리기</b>: 칸 편집에서 원래 글자 위에 칸을 그리면 그 글자는 자동으로 가려지고 그 자리에 입력합니다(칸 속성의 ‘원래 글자 가리기’로 끄고 켬). <b>▭ 가림 상자 그리기</b>를 켜고 그리면 입력 없이 원래 내용만 지우는 흰 상자가 됩니다.</li>
       <li><b>(서명 또는 인)·(인)·(서명)·(날인)</b> 자리는 자동으로 서명 칸이 되고, 누르면 화면 전체 서명판이 열립니다.</li>
       <li><b>양식 파일로 내보내기</b>로 받은 파일을 보내 주면, 다른 사람도 ‘양식·작성 파일 열기’로 같은 양식을 쓸 수 있습니다.</li>
+    </ul>
+    <h4>📊 제출 PDF 모아 엑셀로 (담당자용)</h4>
+    <ul>
+      <li>오른쪽 <b>6. 제출 PDF 모아 엑셀로</b>에서 원래 서식을 고르고, 신청인들이 이 도구모음으로 작성·서명해 PDF로 저장한 파일들을 한꺼번에 올립니다.</li>
+      <li>한 사람(파일)당 한 줄로 입력 내용이 정리되고, <b>📊 엑셀 파일로 받기</b>로 .xlsx 파일을 받습니다. 서명은 ‘있음/없음’으로만 표시됩니다.</li>
+      <li>이 도구모음으로 만든 PDF에는 작성 내용이 보이지 않는 작은 글자로 함께 들어 있어 정확히 읽습니다. 그 정보가 없는 PDF는 입력칸 위치의 글자를 읽습니다(인쇄 배율·여백을 바꿔 저장했거나 스캔한 PDF는 읽지 못할 수 있음).</li>
+      <li>올린 PDF는 이 컴퓨터 안에서만 읽고 어디에도 보내지 않습니다.</li>
     </ul>
     <h4>🖨 인쇄 · PDF</h4>
     <ul>
@@ -1109,7 +1212,35 @@ function beforePrint() {
 function afterPrint() { printRowsS = null; render2(); document.body.dataset.print = 'current'; }
 window.addEventListener('beforeprint', beforePrint);
 window.addEventListener('afterprint', afterPrint);
-function doPrint(mode) { document.body.dataset.print = mode; window.print(); }
+function doPrint(mode) { document.body.dataset.print = mode; updateKitData(); window.print(); }
+/* 인쇄·PDF 맨 아래에 사람 눈에 안 보이는(흰색·아주 작은) 글자로 작성 내용을 넣어 둠.
+   제출받은 PDF를 '제출 PDF 모아 엑셀로'에 올리면 이 정보로 정확히 읽음. 서명 그림은 넣지 않고 서명 여부만 표시. */
+const KIT_TAG = 'KITDATA';
+function kitPayload(o) {
+  const b = btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  return `${KIT_TAG}[${b}]${KIT_TAG}`;
+}
+const sigFlags = o => { const r = {}; Object.keys(o || {}).forEach(k => { const v = o[k]; r[k] = typeof v === 'string' && v.startsWith('data:image') ? 'Y' : v; }); return r; };
+function putKit(page, text) {
+  if (!page) return;
+  let d = page.querySelector(':scope > .kitdata');
+  if (!d) { d = document.createElement('div'); d.className = 'kitdata'; d.setAttribute('aria-hidden', 'true'); page.appendChild(d); }
+  d.textContent = text;
+}
+function updateKitData() {
+  try {
+    if (document.querySelector('.module[data-mod="ltc"].on')) {
+      const v = sigFlags(collect()); delete v.__manual;
+      const t = kitPayload({ k: 'ltc', v });
+      putKit(document.getElementById('p1'), t); putKit(document.getElementById('p2'), t);
+    }
+    if (CF && document.querySelector('.module[data-mod="my"].on')) {
+      const v = sigFlags(FV); Object.keys(v).forEach(k => { if (k.startsWith('__')) delete v[k]; });
+      putKit(myPages().querySelector('.cpage'), kitPayload({ k: 'f', id: CF.id, title: CF.title, v }));
+    }
+  } catch (e) {}
+}
+window.addEventListener('beforeprint', updateKitData);
 
 /* ---------- 숫자/금액 ---------- */
 const num = s => { const n = parseFloat(String(s).replace(/[^\d.\-]/g, '')); return isNaN(n) ? null : n; };
@@ -1275,7 +1406,9 @@ function apply(o) {
   totals(); render2();
 }
 function saveKeep() { try { const o = {}; KEEP.forEach(k => o[k] = getVal(k)); localStorage.setItem(KEEP_KEY, JSON.stringify(o)); } catch (e) {} }
-function saveDraft() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(collect())); } catch (e) {} }
+/* 서명·도장 그림은 브라우저에도, 저장 파일에도 남기지 않음(인쇄할 때마다 새로 서명) */
+const noSig = o => { const r = {}; Object.keys(o || {}).forEach(k => { const v = o[k]; if (!(typeof v === 'string' && v.startsWith('data:image'))) r[k] = v; }); return r; };
+function saveDraft() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(noSig(collect()))); } catch (e) {} }
 function toast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on');
   clearTimeout(toast.tm); toast.tm = setTimeout(() => t.classList.remove('on'), 2600);
@@ -1292,7 +1425,7 @@ function fileName() {
 }
 async function saveFile() {
   if (!hasContent() && !confirm('입력된 내용이 거의 없습니다. 그래도 저장할까요?')) return;
-  const data = collect();
+  const data = noSig(collect());
   Object.keys(data).filter(k => k.startsWith('today_')).forEach(k => delete data[k]);   // 날짜는 저장 시점 값으로 고정
   const out = { _type: FILE_TYPE, _version: 1, _savedAt: new Date().toISOString(),
                 _summary: { 수급자: getVal('name'), 신청인: getVal('appName'), 신청일: getVal('y') ? `${getVal('y')}. ${getVal('m')}. ${getVal('d')}.` : '' },
@@ -1332,7 +1465,7 @@ function loadText(text, fname) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) { alert('신청서 저장 파일(.json)이 아닙니다.'); return; }
   if (hasContent() && !confirm(`지금 작성 중인 내용이 ‘${fname}’ 내용으로 바뀝니다. 계속할까요?\n(지금 내용을 남기려면 취소 후 먼저 저장하세요)`)) return;
   const keep = {}; KEEP.forEach(k => keep[k] = getVal(k));
-  apply(Object.assign({}, keep, data)); saveDraft();
+  apply(Object.assign({}, keep, noSig(data))); saveDraft();
   toast(`불러왔습니다: ${fname}`);
 }
 /* 파일을 화면에 끌어다 놓아서 불러오기 */
@@ -1343,6 +1476,7 @@ window.addEventListener('dragover', e => { if (isFileDrag(e)) e.preventDefault()
 window.addEventListener('dragleave', e => { if (!isFileDrag(e)) return; if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); } });
 window.addEventListener('drop', e => {
   if (!isFileDrag(e)) return; e.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging');
+  if (document.querySelector('.module[data-mod="collect"].on')) { colAdd([...e.dataTransfer.files]); return; }
   routeFile(e.dataTransfer.files[0]);
 });
 function resetAll() {
@@ -1485,7 +1619,8 @@ async function openPdf(bytes) {
 }
 
 const FORMS_KEY = 'kit-forms', CUR_FORM_KEY = 'kit-cur-form';
-const TYPES = { text:'글자', multi:'여러 줄', check:'체크(√)', date:'날짜', sign:'서명', select:'선택 목록' };
+const TYPES = { text:'글자', multi:'여러 줄', check:'체크(√)', date:'날짜', sign:'서명', select:'선택 목록', cover:'가림 상자(입력 없음)' };
+const DATE_FMTS = { ko:'2026년 10월 2일', dot:'2026. 10. 2.', dash:'2026-10-02' };
 let forms = [];
 try { forms = JSON.parse(localStorage.getItem(FORMS_KEY) || '[]'); } catch (e) {}
 let CF = null, cfMode = 'fill', cfSel = null, cfDoc = null, FV = {};
@@ -1502,7 +1637,7 @@ function saveForms() {
 let tForms, tFV;
 const saveFormsSoon = () => { clearTimeout(tForms); tForms = setTimeout(saveForms, 400); };
 const draftKey = id => 'kit-fdraft-' + id;
-const saveFVSoon = () => { clearTimeout(tFV); tFV = setTimeout(() => { try { CF && localStorage.setItem(draftKey(CF.id), JSON.stringify(FV)); } catch (e) {} }, 300); };
+const saveFVSoon = () => { clearTimeout(tFV); tFV = setTimeout(() => { try { CF && localStorage.setItem(draftKey(CF.id), JSON.stringify(noSig(FV))); } catch (e) {} }, 300); };
 
 /* ---------- 목록·패널 ---------- */
 function refreshMyList() {
@@ -1533,6 +1668,8 @@ function renderMyPanel() {
     : `
       <div class="hint">• 빈 곳을 <b>드래그</b>하면 새 칸이 생깁니다.<br>• 칸을 끌어 옮기고, 오른쪽 아래 □로 크기 조절<br>• 선택 후 <b>Delete</b> 삭제 · 방향키 미세 이동<br>• <b>Ctrl/Shift+클릭</b>으로 여러 칸 선택 → 같은 이름으로 묶기</div>
       <button class="sb${multiMode ? ' primary' : ''}" onclick="toggleMulti()">${multiMode ? '☑ 여러 칸 선택 켜짐 (끄기)' : '☐ 여러 칸 선택 (휴대폰·태블릿용)'}</button>
+      <button class="sb${coverMode ? ' primary' : ''}" id="coverBtn" onclick="toggleCover()">${coverMode ? '▭ 가림 상자 그리기 켜짐 (끄기)' : '▭ 가림 상자 그리기 (입력 없이 원래 글자 숨김)'}</button>
+      <div class="hint">원래 글자 위에 칸을 그리면 그 글자는 가려지고 그 자리에 입력합니다.</div>
       <div class="pt">선택한 칸</div>
       <div id="myProps"></div>
       <div class="pt">양식</div>
@@ -1546,16 +1683,19 @@ function renderMyPanel() {
 }
 function setMode(m) {
   if (!CF) return;
-  cfMode = m; cfSel = null; cfSelSet = new Set(); saveForms(); renderMyPanel(); renderFields();
+  cfMode = m; cfSel = null; cfSelSet = new Set(); closeDatePop(); hideTip(); saveForms(); renderMyPanel(); renderFields();
 }
 
 /* ---------- 양식 열기 ---------- */
 async function openForm(id, mode = 'fill', doc = null) {
   const f = forms.find(x => x.id === id); if (!f) return;
   CF = f; cfMode = mode; cfSel = null; cfSelSet = new Set(); cfDoc = null;
-  try { FV = JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}'); } catch (e) { FV = {}; }
-  if (groupDates(f.fields)) saveForms();                                     // 예전 양식: 년·월·일 칸을 날짜 하나로
+  try { FV = noSig(JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}')); } catch (e) { FV = {}; }
+  try { localStorage.setItem(draftKey(f.id), JSON.stringify(FV)); } catch (e) {}
+  if (mergeDates(f.fields)) saveForms();                                     // 예전 양식: 년·월·일 칸을 날짜 칸 하나로
+  PTXT = [];
   Object.keys(FV).forEach(k => { if (k.startsWith('__today:') && FV[k]) FV[k.slice(8)] = todayISO(); });   // '오늘' 체크한 날짜는 오늘로
+  f.fields.forEach(g => { if (g.type === 'date' && g.periodOf) recalcEnds(g.periodOf); });
   try { localStorage.setItem(CUR_FORM_KEY, f.id); } catch (e) {}
   showModule('my');
   const wrap = myPages();
@@ -1570,11 +1710,12 @@ async function openForm(id, mode = 'fill', doc = null) {
       const c = wrap.querySelectorAll('.cpage')[i]?.querySelector('canvas'); if (!c) return;
       c.width = vp.width; c.height = vp.height;
       await pg.render({ canvas: c, canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      await loadPageText(pg, i);
     }
   } catch (e) { toast('PDF 배경을 그리지 못했습니다: ' + (e.message || e)); }
 }
 function closeForm() {
-  CF = null; cfDoc = null; FV = {};
+  CF = null; cfDoc = null; FV = {}; closeDatePop(); hideTip();
   myPages().innerHTML = ''; document.getElementById('myEmpty').style.display = '';
   try { localStorage.removeItem(CUR_FORM_KEY); } catch (e) {}
   refreshMyList(); renderMyPanel();
@@ -1855,14 +1996,13 @@ async function detectFields(doc, pages) {
   });
   keep.sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
   keep.forEach(f => { if (f.type === 'text' && /^(서명|날인|서명또는날인|서명또는인|서명(\(인\))?|인|도장)$/.test((f.name || '').replace(/\s/g, ''))) f.type = 'sign'; });   // '서명:' 옆 빈칸도 서명판으로
-  groupDates(keep);                                                           // 년·월·일 칸 → 날짜 하나
   const cnt = {};
   keep.forEach(f => {
     delete f.pri;
-    if (f.part) return;
     if (f.type === 'check') { if (!f.name) f.name = ''; else { cnt[f.name] = (cnt[f.name] || 0) + 1; if (cnt[f.name] > 1) f.name += ' ' + cnt[f.name]; } return; }
     const n = f.name || TYPES[f.type]; cnt[n] = (cnt[n] || 0) + 1; f.name = cnt[n] > 1 ? `${n} ${cnt[n]}` : n;
   });
+  mergeDates(keep);                                                           // 년·월·일 칸 → 글자를 가리는 날짜 칸 하나 + 기간
   return keep;
 }
 
@@ -1875,24 +2015,60 @@ const PART_TXT = { y: '년', m: '월', d: '일' };
 /* 날짜: 값은 'YYYY-MM-DD'로 저장하고 칸마다 년/월/일 또는 'YYYY. M. D.'로 표시 */
 const todayISO = () => { const t = new Date(); return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`; };
 const isoParts = v => { const iso = /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : toIso(v || ''); if (!iso) return null; const [y, m, d] = iso.split('-'); return { y, m: String(+m), d: String(+d) }; };
-const dateText = v => { const p = isoParts(v); return p ? `${p.y}. ${p.m}. ${p.d}.` : (v || ''); };
+const dateText = (v, fmt) => { const p = isoParts(v); if (!p) return v || '';
+  return fmt === 'ko' ? `${p.y}년 ${p.m}월 ${p.d}일` : fmt === 'dash' ? `${p.y}-${pad2(p.m)}-${pad2(p.d)}` : `${p.y}. ${p.m}. ${p.d}.`; };
+const isoOf = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : toIso(v || '');
+const ymdOf = t => `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`;
+const shiftDay = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); return ymdOf(new Date(y, m - 1, d + n)); };
+/* 기간 끝 날짜: 시작일부터 n개월 (민법 방식: 대응하는 날의 전날, 대응하는 날이 없으면 그 달 말일) */
+function addPeriod(iso, months) {
+  const [y, m, d] = iso.split('-').map(Number), tm = new Date(y, m - 1 + months, 1);
+  const dim = new Date(tm.getFullYear(), tm.getMonth() + 1, 0).getDate();
+  return ymdOf(d > dim ? new Date(tm.getFullYear(), tm.getMonth(), dim) : new Date(tm.getFullYear(), tm.getMonth(), d - 1));
+}
+/* 쪽마다 원래 글자 위치(칸이 글자를 덮는지 확인용, 저장 안 함) */
+let PTXT = [];
+async function loadPageText(pg, i) {
+  try {
+    const vp = pg.getViewport({ scale: 1 }), tc = await pg.getTextContent();
+    PTXT[i] = tc.items.filter(it => it.str && it.str.trim()).map(it => {
+      const t = pdfjsLib.Util.transform(vp.transform, it.transform), fs = Math.hypot(t[2], t[3]) || 10;
+      return { x0: t[4], x1: t[4] + it.width, top: t[5] - fs * 0.85, bot: t[5] + fs * 0.15, n: it.str.length };
+    });
+  } catch (e) {}
+}
+function coversText(f) {
+  return (PTXT[f.page] || []).some(o => {
+    const ow = Math.min(o.x1, f.x + f.w) - Math.max(o.x0, f.x), oh = Math.min(o.bot, f.y + f.h) - Math.max(o.top, f.y);
+    return oh > (o.bot - o.top) * 0.5 && ow > Math.min((o.x1 - o.x0) * 0.5, (o.x1 - o.x0) / Math.max(1, o.n) * 0.7);
+  });
+}
 
+const isEnd = f => !!(f.type === 'date' && f.periodOf && CF && CF.fields.some(g => g !== f && g.type === 'date' && fkey(g) === f.periodOf));
+function efInner(f) {
+  const n = f.name && !f.part && f.type !== 'cover' ? groupOf(fkey(f)).length : 1;
+  const label = f.type === 'cover' ? '가림' : (f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : '');
+  const ic = f.type === 'cover' ? '▭ ' : f.type === 'date' || f.part ? (isEnd(f) ? '📅~ ' : '📅 ') : '';
+  return `<span class="en">${ic}${esc(label)}${(f.tip || '').trim() && f.type !== 'cover' ? ' 💬' : ''}${f.mask && f.type !== 'cover' ? ' <b class="lk">가림</b>' : ''}${n > 1 ? ` <b class="lk">🔗${n}</b>` : ''}</span><i class="rh"></i>`;
+}
+const efClass = f => `ef t-${f.type}${f.mask || f.type === 'cover' ? ' mk' : ''}${cfSelSet.has(f.id) ? ' sel' : ''}`;
 function editHTML(f) {
-  const n = f.name && !f.part ? groupOf(fkey(f)).length : 1;
-  const label = (f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : '');
-  return `<div class="ef t-${f.type}${cfSelSet.has(f.id) ? ' sel' : ''}" data-id="${f.id}" style="${fStyle(f)}"><span class="en">${f.part ? '📅 ' : ''}${esc(label)}${n > 1 ? ` <b class="lk">🔗${n}</b>` : ''}</span><i class="rh"></i></div>`;
+  return `<div class="${efClass(f)}" data-id="${f.id}" style="${fStyle(f)}">${efInner(f)}</div>`;
 }
 function todayHTML(f, k, on) {
-  const x = f.part ? f.x + f.w + (f.fs || 11) * 1.3 + 3 : f.x + f.w + 15;
-  return `<label class="today cft" style="left:${r1(x)}pt;top:${r1(f.y + f.h / 2 - 6)}pt" title="체크하면 오늘 날짜가 들어갑니다 (인쇄·PDF에는 안 나옴)"><input type="checkbox" data-todayf="${k}"${on ? ' checked' : ''}>오늘</label>`;
+  const nextEnd = CF && CF.fields.some(g => g.type === 'date' && g.periodOf === fkey(f) && g !== f);   // 바로 옆에 끝 날짜가 있으면 칸 위에
+  const pos = nextEnd ? `left:${r1(f.x + f.w - 30)}pt;top:${r1(f.y - 12.5)}pt`
+            : `left:${r1(f.part ? f.x + f.w + (f.fs || 11) * 1.3 + 3 : f.x + f.w + 3)}pt;top:${r1(f.y + f.h / 2 - 6)}pt`;
+  return `<label class="today cft" style="${pos}" title="체크하면 오늘 날짜가 들어갑니다 (인쇄·PDF에는 안 나옴)"><input type="checkbox" data-todayf="${k}"${on ? ' checked' : ''}>오늘</label>`;
 }
 function fillHTML(f) {
-  const k = esc(fkey(f)), v = FV[fkey(f)] ?? '', st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'left'}`;
+  const k = esc(fkey(f)), v = FV[fkey(f)] ?? '', st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'left'}`, mk = f.mask ? ' cmask' : '';
   switch (f.type) {
-    case 'multi':  return `<textarea class="in cf ml" data-f="${k}" spellcheck="false" style="${st}">${esc(v)}</textarea>`;
-    case 'check':  return `<span class="chk cf${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
-    case 'sign':   return `<div class="sig cf${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
-    case 'select': { const ops = f.options || []; return `<select class="in cf" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
+    case 'cover':  return `<div class="cover" style="${fStyle(f)}"></div>`;
+    case 'multi':  return `<textarea class="in cf ml${mk}" data-f="${k}" spellcheck="false" style="${st}">${esc(v)}</textarea>`;
+    case 'check':  return `<span class="chk cf${mk}${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
+    case 'sign':   return `<div class="sig cf${mk}${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
+    case 'select': { const ops = f.options || []; return `<select class="in cf${mk}" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
                       ['', ...ops, ...(v && !ops.includes(v) ? [v] : [])].map(o => `<option${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('') + '</select>'; }
     case 'date': {
       const on = !!FV['__today:' + fkey(f)];
@@ -1900,25 +2076,46 @@ function fillHTML(f) {
         const p = isoParts(v);
         return `<input class="in cf dpart" data-f="${k}" data-part="${f.part}" readonly value="${esc(p ? p[f.part] : '')}" title="눌러서 날짜 선택" style="${st}">` + (f.part === 'd' ? todayHTML(f, k, on) : '');
       }
-      return `<input class="in cf dsingle" data-f="${k}" value="${esc(dateText(v))}" style="${st}"><button class="dbtn" data-dfor="${k}" title="달력에서 선택" style="left:${r1(f.x + f.w + 1)}pt;top:${r1(f.y + f.h / 2 - 6)}pt">📅</button>` + todayHTML(f, k, on);
+      const end = isEnd(f);
+      return `<input class="in cf dsingle${mk}" data-f="${k}" data-fmt="${f.fmt || 'dot'}"${end ? ` data-period="${esc(f.periodOf)}"` : ''} readonly value="${esc(dateText(v, f.fmt || 'dot'))}" placeholder="📅 ${end ? '끝 날짜' : '날짜 선택'}" title="눌러서 날짜 선택" style="${st}">` + (end ? '' : todayHTML(f, k, on));
     }
-    default:       return `<input class="in cf" data-f="${k}" value="${esc(v)}" style="${st}">`;
+    default:       return `<input class="in cf${mk}" data-f="${k}" value="${esc(v)}" style="${st}">`;
   }
 }
+/* 입력 도움말: 칸에 data-tip을 달고 오른쪽 위에 작은 점(인쇄 안 됨) */
+function withTip(f, h) {
+  const t = (f.tip || '').trim(); if (!t || f.type === 'cover') return h;
+  return h.replace(' data-f="', ` data-tip="${esc(t)}" data-f="`) + `<i class="tipdot" style="left:${r1(f.x + f.w)}pt;top:${r1(f.y)}pt"></i>`;
+}
+let tipEl = null;
+function showTip(el) {
+  const b = document.getElementById('tipBub'), t = el && el.dataset.tip; if (!b || !t) return;
+  tipEl = el; b.textContent = t; b.hidden = false; placeTip();
+}
+function placeTip() {
+  const b = document.getElementById('tipBub'); if (!tipEl || b.hidden) return;
+  if (!tipEl.isConnected) { hideTip(); return; }
+  const r = tipEl.getBoundingClientRect(), W = b.offsetWidth, H = b.offsetHeight, vw = innerWidth;
+  const x = clamp(r.left + r.width / 2 - W / 2, 8, Math.max(8, vw - W - 8));
+  let y = r.top - H - 9, below = false;
+  if (y < 6) { y = r.bottom + 9; below = true; }
+  b.classList.toggle('below', below);
+  b.style.left = x + 'px'; b.style.top = y + 'px';
+  b.style.setProperty('--ax', clamp(r.left + r.width / 2 - x, 12, W - 12) + 'px');
+}
+function hideTip() { const b = document.getElementById('tipBub'); if (b) b.hidden = true; tipEl = null; }
 function renderFields() {
   if (!CF) return;
   const wrap = myPages(), layers = $$('#myPages .flayer');
   wrap.classList.toggle('editing', cfMode === 'edit');
   layers.forEach(l => l.innerHTML = '');
-  CF.fields.forEach(f => { const L = layers[f.page]; if (L) L.insertAdjacentHTML('beforeend', cfMode === 'edit' ? editHTML(f) : fillHTML(f)); });
+  CF.fields.forEach(f => { const L = layers[f.page]; if (L) L.insertAdjacentHTML('beforeend', cfMode === 'edit' ? editHTML(f) : withTip(f, fillHTML(f))); });
   if (cfMode === 'fill') $$('#myPages input.cf').forEach(fit);
   if (cfMode === 'edit') { markSel(); renderProps(); }
 }
 function refreshBox(f) {
   const el = myPages().querySelector(`.ef[data-id="${f.id}"]`); if (!el) return;
-  el.style.cssText = fStyle(f); el.className = `ef t-${f.type}${cfSelSet.has(f.id) ? ' sel' : ''}`;
-  const n = f.name && !f.part ? groupOf(fkey(f)).length : 1;
-  el.querySelector('.en').innerHTML = `${f.part ? '📅 ' : ''}${esc((f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : ''))}${n > 1 ? ` <b class="lk">🔗${n}</b>` : ''}`;
+  el.style.cssText = fStyle(f); el.className = efClass(f); el.innerHTML = efInner(f);
 }
 /* 선택 표시: 고른 칸은 주황 테두리, 같은 이름으로 묶인 칸은 주황 점선 */
 function markSel() {
@@ -1952,11 +2149,15 @@ function renderProps() {
       <input class="sin" id="mName" value="${esc(base)}" placeholder="예) 성명, 주소">
       <button class="sb primary" onclick="linkSel()">🔗 같은 이름으로 묶기</button>
       <div class="hint">묶은 칸은 한 곳에 입력하면 나머지에도 똑같이 들어갑니다.</div>
-      ${sel.length === 3 ? '<button class="sb" onclick="dateSel()">📅 날짜(년·월·일)로 묶기</button>' : ''}
+      <button class="sb" onclick="dateSel()">📅 날짜 칸 하나로 합치기 (년·월·일 → 한 번에 입력)</button>
+      ${sel.length === 2 && sel.every(f => f.type === 'date') ? '<button class="sb" onclick="periodSel()">📅~ 기간(시작~끝)으로 잇기</button>' : ''}
+      <div class="prow"><button class="sb" onclick="maskSel(true)">◻ 원래 글자 가리기</button><button class="sb" onclick="maskSel(false)">가리기 끄기</button></div>
       <div class="prow">
         <div><label class="pl">종류 한꺼번에</label><select class="ssel" id="mType"><option value="">그대로</option>${Object.entries(TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
         <div><label class="pl">글자 크기</label><input class="sin" id="mFs" type="number" min="6" max="30" step="0.5" placeholder="그대로"></div>
       </div>
+      <label class="pl">💬 입력 도움말 한꺼번에 <small>인쇄 안 됨</small></label>
+      <div class="prow"><input class="sin" id="mTip" placeholder="고른 칸 모두에 같은 도움말"><button class="sb" style="flex:none;width:auto" onclick="tipSel()">넣기</button></div>
       <div class="prow"><button class="sb" onclick="unlinkSel()">✂ 묶음 풀기</button><button class="sb" onclick="delField()">🗑 모두 삭제</button></div>
       <button class="sb" onclick="clearSel()">선택 해제</button>`;
     g('mType').addEventListener('change', e => { if (!e.target.value) return; sel.forEach(f => { f.type = e.target.value; if (f.type !== 'date') delete f.part; refreshBox(f); }); saveFormsSoon(); });
@@ -1977,19 +2178,33 @@ function renderProps() {
       <div><label class="pl">정렬</label><select class="ssel" id="pAlign">${[['left', '왼쪽'], ['center', '가운데'], ['right', '오른쪽']].map(([k, v]) => `<option value="${k}"${k === (f.align || 'left') ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
     </div>
     <div id="pOptWrap" style="display:${f.type === 'select' ? '' : 'none'}"><label class="pl">선택 항목 (한 줄에 하나)</label><textarea class="sin" id="pOpts" rows="4">${esc((f.options || []).join('\n'))}</textarea></div>
+    ${f.type === 'date' ? `<div class="prow">
+      <div><label class="pl">날짜 모양</label><select class="ssel" id="pFmt">${Object.entries(DATE_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.fmt || 'dot') ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div><label class="pl">기간</label><select class="ssel" id="pPeriod"><option value="">따로 입력</option>${CF.fields.filter(o => o !== f && o.type === 'date' && fkey(o) !== fkey(f)).map(o => `<option value="${esc(fkey(o))}"${fkey(o) === f.periodOf ? ' selected' : ''}>${esc(fkey(o))}부터(끝 날짜)</option>`).join('')}</select></div>
+    </div><div class="hint">‘기간’에서 시작 날짜 칸을 고르면 이 칸을 누를 때 1개월·3개월·1년 등으로 끝 날짜를 바로 넣을 수 있습니다.</div>` : ''}
+    ${f.type === 'cover' ? '' : `<label class="pl">💬 입력 도움말 <small>작성할 때 칸 위에 풍선으로 뜸 · 인쇄 안 됨</small></label>
+    <textarea class="sin" id="pTip" rows="2" placeholder="예) 주민등록상 주소를 적으세요">${esc(f.tip || '')}</textarea>`}
+    ${f.type === 'cover' ? '<div class="hint">▭ 가림 상자: 입력 없이 이 자리의 원래 내용을 흰색으로 가립니다(인쇄·PDF에도 적용).</div>'
+      : `<label class="sopt"><input type="checkbox" id="pMask"${f.mask ? ' checked' : ''}> 원래 글자 가리기 (칸 아래 원래 내용을 숨김)</label>`}
     <div class="prow"><button class="sb" onclick="dupField()">⧉ 복제</button><button class="sb" onclick="delField()">🗑 삭제</button></div>`;
-  const oldKey = fkey(f);
+  let curKey = fkey(f);
   const upd = ev => {
     const nm = g('pName').value;
-    if (ev && ev.target.id === 'pName' && f.part) groupOf(oldKey).forEach(s => { if (s.part) s.name = nm; });   // 날짜 묶음은 이름을 함께 바꿈
+    if (ev && ev.target.id === 'pName' && f.part) groupOf(curKey).forEach(s => { if (s.part) s.name = nm; });   // 날짜 묶음은 이름을 함께 바꿈
     f.name = nm; f.type = g('pType').value; f.fs = +g('pFs').value || 11; f.align = g('pAlign').value;
-    if (f.type !== 'date') delete f.part;
+    if (f.type !== 'date') { delete f.part; delete f.periodOf; }
     f.options = g('pOpts').value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (g('pFmt')) f.fmt = g('pFmt').value;
+    if (g('pPeriod')) { if (g('pPeriod').value) f.periodOf = g('pPeriod').value; else delete f.periodOf; }
+    if (g('pMask')) { if (g('pMask').checked) f.mask = true; else delete f.mask; }
+    if (g('pTip')) { const t = g('pTip').value; if (t.trim()) f.tip = t; else delete f.tip; }
+    const nk = fkey(f); if (nk !== curKey) { CF.fields.forEach(o => { if (o.periodOf === curKey) o.periodOf = nk; }); curKey = nk; }
     g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
     CF.fields.forEach(refreshBox); markSel(); saveFormsSoon();
   };
-  ['pName', 'pType', 'pFs', 'pAlign', 'pOpts'].forEach(id => g(id).addEventListener('input', upd));
+  ['pName', 'pType', 'pFs', 'pAlign', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip'].forEach(id => g(id) && g(id).addEventListener(id === 'pMask' ? 'change' : 'input', upd));
   g('pName').addEventListener('change', () => renderProps());
+  g('pType').addEventListener('change', () => renderProps());
 }
 function linkSel() {
   const n = (document.getElementById('mName').value || '').trim(); if (!n) { alert('묶을 이름을 적어 주세요.'); return; }
@@ -2000,10 +2215,37 @@ function linkSel() {
 }
 function dateSel() {
   const sel = selFields().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
-  const want = (document.getElementById('mName').value || '').trim().replace(/^(년|월|일)$/, '');
-  const name = uniqueName(want || '날짜', new Set(sel.map(f => f.id)));
-  sel.forEach((f, i) => { f.type = 'date'; f.part = 'ymd'[i]; f.name = name; f.align = f.align || 'right'; });
-  saveFormsSoon(); renderFields(); toast(`왼쪽부터 년·월·일로 묶었습니다(‘${name}’). 작성할 때 날짜를 한 번에 고를 수 있습니다.`);
+  if (new Set(sel.map(f => f.page)).size > 1) { alert('같은 쪽에 있는 칸만 합칠 수 있습니다.'); return; }
+  const want = (document.getElementById('mName')?.value || '').trim().replace(/^(년|월|일)(\s+\d+)?$/, '');
+  const ids = new Set(sel.map(f => f.id)), name = uniqueName(want || '날짜', ids);
+  const last = sel.slice().sort((a, b) => (b.x + b.w) - (a.x + a.w))[0], fs = Math.max(...sel.map(f => f.fs || 11));
+  const x0 = Math.min(...sel.map(f => f.x)), y0 = Math.min(...sel.map(f => f.y)), y1 = Math.max(...sel.map(f => f.y + f.h));
+  const x1 = last.x + last.w + (/^일(\s+\d+)?$/.test(last.name || '') ? 2 + fs * 1.1 : 0);   // 마지막 '일' 글자까지 가림
+  const k = sel[0];
+  Object.assign(k, { type: 'date', name, x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0), fs: r1(fs), mask: true, fmt: k.fmt || 'ko', align: 'center' }); delete k.part;
+  CF.fields = CF.fields.filter(f => f === k || !ids.has(f.id));
+  cfSelSet = new Set([k.id]); cfSel = k.id;
+  saveFormsSoon(); renderFields();
+  toast(`칸 ${sel.length}개를 날짜 칸 하나(‘${name}’)로 합쳤습니다. 원래 글자는 가려지고, 작성할 때 달력으로 한 번에 입력합니다.`);
+}
+function periodSel() {
+  const [a, b] = selFields().sort((p, q) => p.page - q.page || p.y - q.y || p.x - q.x); if (!a || !b) return;
+  delete a.periodOf; b.periodOf = fkey(a);
+  saveFormsSoon(); renderFields(); toast(`‘${fkey(b)}’을(를) ‘${fkey(a)}’부터의 끝 날짜로 이었습니다. 작성할 때 1개월·1년 등으로 바로 넣을 수 있습니다.`);
+}
+function tipSel() {
+  const t = (document.getElementById('mTip').value || '').trim(), sel = selFields().filter(f => f.type !== 'cover');
+  sel.forEach(f => { if (t) f.tip = t; else delete f.tip; refreshBox(f); });
+  saveFormsSoon(); toast(t ? `칸 ${sel.length}개에 입력 도움말을 넣었습니다.` : `칸 ${sel.length}개의 입력 도움말을 지웠습니다.`);
+}
+function maskSel(on) {
+  selFields().forEach(f => { if (f.type === 'cover') return; if (on) f.mask = true; else delete f.mask; refreshBox(f); });
+  saveFormsSoon(); toast(on ? '고른 칸 아래의 원래 글자를 가립니다.' : '원래 글자 가리기를 껐습니다.');
+}
+let coverMode = false;
+function toggleCover() {
+  coverMode = !coverMode; renderMyPanel();
+  toast(coverMode ? '가림 상자 그리기를 켰습니다. 숨길 부분을 드래그하세요. 입력 없이 원래 내용만 가립니다.' : '가림 상자 그리기를 껐습니다. 이제 드래그하면 입력 칸이 생깁니다.');
 }
 function undateSel() {
   const f = selFields()[0]; if (!f || !f.part) return;
@@ -2026,6 +2268,31 @@ function dupField() {
   const f = selFields()[0]; if (!f) return;
   const n = Object.assign({}, f, { id: uid('c'), y: r1(f.y + f.h + 4), name: uniqueName((f.name || TYPES[f.type]).replace(/\s+\d+$/, '')) }); delete n.part;
   CF.fields.push(n); cfSelSet = new Set([n.id]); cfSel = n.id; saveFormsSoon(); renderFields();
+}
+/* '년·월·일' 칸 3개 → 원래 글자를 가리는 날짜 칸 하나 (자동 인식·예전 양식 불러오기) */
+function mergeDates(fields) {
+  groupDates(fields);
+  const groups = {}, rm = new Set(); let changed = false;
+  fields.forEach(f => { if (f.part) (groups[fkey(f)] = groups[fkey(f)] || []).push(f); });
+  Object.values(groups).forEach(g => {
+    const y = g.find(f => f.part === 'y'), d = g.find(f => f.part === 'd');
+    if (!y || !d || g.length < 3) { g.forEach(f => delete f.part); return; }
+    const fs = Math.max(...g.map(f => f.fs || 11)), x0 = Math.min(...g.map(f => f.x)) - 1, x1 = d.x + d.w + 2 + fs * 1.1;
+    const y0 = Math.min(...g.map(f => f.y)), y1 = Math.max(...g.map(f => f.y + f.h));
+    Object.assign(y, { type: 'date', x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0), fs: r1(fs), mask: true, fmt: 'ko', align: 'center' });
+    delete y.part; g.forEach(f => { if (f !== y) rm.add(f.id); }); changed = true;
+  });
+  for (let i = fields.length - 1; i >= 0; i--) if (rm.has(fields[i].id)) fields.splice(i, 1);
+  if (changed) autoPeriods(fields);
+  return changed;
+}
+/* 같은 줄에 날짜 칸이 바로 이어지면 기간(시작~끝)으로 */
+function autoPeriods(fields) {
+  const ds = fields.filter(f => f.type === 'date' && !f.part).sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
+  ds.forEach((a, i) => {
+    const b = ds[i + 1]; if (!b || a.periodOf || b.periodOf) return;
+    if (b.page === a.page && Math.abs((b.y + b.h / 2) - (a.y + a.h / 2)) < Math.max(4, a.h * 0.6) && b.x > a.x + a.w - 3 && b.x - (a.x + a.w) < 90) b.periodOf = fkey(a);
+  });
 }
 /* 예전 양식의 '년·월·일' 칸 3개를 날짜 하나로 묶기 (자동 인식·불러오기 때 사용) */
 function groupDates(fields) {
@@ -2084,7 +2351,7 @@ function setupEditor() {
     } else {
       if (!fdrag.f) {
         if (Math.hypot(dx, dy) < 4) return;
-        fdrag.f = { id: uid('c'), page: pg, type: 'text', name: '', fs: 11, align: 'left', x: 0, y: 0, w: 1, h: 1 };
+        fdrag.f = { id: uid('c'), page: pg, type: coverMode ? 'cover' : 'text', name: '', fs: 11, align: 'left', x: 0, y: 0, w: 1, h: 1 };
         CF.fields.push(fdrag.f); cfSelSet = new Set([fdrag.f.id]); cfSel = fdrag.f.id;
         fdrag.pageEl.querySelector('.flayer').insertAdjacentHTML('beforeend', editHTML(fdrag.f));
       }
@@ -2096,22 +2363,39 @@ function setupEditor() {
     const d = fdrag; fdrag = null;
     if (d.mode === 'marquee') { const mq = d.pageEl.querySelector('.marq'); if (mq) mq.remove(); renderProps(); return; }
     if (d.mode === 'new' && d.f) {
-      d.f.w = Math.max(d.f.w, 20); d.f.h = Math.max(d.f.h, 10);
-      d.f.fs = r1(clamp(d.f.h * 0.62, 7, 14)); d.f.name = uniqueName('칸');
+      if (d.f.type === 'cover') { d.f.w = Math.max(d.f.w, 4); d.f.h = Math.max(d.f.h, 4); }
+      else {
+        d.f.w = Math.max(d.f.w, 20); d.f.h = Math.max(d.f.h, 10);
+        d.f.fs = r1(clamp(d.f.h * 0.62, 7, 14)); d.f.name = uniqueName('칸');
+        if (coversText(d.f)) { d.f.mask = true; toast('원래 글자 위에 그린 칸이라 그 글자를 가리고 입력합니다. (속성의 ‘원래 글자 가리기’로 끌 수 있음)'); }
+      }
     }
     if ((d.mode === 'move' && d.moved) || d.mode === 'resize' || (d.mode === 'new' && d.f)) { saveFormsSoon(); renderFields(); }
   };
   wrap.addEventListener('pointerup', end); wrap.addEventListener('pointercancel', end);
 
+  /* 입력 도움말 풍선: 칸에 들어가거나(포커스) 마우스를 올리거나 누르면 위에 뜸 */
+  const tipOf = t => cfMode === 'fill' && t && t.closest ? t.closest('#myPages [data-tip]') : null;
+  wrap.addEventListener('focusin', ev => { const e = tipOf(ev.target); e ? showTip(e) : hideTip(); });
+  wrap.addEventListener('focusout', ev => { if (tipEl === ev.target && !tipEl.matches(':hover')) hideTip(); });
+  wrap.addEventListener('mouseover', ev => { const e = tipOf(ev.target); if (e && e !== tipEl) showTip(e); });
+  wrap.addEventListener('mouseout', ev => {
+    const e = tipOf(ev.target); if (!e || e !== tipEl || (ev.relatedTarget && e.contains(ev.relatedTarget))) return;
+    const a = tipOf(document.activeElement); a && a !== e ? showTip(a) : a === e ? 0 : hideTip();
+  });
+  wrap.addEventListener('pointerdown', ev => { const e = tipOf(ev.target); if (e) showTip(e); }, true);
+  document.addEventListener('pointerdown', ev => { if (tipEl && !tipOf(ev.target)) hideTip(); }, true);
+  addEventListener('scroll', placeTip, true); addEventListener('resize', placeTip);
+
   /* 작성 모드: 입력·체크·서명·날짜 */
   wrap.addEventListener('input', ev => {
     const e = ev.target; if (!e.dataset || e.dataset.f == null || cfMode !== 'fill') return;
-    if (e.classList.contains('dsingle')) { FV['__today:' + e.dataset.f] = false; syncToday(e.dataset.f); }
+    if (e.classList.contains('dsingle')) return;
     setFV(e.dataset.f, e.value, e);
   });
   wrap.addEventListener('change', ev => {
     const c = ev.target; if (!c.dataset || c.dataset.todayf == null) return;
-    const k = c.dataset.todayf; FV['__today:' + k] = c.checked; syncToday(k); setFV(k, c.checked ? todayISO() : '');
+    const k = c.dataset.todayf; FV['__today:' + k] = c.checked; syncToday(k); setFV(k, c.checked ? todayISO() : ''); recalcEnds(k);
   });
   const openPicker = (k, el) => {
     const dp = document.getElementById('dPick'), r = el.getBoundingClientRect();
@@ -2123,9 +2407,8 @@ function setupEditor() {
     if (!CF || cfMode !== 'fill') return;
     const c = ev.target.closest('.chk[data-f]'); if (c) { setFV(c.dataset.f, FV[c.dataset.f] ? '' : '√'); return; }
     const s = ev.target.closest('.sig[data-f]');
-    if (s) { const k = s.dataset.f; openSigFor(s.dataset.title, v => setFV(k, v), s); return; }
-    const d = ev.target.closest('.dbtn'); if (d) { openPicker(d.dataset.dfor, d); return; }
-    const p = ev.target.closest('.dpart'); if (p) openPicker(p.dataset.f, p);
+    if (s) { hideTip(); const k = s.dataset.f; openSigFor(s.dataset.title, v => setFV(k, v), s); return; }
+    const p = ev.target.closest('.dsingle, .dpart'); if (p) openDatePop(p);
   });
   document.getElementById('dPick').addEventListener('change', ev => {
     const v = ev.target.value, k = ev.target.dataset.for; if (!v || !k) return;
@@ -2140,6 +2423,54 @@ function setupEditor() {
     else if (mv) { ev.preventDefault(); selFields().forEach(f => { f.x = r1(f.x + mv[0]); f.y = r1(f.y + mv[1]); refreshBox(f); }); saveFormsSoon(); }
   });
 }
+/* ---------- 날짜 고르기 창 (달력 · 오늘 · 기간) ---------- */
+let DP = null;
+function openDatePop(el) {
+  const pop = document.getElementById('datePop'), k = el.dataset.f, s = el.dataset.period || '';
+  const cur = isoOf(FV[k]), sv = s ? isoOf(FV[s]) : '';
+  DP = { k, s, el };
+  const per = FV['__per:' + k];
+  const btn = (fn, t, on) => `<button type="button" class="${on ? 'on' : ''}" onclick="${fn}">${t}</button>`;
+  pop.innerHTML = s
+    ? `<div class="dph">📅~ 끝 날짜</div><div class="dps">시작일 ${sv ? `<b>${esc(dateText(sv, 'ko'))}</b>부터` : '(비어 있음 → 오늘부터 계산)'}</div>
+       <div class="dpg">${btn("dpSet(todayISO())", '오늘')}${[[1, '1개월'], [3, '3개월'], [6, '6개월'], [12, '1년'], [24, '2년']].map(([n, t]) => btn(`dpPeriod(${n})`, t, per === n)).join('')}</div>
+       <div class="dpc"><label>달력 입력</label><input type="date" id="dpCal" value="${cur}"></div>`
+    : `<div class="dph">📅 ${esc(k)}</div>
+       <div class="dpg">${btn("dpSet(todayISO())", '오늘')}${btn("dpShift(-1)", '어제')}${btn("dpShift(1)", '내일')}</div>
+       <div class="dpc"><label>달력 입력</label><input type="date" id="dpCal" value="${cur}"></div>`;
+  pop.insertAdjacentHTML('beforeend', `<button type="button" class="dpx" onclick="dpSet('')">지우기</button>`);
+  pop.hidden = false;
+  const r = el.getBoundingClientRect(), W = pop.offsetWidth, H = pop.offsetHeight, vw = innerWidth, vh = innerHeight;
+  let x = r.right + 6, y = r.top - 6;
+  if (x + W > vw - 6) { x = clamp(r.left, 6, vw - W - 6); y = r.bottom + 6; if (y + H > vh - 6) y = r.top - H - 6; }
+  pop.style.left = x + 'px'; pop.style.top = clamp(y, 6, Math.max(6, vh - H - 6)) + 'px';
+  const cal = document.getElementById('dpCal');
+  cal.addEventListener('change', () => { if (cal.value) dpSet(cal.value); });
+}
+function closeDatePop() { const p = document.getElementById('datePop'); if (p) p.hidden = true; DP = null; }
+function dpSet(iso) {
+  if (!DP) return; const k = DP.k;
+  FV['__today:' + k] = false; syncToday(k); delete FV['__per:' + k];
+  setFV(k, iso); recalcEnds(k); closeDatePop();
+}
+function dpShift(n) { dpSet(shiftDay(todayISO(), n)); }
+function dpPeriod(n) {
+  if (!DP) return; const { k, s } = DP;
+  let sv = isoOf(FV[s]);
+  if (!sv) { sv = todayISO(); setFV(s, sv); toast('시작일이 비어 있어 오늘 날짜를 넣었습니다.'); }
+  setFV(k, addPeriod(sv, n)); FV['__per:' + k] = n; closeDatePop();
+}
+/* 시작일이 바뀌면 '1개월·1년' 등으로 정한 끝 날짜를 다시 계산 */
+function recalcEnds(s) {
+  if (!CF) return;
+  CF.fields.forEach(f => {
+    if (f.type !== 'date' || f.periodOf !== s) return;
+    const k = fkey(f), n = FV['__per:' + k], sv = isoOf(FV[s]);
+    if (n && sv) setFV(k, addPeriod(sv, n));
+  });
+}
+document.addEventListener('pointerdown', ev => { if (DP && !ev.target.closest('#datePop') && ev.target !== DP.el) closeDatePop(); }, true);
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && DP) closeDatePop(); });
 function syncToday(k) { $$('#myPages [data-todayf]').forEach(c => { if (c.dataset.todayf === k) c.checked = !!FV['__today:' + k]; }); }
 function setFV(k, v, from) {
   FV[k] = v;
@@ -2148,7 +2479,7 @@ function setFV(k, v, from) {
     if (e.classList.contains('chk')) e.classList.toggle('on', !!v);
     else if (e.classList.contains('sig')) { e.classList.toggle('signed', !!v); const im = e.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); }
     else if (e.classList.contains('dpart')) { const p = isoParts(v); e.value = p ? p[e.dataset.part] : ''; fit(e); }
-    else if (e.classList.contains('dsingle')) { if (e !== from) e.value = dateText(v); fit(e); }
+    else if (e.classList.contains('dsingle')) { e.value = dateText(v, e.dataset.fmt); fit(e); }
     else { if (e !== from) e.value = v ?? ''; if (e.tagName === 'INPUT') fit(e); }
   });
   saveFVSoon();
@@ -2175,7 +2506,7 @@ function saveFormData() {
   const who = nameField ? safeName(FV[fkey(nameField)]) : '';
   saveJsonAs(`${safeName(CF.title)}${who ? '_' + who : ''}_${ds}.json`,
     { _type: 'form-data', _version: 1, formId: CF.id, formTitle: CF.title, savedAt: t.toISOString(),
-      values: Object.fromEntries(Object.entries(FV).filter(([k]) => !k.startsWith('__today:'))) }, '작성 내용 파일');   // 날짜는 저장한 날로 고정
+      values: Object.fromEntries(Object.entries(noSig(FV)).filter(([k]) => !k.startsWith('__today:'))) }, '작성 내용 파일');   // 날짜는 저장한 날로 고정
 }
 function clearFormData() {
   if (!CF || !confirm('이 양식에 입력한 내용을 모두 지울까요?')) return;
@@ -2186,7 +2517,7 @@ async function loadFormData(o, fname) {
   if (!f) { alert(`이 작성 파일의 양식(‘${o.formTitle || '알 수 없음'}’)이 목록에 없습니다.\n먼저 양식 파일을 가져온 다음 다시 여세요.`); return; }
   let cur = {}; try { cur = JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}'); } catch (e) {}
   if (Object.values(cur).some(v => v) && !confirm(`‘${f.title}’에 작성 중인 내용이 ‘${fname}’ 내용으로 바뀝니다. 계속할까요?`)) return;
-  try { localStorage.setItem(draftKey(f.id), JSON.stringify(o.values || {})); } catch (e) {}
+  try { localStorage.setItem(draftKey(f.id), JSON.stringify(noSig(o.values || {}))); } catch (e) {}
   await openForm(f.id, 'fill'); toast(`불러왔습니다: ${fname}`);
 }
 
@@ -2223,7 +2554,7 @@ function printForm() {
   const p = CF.pages[0]; let st = document.getElementById('pgSize');
   if (!st) { st = document.createElement('style'); st.id = 'pgSize'; document.head.appendChild(st); }
   st.textContent = `@media print { @page { size:${p.w}pt ${p.h}pt; margin:0; } }`;
-  document.body.dataset.print = 'current'; window.print();
+  document.body.dataset.print = 'current'; updateKitData(); window.print();
 }
 window.addEventListener('afterprint', () => { const st = document.getElementById('pgSize'); if (st) st.textContent = ''; });
 
@@ -2683,6 +3014,280 @@ function pubStatusLine() {
   return `<div class="hint">공개 상태: <span class="pst ${st[1]}">${st[0]}</span>${CF.pub.status === 'rejected' && CF.pub.reason ? `<br>사유: ${esc(CF.pub.reason)}` : ''}</div>`;
 }
 
+/* ====================== 제출 PDF 모아 엑셀로 ====================== */
+let COL = [];
+function colOpen() {
+  showModule('collect');
+  const sel = document.getElementById('colForm'), cur = sel.value;
+  sel.innerHTML = `<option value="ltc">장기요양기관 입소·이용신청서 (+ 재가서비스 이용내역서)</option>` +
+    forms.map(f => `<option value="f:${f.id}">직접 만든 양식: ${esc(f.title)}</option>`).join('');
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+  colRender();
+}
+const colMsg = t => { const m = document.getElementById('colMsg'); if (m) m.textContent = t; };
+async function colAdd(files) {
+  files = files.filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+  if (!files.length) { alert('PDF 파일을 올려 주세요.'); return; }
+  if (!document.getElementById('colForm').options.length) colOpen();
+  let n = 0;
+  for (const file of files) {
+    colMsg(`읽는 중… (${++n}/${files.length}) ${file.name}`);
+    try {
+      const doc = await openPdf(new Uint8Array(await file.arrayBuffer()));
+      COL.push(await colRead(doc, file.name));
+    } catch (e) { COL.push({ file: file.name, err: 'PDF를 읽지 못했습니다' }); }
+    colRender();
+  }
+  colMsg(`${files.length}개 파일을 읽었습니다.`);
+}
+function colClear() { if (COL.length && !confirm('올린 목록을 모두 지울까요?')) return; COL = []; colRender(); colMsg(''); }
+function colDel(i) { COL.splice(i, 1); colRender(); }
+
+/* PDF 한 개 읽기: 쪽마다 글자(위치)와 그림(서명) 위치 */
+async function pdfPageInfo(doc, i) {
+  const pg = await doc.getPage(i + 1), vp = pg.getViewport({ scale: 1 }), tc = await pg.getTextContent();
+  const items = tc.items.filter(it => it.str && it.str.trim()).map(it => {
+    const t = pdfjsLib.Util.transform(vp.transform, it.transform), fs = Math.hypot(t[2], t[3]) || 10, base = t[5];
+    return { s: it.str, x0: t[4], x1: t[4] + it.width, fs, base, top: base - fs * 0.86, cy: base - fs * 0.33, cx: t[4] + it.width / 2 };
+  });
+  return { pg, vp, items, w: vp.width, h: vp.height, imgs: null };
+}
+async function imageBoxes(P) {
+  if (P.imgs) return P.imgs;
+  const OPS = pdfjsLib.OPS, ol = await P.pg.getOperatorList(), out = [], st = [];
+  let m = [1, 0, 0, 1, 0, 0];
+  const mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
+  for (let i = 0; i < ol.fnArray.length; i++) {
+    const fn = ol.fnArray[i], a = ol.argsArray[i];
+    if (fn === OPS.save) st.push(m);
+    else if (fn === OPS.restore) m = st.pop() || [1, 0, 0, 1, 0, 0];
+    else if (fn === OPS.transform) m = mul(m, a);
+    else if (fn === OPS.paintFormXObjectBegin) { st.push(m); if (a && a[0] && a[0].length === 6) m = mul(m, a[0]); }
+    else if (fn === OPS.paintFormXObjectEnd) m = st.pop() || [1, 0, 0, 1, 0, 0];
+    else if (fn === OPS.paintImageXObject || fn === OPS.paintInlineImageXObject || fn === OPS.paintImageMaskXObject) {
+      const pts = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => P.vp.convertToViewportPoint(m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]));
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      out.push({ x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) });
+    }
+  }
+  return (P.imgs = out);
+}
+/* 칸(사각형) 안 글자 모으기 */
+function textIn(items, r) {
+  const got = items.filter(o => o.fs >= 2 && o.cx > r.x - 1 && o.cx < r.x + r.w + 1 && o.cy > r.y - 1.5 && o.cy < r.y + r.h + 1.5)
+                   .sort((a, b) => Math.abs(a.base - b.base) > a.fs * 0.4 ? a.base - b.base : a.x0 - b.x0);
+  let out = '', prev = null;
+  got.forEach(o => { if (prev) out += Math.abs(o.base - prev.base) > o.fs * 0.4 ? ' ' : (o.x0 - prev.x1 > o.fs * 0.25 ? ' ' : ''); out += o.s; prev = o; });
+  return out.replace(/\s+/g, ' ').trim();
+}
+const hasImg = (imgs, r) => imgs.some(b => { const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+  return cx > r.x && cx < r.x + r.w && cy > r.y && cy < r.y + r.h && b.x1 - b.x0 < r.w * 3 && b.y1 - b.y0 < r.h * 3; });
+
+/* 서식별 칸 위치 */
+function ltcRectsP1() {
+  const r = [];
+  $$('#p1 [data-k]').forEach(e => r.push(Object.assign(boxOf(e), { k: e.dataset.k, chk: e.classList.contains('chk') })));
+  $$('#p1 .sig[data-sig]').forEach(e => r.push(Object.assign(boxOf(e), { k: e.dataset.sig, sig: true })));
+  return r;
+}
+/* 재가서비스 이용내역서: 급여 줄 수에 따라 크기·위치가 달라지므로 PDF 안의 제목·'합계' 글자로 맞춤 */
+function ltcRectsP2(P) {
+  const title = P.items.find(o => o.s.replace(/\s/g, '').includes('재가서비스')); if (!title) return [];
+  const sc = title.fs / 11.4, T0 = 54.9, T1 = 92.1, T2 = 111.2, T3 = 141.7, T6 = 216.5;
+  const tx = (595 - (X[11] - X[0]) * sc) / 2 - X[0] * sc, ty = 58 - T0 * sc;
+  const sums = P.items.filter(o => o.s.replace(/\s/g, '') === '합계').map(o => (o.top - ty) / sc).sort((a, b) => a - b);
+  if (sums.length < 2) return [];
+  const sEnd = sums[0] - 6.2, nS = Math.max(1, Math.round((sEnd - T6) / RH)), W2 = sEnd + RH + 53.6, wEnd = sums[1] - 6.2, nW = Math.max(1, Math.round((wEnd - W2) / RH));
+  const r = [], cell = (k, x0, y0, x1, y1, chk) => r.push({ k, x: x0 + 0.8, y: y0 + 0.8, w: x1 - x0 - 1.6, h: y1 - y0 - 1.6, chk });
+  const stEnd = cx(X[7], X[11]) - 5;
+  cell('name', X[3], T1, X[6], T2); cell('rrn', X[7], T1, X[11], T2); cell('grade', X[3], T2, X[6], T3); cell('certNo', X[7], T2, X[11], T3);
+  r.push({ k: 'startDate', x: X[7] + 1, y: T3 + 1.5, w: stEnd - X[7] - 1, h: 17.5 }, { k: 'periodTo', x: stEnd + 10, y: T3 + 1.5, w: X[11] - stEnd - 11, h: 17.5 });
+  for (let i = 0; i < nS; i++) { const a = T6 + i * RH, b = a + RH, p = 's' + (i + 1);
+    cell(p + '_kind', X[1], a, X[2], b); cell(p + '_desc', X[2], a, X[3], b); cell(p + '_fee', X[3], a, X[5], b); cell(p + '_cnt', X[5], a, X[6], b);
+    cell(p + '_amt', X[6], a, X[7], b); cell(p + '_org', X[7], a, X[9], b); cell(p + '_code', X[9], a, X[11], b); }
+  r.push({ k: 'sTotal', x: X[3] + 1, y: sEnd + 1.7, w: cx(X[3], X[7]) - X[3] - 1, h: 17.5 });
+  for (let i = 0; i < nW; i++) { const a = W2 + i * RH, b = a + RH, p = 'w' + (i + 1);
+    cell(p + '_name', WX[0], a, WX[1], b); cell(p + '_pcode', WX[1], a, WX[2], b); cell(p + '_buy', WX[2], a, WX[3], b, true); cell(p + '_rent', WX[3], a, WX[4], b, true);
+    cell(p + '_period', WX[4], a, WX[5], b); cell(p + '_amt', WX[5], a, WX[6], b); cell(p + '_org', X[7], a, X[9], b); cell(p + '_code', X[9], a, X[11], b); }
+  r.push({ k: 'wTotal', x: X[3] + 1, y: wEnd + 1.7, w: cx(X[3], X[7]) - X[3] - 1, h: 17.5 });
+  return r.map(o => Object.assign(o, { x: o.x * sc + tx, y: o.y * sc + ty, w: o.w * sc, h: o.h * sc }));
+}
+async function readRects(P, rects, out) {
+  for (const r of rects) {
+    if (r.sig) { if (!out[r.k]) out[r.k] = hasImg(await imageBoxes(P), r) ? 'Y' : ''; continue; }
+    let v = textIn(P.items, r);
+    if (r.chk) v = /[√✓✔Vv]/.test(v) ? '√' : '';
+    if (v && !out[r.k]) out[r.k] = v;
+  }
+}
+async function colRead(doc, file) {
+  const pages = []; for (let i = 0; i < Math.min(doc.numPages, 20); i++) pages.push(await pdfPageInfo(doc, i));
+  const rec = { file, how: 'pos', vals: {}, warn: [], kind: null };
+  /* 1) 이 도구모음이 넣어 둔 작성 정보 */
+  for (const P of pages) {
+    const all = P.items.map(o => o.s).join('').replace(/\s/g, ''), m = all.match(new RegExp(KIT_TAG + '\\[([A-Za-z0-9+/=]+)\\]' + KIT_TAG));
+    if (m) { try { const o = JSON.parse(decodeURIComponent(escape(atob(m[1])))); rec.kind = o.k === 'ltc' ? 'ltc' : 'f:' + o.id; rec.ptitle = o.title; rec.vals = o.v || {}; rec.how = 'kit'; break; } catch (e) {} }
+  }
+  /* 2) 고른 서식의 입력칸 위치에서 글자 읽기 (작성 정보가 없거나, 확인용) */
+  const sel = document.getElementById('colForm').value, pos = {};
+  if (sel === 'ltc') {
+    for (const P of pages) {
+      const isP2 = P.items.some(o => o.s.replace(/\s/g, '').includes('재가서비스'));
+      await readRects(P, isP2 ? ltcRectsP2(P) : ltcRectsP1(), pos);
+    }
+  } else {
+    const f = forms.find(x => 'f:' + x.id === sel);
+    if (f) for (let i = 0; i < pages.length && i < f.pages.length; i++) {
+      const P = pages[i], kx = P.w / f.pages[i].w, ky = P.h / f.pages[i].h;
+      const rects = f.fields.filter(g => g.page === i && g.type !== 'cover').map(g => ({ k: fkey(g), x: g.x * kx, y: g.y * ky, w: g.w * kx, h: g.h * ky, chk: g.type === 'check', sig: g.type === 'sign' }));
+      await readRects(P, rects, pos);
+    }
+  }
+  rec.selAt = sel;
+  if (rec.how === 'kit') {
+    if (rec.kind === sel) {   /* 화면에 찍힌 글자와 작성 정보가 다르면(PDF를 따로 고친 경우 등) 알림 */
+      const nz = v => String(v ?? '').replace(/\s/g, '');
+      Object.keys(pos).forEach(k => { const a = nz(pos[k]), b = nz(rec.vals[k]);
+        if (a && b && a !== b && !/^data:/.test(String(rec.vals[k])) && !/^\d{4}-\d{2}-\d{2}$/.test(String(rec.vals[k])) && a !== '√' && rec.vals[k] !== 'Y') rec.warn.push(`‘${colLabel(sel, k)}’ 칸: 보이는 글자(${pos[k]})와 작성 정보가 다름`); });
+    }
+  } else {
+    rec.vals = pos; rec.kind = sel;
+    if (!Object.values(pos).some(v => v && v !== 'Y')) rec.warn.push('입력된 글자를 찾지 못했습니다 (서식이 다르거나 스캔한 PDF일 수 있음)');
+  }
+  return rec;
+}
+
+/* 엑셀 열 */
+const LTC_COLS = [
+  ['신청구분', v => ['신규', '갱신', '변경', '해지'].filter((t, i) => v['rType' + (i + 1)]).join(', ')],
+  ['접수번호', 'rcptNo'], ['접수일시', 'rcptAt'],
+  ['신청인 성명', 'appName'], ['신청인 생년월일', 'appBirth'], ['수급자와의 관계', 'appRel'], ['신청인 전화번호', 'appTel'], ['신청인 주소', 'appAddr'],
+  ['수급자 성명', 'name'], ['주민등록번호', 'rrn'], ['장기요양등급', 'grade'], ['장기요양 인정번호', 'certNo'], ['수급자 주소', 'addr'], ['수급자 전화번호', 'tel'],
+  ['입소·이용 희망 장기요양기관', 'iName'],
+  ['의료급여 구분', v => [v.mType1 ? '의료급여법 제3조제1항제1호' : '', v.mType2 ? '그 외 규정에 따른 의료급여' : ''].filter(Boolean).join(', ')],
+  ['신청일', v => v.y || v.m || v.d ? `${v.y || ''}. ${v.m || ''}. ${v.d || ''}.` : ''],
+  ['수급자(보호자) 성명', 'consentName'],
+  ['신청인 서명', v => v.sigApp ? '있음' : '없음'], ['수급자(보호자) 서명', v => v.sigCon1 ? '있음' : '없음'], ['행정정보 공동이용 동의 서명', v => v.sigCon2 ? '있음' : '없음'],
+  ['제출처(단체장)', 'chief'],
+  ['이용기간 시작', 'startDate'], ['이용기간 끝', 'periodTo'],
+];
+const S_LBL = { kind: '서비스종류', desc: '서비스내용', fee: '수가', cnt: '횟수/월', amt: '금액/월', org: '기관명', code: '기관기호' };
+const W_LBL = { name: '품목명', pcode: '제품코드', way: '급여방식', period: '대여기간', amt: '금액', org: '기관명', code: '기관기호' };
+function colLabel(sel, k) {
+  if (sel === 'ltc') { const c = LTC_COLS.find(c => c[1] === k); if (c) return c[0];
+    const m = k.match(/^([sw])(\d+)_(\w+)$/); if (m) return `${m[1] === 's' ? '급여' : '복지용구'}${m[2]} ${(m[1] === 's' ? S_LBL : W_LBL)[m[3]] || m[3]}`; return k; }
+  return k;
+}
+function colColumns(sel, recs) {
+  if (sel === 'ltc') {
+    const cols = LTC_COLS.map(([l, g]) => [l, typeof g === 'function' ? g : v => v[g] ?? '']);
+    const maxRow = p => Math.max(0, ...recs.flatMap(r => Object.keys(r.vals || {}).filter(k => k.startsWith(p) && String(r.vals[k] ?? '').trim()).map(k => +k.match(/^[sw](\d+)_/)?.[1] || 0)));
+    for (let i = 1; i <= maxRow('s'); i++) Object.keys(S_LBL).forEach(f => cols.push([`급여${i} ${S_LBL[f]}`, v => v[`s${i}_${f}`] ?? '']));
+    cols.push(['급여 합계(원)', v => v.sTotal ?? '']);
+    for (let i = 1; i <= maxRow('w'); i++) Object.keys(W_LBL).forEach(f => cols.push([`복지용구${i} ${W_LBL[f]}`,
+      f === 'way' ? v => v[`w${i}_buy`] ? '구입' : v[`w${i}_rent`] ? '대여' : '' : v => v[`w${i}_${f}`] ?? '']));
+    if (maxRow('w')) cols.push(['복지용구 합계(원)', v => v.wTotal ?? '']);
+    return cols;
+  }
+  const f = forms.find(x => 'f:' + x.id === sel); if (!f) return [];
+  const seen = new Set(), cols = [];
+  f.fields.slice().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x).forEach(g => {
+    if (g.type === 'cover') return; const k = fkey(g); if (seen.has(k)) return; seen.add(k);
+    const lbl = g.name || TYPES[g.type];
+    cols.push([lbl, v => { const x = v[k] ?? '';
+      if (g.type === 'sign') return x ? '있음' : '없음';
+      if (g.type === 'check') return x ? '√' : '';
+      if (g.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(x)) return dateText(x, g.fmt || 'dot');
+      return x; }]);
+  });
+  return cols;
+}
+function colRows() {
+  const sel = document.getElementById('colForm').value, recs = COL.filter(r => !r.err && r.kind === sel);
+  const cols = colColumns(sel, recs);
+  const head = ['번호', '파일 이름', '읽은 방법', '확인할 점', ...cols.map(c => c[0])];
+  const rows = COL.map((r, i) => {
+    const ok = !r.err && r.kind === sel;
+    const msg = r.err ? r.err : !ok ? (r.how === 'kit' ? `다른 서식으로 만든 PDF입니다${r.ptitle ? ` (‘${r.ptitle}’)` : ' (장기요양 신청서)'}` : '다른 서식으로 읽은 파일입니다. 서식을 고른 뒤 다시 올려 주세요') : r.warn.join(' / ');
+    return { r, i, msg, cells: [String(i + 1), r.file, r.err ? '-' : r.how === 'kit' ? '파일 정보' : '글자 위치', msg,
+      ...cols.map(c => ok ? String(c[1](r.vals) ?? '') : '')] };
+  });
+  return { head, rows, sel };
+}
+function colRender() {
+  const box = document.getElementById('colTable'); if (!box) return;
+  const sel = document.getElementById('colForm').value;
+  const { head, rows } = colRows();
+  document.getElementById('colCount').textContent = COL.length ? `· ${COL.length}개 파일` : '';
+  if (!COL.length) { box.innerHTML = '<div style="padding:18px;color:#889;font-size:13px">아직 올린 PDF가 없습니다.</div>'; return; }
+  box.innerHTML = `<table><thead><tr><th></th>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(({ r, i, cells, msg }) =>
+    `<tr class="${r.err ? 'bad' : msg ? 'warn' : ''}"><td><button class="x" title="목록에서 빼기" onclick="colDel(${i})">✕</button></td>${cells.map((c, j) =>
+      `<td title="${esc(c)}">${j === 2 && c !== '-' ? `<span class="ctag${c === '글자 위치' ? ' pos' : ''}">${esc(c)}</span>` : esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function colDownload() {
+  if (!COL.length) { alert('먼저 제출받은 PDF를 올려 주세요.'); return; }
+  const { head, rows, sel } = colRows();
+  const title = sel === 'ltc' ? '입소이용신청서' : (forms.find(x => 'f:' + x.id === sel) || {}).title || '양식';
+  const blob = makeXlsx('제출자료', [head, ...rows.map(r => r.cells)]);
+  const t = new Date(), name = `${safeName(title)}_제출자료_${t.getFullYear()}${pad2(t.getMonth() + 1)}${pad2(t.getDate())}.xlsx`;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500); toast(`엑셀 파일을 저장했습니다: ${name}`);
+}
+
+/* ---------- 간단한 엑셀(.xlsx) 만들기: 압축 없이 묶음 ---------- */
+function crc32(u8) {
+  const T = crc32.t || (crc32.t = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; }));
+  let c = -1; for (let i = 0; i < u8.length; i++) c = T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ -1) >>> 0;
+}
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
+  files.forEach(f => {
+    const nm = enc.encode(f.name), d = typeof f.data === 'string' ? enc.encode(f.data) : f.data, crc = crc32(d);
+    const L = new DataView(new ArrayBuffer(30));
+    L.setUint32(0, 0x04034b50, true); L.setUint16(4, 20, true); L.setUint16(6, 0x0800, true); L.setUint16(12, 0x21, true);
+    L.setUint32(14, crc, true); L.setUint32(18, d.length, true); L.setUint32(22, d.length, true); L.setUint16(26, nm.length, true);
+    parts.push(new Uint8Array(L.buffer), nm, d);
+    const C = new DataView(new ArrayBuffer(46));
+    C.setUint32(0, 0x02014b50, true); C.setUint16(4, 20, true); C.setUint16(6, 20, true); C.setUint16(8, 0x0800, true); C.setUint16(14, 0x21, true);
+    C.setUint32(16, crc, true); C.setUint32(20, d.length, true); C.setUint32(24, d.length, true); C.setUint16(28, nm.length, true); C.setUint32(42, off, true);
+    cen.push(new Uint8Array(C.buffer), nm);
+    off += 30 + nm.length + d.length;
+  });
+  const size = cen.reduce((a, b) => a + b.length, 0), E = new DataView(new ArrayBuffer(22));
+  E.setUint32(0, 0x06054b50, true); E.setUint16(8, files.length, true); E.setUint16(10, files.length, true); E.setUint32(12, size, true); E.setUint32(16, off, true);
+  return new Blob([...parts, ...cen, new Uint8Array(E.buffer)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+function makeXlsx(sheet, rows) {
+  const xe = t => String(t ?? '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const col = i => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = (i - m - 1) / 26; } return s; };
+  const nc = Math.max(...rows.map(r => r.length)), wid = Array.from({ length: nc }, (_, j) =>
+    Math.min(50, Math.max(6, ...rows.map(r => [...String(r[j] ?? '')].reduce((a, ch) => a + (ch.charCodeAt(0) > 255 ? 2 : 1), 0) + 2))));
+  const body = rows.map((r, i) => `<row r="${i + 1}">${r.map((v, j) => `<c r="${col(j)}${i + 1}" t="inlineStr" s="${i ? 2 : 1}"><is><t xml:space="preserve">${xe(v)}</t></is></c>`).join('')}</row>`).join('');
+  const ws = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<cols>${wid.map((w, j) => `<col min="${j + 1}" max="${j + 1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${body}</sheetData>${rows.length > 1 ? `<autoFilter ref="A1:${col(nc - 1)}${rows.length}"/>` : ''}</worksheet>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2"><font><sz val="10"/><name val="맑은 고딕"/></font><font><b/><sz val="10"/><name val="맑은 고딕"/></font></fonts>
+<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCE6F7"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFBFC7D5"/></left><right style="thin"><color rgb="FFBFC7D5"/></right><top style="thin"><color rgb="FFBFC7D5"/></top><bottom style="thin"><color rgb="FFBFC7D5"/></bottom><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="49" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="49" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyNumberFormat="1"><alignment vertical="center"/></xf></cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  return zipStore([
+    { name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>` },
+    { name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: 'xl/workbook.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${xe(sheet)}" sheetId="1" r:id="rId1"/></sheets>${rows.length > 1 ? `<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'${xe(sheet)}'!$A$1:$${col(nc - 1)}$${rows.length}</definedName></definedNames>` : ''}</workbook>` },
+    { name: 'xl/_rels/workbook.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name: 'xl/worksheets/sheet1.xml', data: ws },
+    { name: 'xl/styles.xml', data: styles },
+  ]);
+}
+
 (function init() {
   document.querySelector('#p1 [data-k="iName"]').setAttribute('list', 'instNames');
   document.querySelector('#p1 [data-k="iName"]').setAttribute('autocomplete', 'off');
@@ -2690,12 +3295,13 @@ function pubStatusLine() {
   let draft = null, keep = {};
   try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) {}
   try { keep = JSON.parse(localStorage.getItem(KEEP_KEY) || '{}'); } catch (e) {}
-  apply(Object.assign({}, keep, draft || {}));
+  apply(Object.assign({}, keep, noSig(draft || {}))); saveDraft();          // 예전에 남아 있던 서명도 지움
   if (!draft) S.today_apply = true;                       // 처음 열면 신청일은 오늘로
   Object.keys(TODAY_KEYS).forEach(w => { if (S['today_' + w]) setToday(w, true); });
   refreshInstUI();
   let m = 'ltc'; try { m = localStorage.getItem('kit-module') || 'ltc'; } catch (e) {}
   showModule(document.querySelector(`.module[data-mod="${m}"]`) ? m : 'ltc'); showPage('p1');
+  if (m === 'collect') colOpen();
   setupEditor(); refreshMyList(); renderMyPanel(); fitPages();
   let cur = null; try { cur = localStorage.getItem(CUR_FORM_KEY); } catch (e) {}
   if (m === 'my' && cur && forms.some(f => f.id === cur)) openForm(cur, 'fill');
