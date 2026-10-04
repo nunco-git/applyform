@@ -77,6 +77,15 @@
   .sb { display:block; width:100%; text-align:left; font:inherit; font-size:13px; color:#e6ebf7; background:rgba(255,255,255,.07);
         border:1px solid rgba(255,255,255,.08); border-radius:7px; padding:8px 10px; margin-bottom:5px; cursor:pointer; }
   .sb:hover { background:rgba(255,255,255,.13); }
+  .brow { display:flex; gap:5px; margin-bottom:5px; }
+  .brow .sb { flex:1 1 0; min-width:0; margin:0; padding:8px 2px; text-align:center; white-space:nowrap; font-size:12px; letter-spacing:-.3px; overflow:hidden; text-overflow:ellipsis; }
+  .codeline { display:flex; align-items:center; gap:5px; margin:0 2px 4px; font:600 13.5px ui-monospace,Consolas,monospace; color:#fff; letter-spacing:.5px; }
+  .codeline b { flex:1; }
+  .mini { font:inherit; font-family:inherit; font-size:11.5px; font-weight:500; letter-spacing:0; padding:3px 7px; border-radius:6px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#dfe5f3; cursor:pointer; }
+  .comnow { font-size:12px; color:#cfd7ea; margin:0 4px 6px; }
+  #comDlg .db { max-height:70vh; overflow:auto; }
+  .comgrid { display:grid; grid-template-columns:140px 1fr; gap:6px 10px; align-items:center; font-size:13px; }
+  .comgrid input { font:inherit; padding:6px 8px; border:1px solid #cfd6e4; border-radius:6px; width:100%; box-sizing:border-box; }
   .sb.primary { background:#2f5bd3; border-color:#2f5bd3; color:#fff; font-weight:600; }
   .sb.primary:hover { background:#3a66e0; }
   .ssel { width:100%; font:inherit; font-size:13px; padding:7px 8px; border-radius:7px; border:1px solid rgba(255,255,255,.15);
@@ -494,7 +503,7 @@
 <label class="today" style="left:352pt;top:490pt"><input type="checkbox" data-today="apply">오늘</label>
 <div class="sig" data-sig="sigApp" title="클릭해서 마우스로 서명" style="left:465pt;top:500pt;width:76pt;height:34pt"><img alt=""></div>
 <div class="sig" data-sig="sigCon1" title="클릭해서 마우스로 서명" style="left:465pt;top:574.5pt;width:76pt;height:34pt"><img alt=""></div>
-<div class="sig" data-sig="sigCon2" title="클릭해서 마우스로 서명" style="left:465pt;top:721.5pt;width:76pt;height:34pt"><img alt=""></div>
+<div class="sig" data-sig="sigCon2" title="클릭해서 마우스로 서명" style="left:465pt;top:728.5pt;width:76pt;height:15.5pt"><img alt=""></div>
 <span class="chk bracketL" data-k="rType1" style="left:148.4pt;top:100.5pt;width:15.5pt;height:15pt"></span>
 <span class="chk bracketL" data-k="rType2" style="left:259pt;top:100.5pt;width:15.5pt;height:15pt"></span>
 <span class="chk bracketL" data-k="rType3" style="left:329.7pt;top:100.5pt;width:15.5pt;height:15pt"></span>
@@ -620,23 +629,10 @@
         <button class="sub" data-p="p2" onclick="showModule('ltc'); showPage('p2')">② 재가서비스 이용내역서</button>
       </div>
       <div class="panel">
-        <div class="pt">인쇄 · PDF</div>
-        <button class="sb primary" onclick="doPrint('current')">🖨 이 양식 인쇄/PDF</button>
-        <button class="sb primary" onclick="doPrint('all')">🖨 두 양식 함께 인쇄/PDF</button>
-        <button class="sb" onclick="mmOpen('ltc')">📑 메일머지 (엑셀로 일괄 작성)</button>
-
-        <div class="pt">장기요양기관</div>
-        <select id="instSel" class="ssel" onchange="if(this.value!=='')applyInst(+this.value)"></select>
-        <button class="sb" onclick="openInstDlg()">⚙ 기관 관리</button>
-
-        <div class="pt">신청서 파일</div>
-        <button class="sb" onclick="saveFile()" title="지금 작성한 신청서를 내 컴퓨터에 .json 파일 하나로 저장">💾 이 신청서 저장</button>
-        <button class="sb" onclick="openFile()" title="저장해 둔 신청서(.json)를 다시 불러오기">📂 저장한 신청서 열기</button>
-        <button class="sb" onclick="resetAll()">🧹 새로 작성</button>
+        <div class="brow"><button class="sb" onclick="saveFile()" title="지금 작성한 신청서를 내 컴퓨터에 파일로 저장">저장</button><button class="sb" onclick="openFile()" title="저장해 둔 신청서 파일 열기">열기</button><button class="sb" onclick="resetAll()">새로 작성</button></div>
+        <div class="brow"><button class="sb primary" onclick="doPrint(document.getElementById('ltcBoth').checked ? 'all' : 'current')">🖨 인쇄/PDF</button><button class="sb" onclick="mmOpen('ltc')">📑 메일머지</button></div>
+        <label class="sopt"><input type="checkbox" id="ltcBoth"> ② 재가서비스 이용내역서도 함께 인쇄</label>
         <div id="ltcCodePanel"></div>
-
-        <div class="pt">보기</div>
-        <label class="sopt"><input type="checkbox" onchange="document.body.classList.toggle('clean',this.checked)"> 입력칸 음영 숨기기</label>
         <div class="slegend">
           <div><i class="sw" style="background:#3fb37f"></i>초록 칸: 두 양식에 함께 입력</div>
           <div><i class="sw" style="background:#7f9cf0"></i>파란 칸: 이 양식에만 입력</div>
@@ -785,6 +781,10 @@
 <div id="datePop" class="dpop" hidden></div>
 <div id="tipBub" class="tipbub" hidden role="tooltip"></div>
 <div id="pickPop" class="dpop pick" hidden></div>
+<dialog id="comDlg" class="pdlg">
+  <div class="dh"><h3>🏢 공통 정보</h3><button class="b" onclick="document.getElementById('comDlg').close()">닫기</button></div>
+  <div class="db" id="comBody"></div>
+</dialog>
 <dialog id="mmDlg" class="pdlg wide">
   <div class="dh"><h3>📑 메일머지 – 엑셀로 일괄 작성 <small id="mmTitle" style="font-weight:400;color:#667"></small></h3><button class="b" onclick="document.getElementById('mmDlg').close()">닫기</button></div>
   <div class="db" id="mmBody"></div>
@@ -1139,7 +1139,7 @@ function render2() {
    '서명 넣기'를 누르면 원래 크기로 줄어들며 제자리에 들어간다.
    서명은 서명 칸보다 사방 20% 넓은 영역을 그림으로 저장해 칸 밖으로 조금 넘친 획도 그대로 살린다. */
 const SIG_NAME = { sigApp:'신청인 서명', sigCon1:'수급자(또는 보호자) 서명', sigCon2:'수급자(또는 보호자) 서명 – 행정정보 공동이용 동의' };
-const SIG_PAD = 0.2;                                      // 서명 칸 바깥 여유(사방 20%)
+const SIG_PAD = 0.04;                                     // 서명 칸 바깥 여유(사방 4%) – 서명란만 화면 가득
 let sigKey = null, sigCb = null;
 const SP = { target: null, page: null, box: null, R: null, s: 1, strokes: [], stamp: null, ink: '#111', onApply: null, dpr: 1 };
 const spc = () => document.getElementById('sigPad');
@@ -1672,7 +1672,7 @@ window.addEventListener('drop', e => {
 function resetAll() {
   if (!confirm('두 양식의 입력 내용을 모두 지울까요?\n(단체장 명칭과 기관 프리셋은 유지됩니다)')) return;
   const keep = {}; KEEP.forEach(k => keep[k] = getVal(k));
-  apply(keep); setToday('apply', true); saveDraft(); if (typeof ltcCodeRender === 'function') ltcCodeRender();
+  apply(keep); setToday('apply', true); comLtcAuto(); saveDraft(); if (typeof ltcCodeRender === 'function') ltcCodeRender();
 }
 
 /* ---------- 화면이 좁으면(휴대폰) 서식을 화면 폭에 맞춰 축소 ---------- */
@@ -1753,10 +1753,11 @@ function saveInsts() {
   refreshInstUI();
 }
 function refreshInstUI() {
+  insts = comList().map(p => ({ name: p.v['기관·사업체명'] || '', code: p.v['장기요양기관 기호'] || '', addr: p.v['주소'] || '', tel: p.v['전화번호'] || '' })).filter(o => o.name);
   const sel = document.getElementById('instSel'), cur = getVal('iName');
-  sel.innerHTML = `<option value="">${insts.length ? '기관 선택…' : '등록된 기관 없음 → 기관 관리'}</option>` +
+  if (sel) sel.innerHTML = `<option value="">${insts.length ? '기관 선택…' : '등록된 기관 없음 → 기관 관리'}</option>` +
     insts.map((o, i) => `<option value="${i}"${o.name === cur ? ' selected' : ''}>${esc(o.name)}${o.code ? ' (' + esc(o.code) + ')' : ''}</option>`).join('');
-  document.getElementById('instNames').innerHTML = insts.map(o => `<option value="${esc(o.name)}">${esc(o.code)}</option>`).join('');
+  const dl = document.getElementById('instNames'); if (dl) dl.innerHTML = insts.map(o => `<option value="${esc(o.name)}">${esc(o.code)}</option>`).join('');
 }
 function applyInst(i) {                                   // ① 기관 현황 + ② 이용희망기관에 한 번에 입력
   const o = insts[i]; if (!o) return;
@@ -1902,6 +1903,8 @@ function refreshMyList() {
     ? forms.map(f => `<button class="sub fsub${CF && CF.id === f.id ? ' on' : ''}" onclick="openForm('${f.id}')">${esc(f.title)}</button>`).join('')
     : '<div class="hint">아직 만든 양식이 없습니다.</div>';
 }
+const FILE_ROWS = () => `<div class="brow"><button class="sb" onclick="saveFormData()" title="작성한 내용을 파일로 저장">저장</button><button class="sb" onclick="pickJson()" title="저장해 둔 작성 내용 열기">열기</button><button class="sb" onclick="clearFormData()">새로 작성</button></div>
+  <div class="brow"><button class="sb primary" onclick="printForm()">🖨 인쇄/PDF</button><button class="sb" onclick="mmOpen()">📑 메일머지</button></div>`;
 function renderMyPanel() {
   const p = document.getElementById('myPanel'), PX_ = CF && CF.preset === 'gov' ? 'gov' : 'labor', lp = document.getElementById(PX_ + 'Panel');
   const other = document.getElementById((PX_ === 'gov' ? 'labor' : 'gov') + 'Panel');
@@ -1911,16 +1914,10 @@ function renderMyPanel() {
     document.getElementById(PX_ + 'Title').textContent = CF.title;
     document.getElementById(PX_ + 'Badge').textContent = '✏️ 작성'; document.getElementById(PX_ + 'Badge').className = 'mbadge fill';
     lp.innerHTML = `
-      <button class="sb primary" onclick="printForm()">🖨 인쇄 / PDF</button>
-      <button class="sb" onclick="mmOpen()">📑 메일머지 (엑셀로 일괄 작성)</button>
-      <div class="pt">작성 내용</div>
-      <button class="sb" onclick="saveFormData()">💾 작성 내용 저장</button>
-      <button class="sb" onclick="pickJson()">📂 작성 내용 열기</button>
-      <button class="sb" onclick="clearFormData()">🧹 새로 작성</button>
-      <label class="sopt"><input type="checkbox" ${document.body.classList.contains('clean') ? 'checked' : ''} onchange="document.body.classList.toggle('clean',this.checked)"> 입력칸 음영 숨기기</label>
+      ${FILE_ROWS()}
       ${CF.fw ? `<div class="pt">번역</div><button class="sb" onclick="openTranslate()">🌐 번역 확인 (고용주 ↔ 근로자)</button><div class="hint">적은 내용을 근로자 나라 말로 옮기고, 서명 전에 서로 묻고 답할 수 있습니다.</div>` : ''}
-      ${codePanelHTML()}
-      ${CF.preset === 'labor' ? empPanelHTML() : ''}
+      ${comPanelHTML('cf')}
+      ${codeInfoHTML('cf')}
       ${CF.preset === 'gov' ? `<div class="pt">제출받은 신고서</div><button class="sb" onclick="colOpen(); document.getElementById('colForm').value='f:${CF.id}'">📊 제출 PDF 모아 엑셀로</button><div class="hint">작성·제출된 신고서 PDF 여러 개를 한꺼번에 올리면 칸별로 엑셀 한 줄씩 정리됩니다.</div>` : ''}
       <div class="pt">칸 고치기</div>
       <button class="sb" onclick="copyPresetToMine()">📋 내 양식으로 복사해 칸 편집</button>
@@ -1936,14 +1933,9 @@ function renderMyPanel() {
   p.innerHTML = `
     <div class="seg"><button class="${cfMode === 'fill' ? 'on' : ''}" onclick="setMode('fill')">✏️ 작성</button><button class="${cfMode === 'edit' ? 'on' : ''}" onclick="setMode('edit')">🛠 칸 편집</button></div>
     ${cfMode === 'fill' ? `
-      <button class="sb primary" onclick="printForm()">🖨 인쇄 / PDF</button>
-      <button class="sb" onclick="mmOpen()">📑 메일머지 (엑셀로 일괄 작성)</button>
-      <div class="pt">작성 내용</div>
-      <button class="sb" onclick="saveFormData()">💾 작성 내용 저장</button>
-      <button class="sb" onclick="pickJson()">📂 작성 내용 열기</button>
-      <button class="sb" onclick="clearFormData()">🧹 새로 작성</button>
-      <label class="sopt"><input type="checkbox" ${document.body.classList.contains('clean') ? 'checked' : ''} onchange="document.body.classList.toggle('clean',this.checked)"> 입력칸 음영 숨기기</label>
-      ${codePanelHTML()}
+      ${FILE_ROWS()}
+      ${comPanelHTML('cf')}
+      ${codeInfoHTML('cf')}
       <div class="pt">양식 공유</div>
       <button class="sb" onclick="openPublish()">🌐 공개 목록에 올리기</button>
       ${pubStatusLine()}
@@ -1962,6 +1954,7 @@ function renderMyPanel() {
       ${pubStatusLine()}
       <button class="sb" onclick="exportForm()">📤 양식 파일로 내보내기</button>
       <button class="sb" onclick="deleteForm()">🗑 이 양식 삭제</button>`}`;
+  if (CF && !CF.preset) { clearTimeout(codeAutoReg.tm); const f = CF; codeAutoReg.tm = setTimeout(() => codeAutoReg(f), cfMode === 'edit' ? 4000 : 300); }
   if (cfMode === 'edit') renderProps();
 }
 function setMode(m) {
@@ -1973,6 +1966,7 @@ function setMode(m) {
 /* ---------- 양식 열기 ---------- */
 async function openForm(id, mode = 'fill', doc = null) {
   const f = formById(id); if (!f) return;
+  ensureCode(f);
   if (f.fw && !f.fields) {
     try { toast('계약서를 불러오는 중…'); await fwEnsure(f); }
     catch (e) { alert('외국인근로자 계약서의 칸 정보(fw/fw_fields.json)를 불러오지 못했습니다.\n이 도구모음 파일과 같은 곳에 fw 폴더가 있어야 합니다.'); return; }
@@ -2642,7 +2636,7 @@ function applyDefaults() {
     if (g.def != null) FV[k] = g.def;
     else if (g.todayDef) { FV['__today:' + k] = true; FV[k] = todayISO(); }      // 계약일 등: 처음엔 오늘
   });
-  if (CF.preset === 'labor') empAutoFill();
+  comAutoFill();
 }
 /* 칸 값이 바뀐 뒤 따라 바뀌는 것들 */
 function fieldChanged(k) {
@@ -2727,7 +2721,164 @@ const LTC_EXTRA = { iCode: '기관기호', iAddr: '기관 주소', iTel: '기관
 const ltcLabel0 = k => { const m = k.match(/^w(\d+)_(buy|rent)$/); return m ? `복지용구${m[1]} ${m[2] === 'buy' ? '구입' : '대여'}` : null; };
 const LTC_BASIC = /^(iName|iCode|iAddr|iTel|chief)$|^[sw]\d+_(org|code)$/;      // 기관 정보만 기본 체크
 const ltcLabel = k => LTC_EXTRA[k] || ltcLabel0(k) || colLabel('ltc', k);
-function ltcCodeRender() { const b = document.getElementById('ltcCodePanel'); if (b) b.innerHTML = codePanelHTML('ltc'); }
+function ltcCodeRender() { const b = document.getElementById('ltcCodePanel'); if (b) b.innerHTML = comPanelHTML('ltc') + codeInfoHTML('ltc'); }
+/* ====================== 서식번호: 모든 서식에 자동 지정 ====================== */
+function codeFromId(s) {                                      // 내장 서식: 언제나 같은 번호
+  let h1 = 0x811c9dc5, h2 = 0x9e3779b9;
+  for (const ch of String(s)) { const c = ch.codePointAt(0); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = Math.imul((h2 ^ c) >>> 0, 2246822519) >>> 0; h2 = ((h2 << 13) | (h2 >>> 19)) >>> 0; }
+  let a = '', x = h1; for (let i = 0; i < 4; i++) { a += CODE_LET[x % CODE_LET.length]; x = Math.floor(x / CODE_LET.length); }
+  return a + String(h2 % 100000000).padStart(8, '0');
+}
+const formCode = f => !f ? '' : f === 'ltc' ? codeFromId('ltc') : f.preset ? codeFromId('p:' + f.id) : (f.code || '');
+function ensureCode(f) {                                      // 직접 만든 양식: 처음 열 때 번호 지정
+  if (!f || f.preset) return;
+  const src = f.source || {}, want = src.code || (src.pubId ? codeFromId('pub:' + src.pubId) : '');
+  if (f.code && !forms.some(o => o !== f && o.code === f.code)) return;
+  f.code = want && !forms.some(o => o !== f && o.code === want) ? want : codeNew(); f.codeReg = !!src.code; saveForms();
+}
+const regSig = f => (f.fields || []).length + ':' + JSON.stringify(f.fields || []).length + ':' + (f.pages || []).length;
+async function codeAutoReg(f) {                               // 로그인돼 있으면 서버에 등록 → 다른 컴퓨터에서도 번호로 열림
+  if (!f || f.preset || !f.code || !FB.enabled() || codeAutoReg.busy) return;
+  const pub = f.source && f.source.pubId, sig = regSig(f);
+  if (f.codeReg && (pub || f.source && f.source.code || f.codeSig === sig)) return;
+  try { await FB.init(); } catch (e) { return; }
+  if (!FB.user) return;
+  codeAutoReg.busy = true;
+  try {
+    const data = { f: pub ? 'pub:' + pub : 'c', n: String(f.title || '').slice(0, 100), m: '', v: {} }; let pdf = null;
+    if (!pub) { data.pages = f.pages; data.fields = f.fields; pdf = f.pdf || bytesToB64(await formBytes(f)); }
+    let ok = await FB.saveCode(f.code, data, pdf, !!f.codeReg);
+    if (!ok && !f.codeReg) { const d = await FB.getCode(f.code); if (d && d.u === FB.user.uid) ok = await FB.saveCode(f.code, data, pdf, true); else ok = !!(pub && d); }
+    if (ok) { f.codeReg = true; f.codeSig = sig; saveForms(); if (CF === f) renderMyPanel(); }
+  } catch (e) {} finally { codeAutoReg.busy = false; }
+}
+function codeInfoHTML(ctx) {
+  const f = ctx === 'ltc' ? 'ltc' : CF; if (!f) return '';
+  const code = formCode(f); if (!code) return '';
+  const builtin = f === 'ltc' || f.preset;
+  const note = builtin || f.codeReg ? '이 번호를 알려 주면 왼쪽 위 ‘서식 번호로 불러오기’에 넣어 같은 서식을 바로 엽니다.'
+             : FB.enabled() ? '로그인하면 이 번호가 등록되어 다른 컴퓨터에서도 열립니다. (지금은 이 컴퓨터에서만)' : '이 컴퓨터에서 이 번호로 다시 열 수 있습니다.';
+  return `<div class="pt">서식번호</div>
+    <div class="codeline"><b>${codeFmt(code)}</b><button class="mini" onclick="codeCopy('${codeFmt(code)}', '서식번호')">복사</button><button class="mini" onclick="codeCopy(codeLink('${code}'), '바로 여는 링크')">링크</button></div>
+    <div class="hint">${note}</div>`;
+}
+
+/* ====================== 공통 정보: 기관·사업체 정보를 한 번 저장해 모든 서식에 ====================== */
+const COM_KEY = 'kit-common';
+const COM_F = [
+  { k: '기관·사업체명', a: ['사업체명', '업체명', '기관명', '상호', '사업장명'], l: 'iName' },
+  { k: '대표자', a: ['대표자', '대표자 성명', '대표자명', '사업주 성명'] },
+  { k: '주소', a: ['사업주 주소', '사업장 주소', '기관 주소', '소재지'], l: 'iAddr' },
+  { k: '전화번호', a: ['사업주 전화', '사업장 전화', '기관 전화', '기관 전화번호'], l: 'iTel' },
+  { k: '사업자등록번호', a: ['사업자등록번호'] },
+  { k: '장기요양기관 기호', a: ['기관기호', '장기요양기관 기호'], l: 'iCode' },
+  { k: '제출처(단체장)', a: ['단체장'], l: 'chief' },
+];
+const COM_X = EMP_FIELDS.filter(n => !COM_F.some(c => c.a.includes(n)));       // 근무장소·임금지급일 등 계약서 기본값
+function comList() {
+  let L = null; try { L = JSON.parse(localStorage.getItem(COM_KEY) || 'null'); } catch (e) {}
+  if (!L) {                                                   // 처음: 예전 ‘사업주 정보’·‘장기요양기관’ 목록을 옮겨 옴
+    L = [];
+    empList().forEach(e => { const v = {}, x = {};
+      COM_F.forEach(c => { const a = c.a.find(n => e.vals[n] != null && String(e.vals[n]).trim()); if (a) v[c.k] = e.vals[a]; });
+      COM_X.forEach(n => { if (e.vals[n] != null && String(e.vals[n]).trim()) x[n] = e.vals[n]; });
+      if (Object.keys(v).length) L.push({ name: v['기관·사업체명'] || e.name, v, x, at: e.at || 0 }); });
+    let old = []; try { old = JSON.parse(localStorage.getItem(INST_KEY) || '[]'); } catch (e) {}
+    old.forEach(o => { if (!(o.name || '').trim()) return; const p = L.find(q => q.name === o.name) || (L.push({ name: o.name, v: { '기관·사업체명': o.name }, x: {}, at: 0 }), L[L.length - 1]);
+      if (o.code) p.v['장기요양기관 기호'] = o.code; if (o.addr && !p.v['주소']) p.v['주소'] = o.addr; if (o.tel && !p.v['전화번호']) p.v['전화번호'] = o.tel; });
+    try { const k = JSON.parse(localStorage.getItem(KEEP_KEY) || '{}'); if (k.chief && L[0]) L[0].v['제출처(단체장)'] = k.chief; } catch (e) {}
+    comSave(L);
+  }
+  return L;
+}
+const comSave = L => { try { localStorage.setItem(COM_KEY, JSON.stringify(L.slice(0, 30))); } catch (e) {} };
+const comName = p => p.v['기관·사업체명'] || p.name || '내 정보';
+function comFromCur(ctx) {
+  const v = {}, x = {}, ok = (k, s) => s != null && String(s).trim() !== '' && !codeBlocked(k, k, s, '');
+  if (ctx === 'ltc') COM_F.forEach(c => { if (c.l && ok(c.k, getVal(c.l))) v[c.k] = String(getVal(c.l)); });
+  else if (CF) {
+    const has = n => CF.fields.some(g => fkey(g) === n);
+    COM_F.forEach(c => { const a = c.a.find(n => has(n) && ok(n, FV[n])); if (a) v[c.k] = String(FV[a]); });
+    COM_X.forEach(n => { if (has(n) && ok(n, FV[n])) x[n] = String(FV[n]); });
+  }
+  return { v, x };
+}
+function comApply(p, ctx, onlyEmpty, quiet) {
+  if (!p) return 0; let n = 0;
+  if (ctx === 'ltc') {
+    COM_F.forEach(c => { const s = p.v[c.k]; if (!c.l || s == null || s === '') return; if (onlyEmpty && String(getVal(c.l) || '').trim()) return;
+      setVal(c.l, s); n++; if (c.l === 'iName' || c.l === 'iCode') pushInst(c.l); });
+    if (n && !quiet) { render2(); saveDraft(); }
+    return n;
+  }
+  if (!CF) return 0;
+  const has = k => CF.fields.some(g => fkey(g) === k), put = (k, s) => { if (!has(k) || s == null || s === '') return; if (onlyEmpty && String(FV[k] ?? '').trim()) return; FV[k] = s; n++; };
+  COM_F.forEach(c => c.a.forEach(a => put(a, p.v[c.k])));
+  Object.entries(p.x || {}).forEach(([k, s]) => put(k, s));
+  if (n && !quiet) { CF.fields.forEach(g => { if (g.money && FV[fkey(g)]) FV[fkey(g)] = moneyFmt(FV[fkey(g)]); }); saveFVSoon(); renderFields(); }
+  return n;
+}
+function comAutoFill() { const L = comList(); if (L.length) comApply(L[0], 'cf', true, true); }
+function comLtcAuto() { const L = comList(); const p = L.find(q => q.v['장기요양기관 기호']) || L[0]; if (p) comApply(p, 'ltc', true, true); }
+function comPanelHTML(ctx) {
+  const L = comList(), c = `'${ctx}'`;
+  return `<div class="pt">공통 정보</div>
+    ${L.length > 1 ? `<select class="ssel" onchange="comPick(+this.value, ${c})">${L.map((p, i) => `<option value="${i}"${comName(p) === String(ctx === 'ltc' ? getVal('iName') : (FV['사업체명'] ?? FV['업체명'] ?? FV['기관명'] ?? '')) ? ' selected' : ''}>${esc(comName(p))}${p.v['대표자'] ? ' · ' + esc(p.v['대표자']) : ''}</option>`).join('')}</select>`
+      : L.length ? `<div class="comnow">📌 ${esc(comName(L[0]))}</div>` : ''}
+    <button class="sb" onclick="comSaveCur(${c})" title="지금 화면에 적힌 기관·사업체 정보를 저장해 다른 서식에서도 계속 사용">💾 이 정보를 저장해서 계속 사용</button>
+    <button class="sb" onclick="comEdit(${c})">✎ 공통 정보 직접 입력·수정</button>
+    <div class="hint">기관·사업체명, 대표자, 주소, 전화, 사업자번호, 장기요양기관 기호 등을 한 번 저장하면 모든 서식에 자동으로 들어갑니다. (이 브라우저에만 저장)</div>`;
+}
+function comRefreshPanels() { if (CF) renderMyPanel(); ltcCodeRender(); refreshInstUI(); }
+function comPick(i, ctx) {
+  const L = comList(), p = L[i]; if (!p) return;
+  L.unshift(L.splice(i, 1)[0]); comSave(L);
+  const n = comApply(p, ctx, false); comRefreshPanels(); toast(`‘${comName(p)}’ 공통 정보를 넣었습니다.${n ? '' : ' (이 서식에는 넣을 칸이 없습니다)'}`);
+}
+function comSaveCur(ctx) {
+  if (ctx !== 'ltc') flushFV();
+  const { v, x } = comFromCur(ctx);
+  if (!Object.keys(v).length) { alert('저장할 기관·사업체 정보가 없습니다.\n서식에 기관(사업체)명·대표자·주소 등을 먼저 적거나, ‘✎ 입력’에서 직접 입력하세요.'); return; }
+  const L = comList(), name = v['기관·사업체명'] || (L[0] && comName(L[0])) || '내 정보';
+  const old = L.find(p => comName(p) === name), p = { name, v: Object.assign({}, old ? old.v : {}, v), x: Object.assign({}, old ? old.x : {}, x), at: Date.now() };
+  comSave([p, ...L.filter(q => q !== old)]); comRefreshPanels();
+  toast(`‘${name}’ 정보를 저장했습니다. 다른 서식에도 자동으로 들어갑니다.`);
+}
+function comEdit(ctx) {
+  const L = comList(), p = L[0] || { name: '', v: {}, x: {} }, cur = comFromCur(ctx);
+  const val = k => p.v[k] ?? cur.v[k] ?? '';
+  window.__comCtx = ctx;
+  document.getElementById('comBody').innerHTML = `
+    <div class="hint" style="margin:0 0 10px">한 번 입력해 두면 모든 서식의 같은 칸에 자동으로 들어갑니다. 개인(근로자·신청인)의 정보는 넣지 마세요.</div>
+    <div class="comgrid">${COM_F.map(c => `<label>${esc(c.k)}</label><input data-ck="${esc(c.k)}" value="${esc(val(c.k))}">`).join('')}
+      ${Object.keys(p.x || {}).map(k => `<label>${esc(k)}</label><input data-cx="${esc(k)}" value="${esc(p.x[k])}">`).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="b primary" onclick="comEditSave(false)">💾 저장해서 계속 사용</button>
+      ${L.length ? '<button class="b" onclick="comEditSave(true)">➕ 다른 기관으로 새로 저장</button><button class="b" onclick="comDelete()">🗑 이 정보 지우기</button>' : ''}
+    </div>`;
+  document.getElementById('comDlg').showModal();
+}
+function comEditSave(asNew) {
+  const v = {}, x = {};
+  $$('#comBody [data-ck]').forEach(e => { if (e.value.trim()) v[e.dataset.ck] = e.value.trim(); });
+  $$('#comBody [data-cx]').forEach(e => { if (e.value.trim()) x[e.dataset.cx] = e.value.trim(); });
+  const bad = Object.entries(v).find(([k, s]) => codeBlocked(k, k, s, ''));
+  if (bad) { alert(`‘${bad[0]}’에 주민등록번호 같은 개인정보는 넣을 수 없습니다.`); return; }
+  if (!v['기관·사업체명']) { alert('기관·사업체명을 입력하세요.'); return; }
+  const L = comList(), name = v['기관·사업체명'];
+  const old = asNew ? null : (L.find(p => comName(p) === name) || L[0]);
+  const rest = L.filter(q => q !== old && comName(q) !== name);
+  comSave([{ name, v, x, at: Date.now() }, ...rest]);
+  document.getElementById('comDlg').close();
+  const ctx = window.__comCtx; comApply(comList()[0], ctx, false); comRefreshPanels();
+  toast(`‘${name}’ 정보를 저장했습니다. 모든 서식에 자동으로 들어갑니다.`);
+}
+function comDelete() {
+  const L = comList(); if (!L.length) return;
+  if (!confirm(`‘${comName(L[0])}’ 공통 정보를 지울까요?`)) return;
+  L.shift(); comSave(L); document.getElementById('comDlg').close(); comRefreshPanels();
+}
+
 function codePanelHTML(ctx) {
   if (!FB.enabled()) return '';
   const c = ctx === 'ltc' ? S.__code : FV['__code'], a = ctx === 'ltc' ? "'ltc'" : '';
@@ -2829,6 +2980,9 @@ async function codeSave(updateCode) {
 async function codeOpen(raw) {
   const code = codeNorm(raw);
   if (!CODE_RE.test(code)) { alert('서식 번호는 영문 4자리 + 숫자 8자리입니다.\n예: ABCD-1234-5678'); return; }
+  if (code === formCode('ltc')) { showModule('ltc'); showPage('p1'); toast('장기요양기관 입소·이용신청서를 열었습니다.'); return; }
+  { const pf = PRESETS.find(f => formCode(f) === code) || forms.find(f => f.code === code);
+    if (pf) { const ci = document.getElementById('codeIn'); if (ci) ci.value = codeFmt(code); await openForm(pf.id, 'fill'); toast(`‘${pf.title}’ 서식을 열었습니다.`); return; } }
   if (!FB.enabled()) { alert('서버 설정이 없어 서식 번호를 쓸 수 없습니다.'); return; }
   toast('서식 번호를 찾는 중…');
   let d;
@@ -4716,7 +4870,7 @@ fetch('minwage.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).t
   else if (m === 'gov' && cur && GOV_FORMS.some(f => f.id === cur)) openForm(cur, 'fill');
   else if (m === 'gov') govOpen();
   pubAuthChanged();
-  ltcCodeRender();
+  comLtcAuto(); render2(); saveDraft(); ltcCodeRender();
   const qp = new URLSearchParams(location.search);
   if (FB.enabled() && /^\d{6}-[0-9A-Z]{8}$/.test(qp.get('verify') || '')) verifyById(qp.get('verify'));
   else if (qp.get('code')) setTimeout(() => codeOpen(qp.get('code')), 300);   // 서식 번호 바로가기 링크: ?code=ABCD12345678
