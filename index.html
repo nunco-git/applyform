@@ -296,8 +296,29 @@
   .zbar button.on { background:#2f5bd3; color:#fff; }
   .zbar .zv { min-width:48px; text-align:center; font-weight:600; color:#223; cursor:pointer; }
   .zbar .zsep { width:1px; height:18px; background:#e1e5ee; margin:0 3px; }
-  .modhead { padding-right:430px !important; }
-  @media (max-width:900px) { .zbar { right:8px; top:8px; } .zbar .zt { display:none; } .modhead { padding-right:230px !important; } }
+  .module > .modhead, #fwBar { display:none !important; }
+  .topbar { position:sticky; top:0; z-index:35; display:flex; align-items:center; gap:4px; flex-wrap:wrap; row-gap:5px; padding:7px 12px; min-height:32px;
+            background:#fff; border-bottom:1px solid #d9deea; box-shadow:0 1px 4px rgba(20,30,60,.05); }
+  .topbar .tbt { font-weight:700; font-size:14.5px; color:#1d2540; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:70px; flex:0 1 auto; margin-right:6px; }
+  .topbar .mbadge { flex:none; margin:0 4px 0 0; }
+  .topbar .tb { font:inherit; font-size:12.5px; line-height:1.2; padding:5px 9px; border:1px solid #d3d9e6; background:#f7f9fd; color:#223; border-radius:7px; cursor:pointer; white-space:nowrap; flex:none; }
+  .topbar .tb:hover { background:#eaf0fc; }
+  .topbar .tb.pri { background:#2f5bd3; color:#fff; border-color:#2f5bd3; font-weight:600; }
+  .topbar .tb.pri:hover { background:#3a66e0; }
+  .topbar .tb.tr { background:#fff6e0; border-color:#f0d58a; }
+  .topbar .tsep { width:1px; height:20px; background:#e1e5ee; margin:0 4px; flex:none; }
+  .topbar .tsel { font:inherit; font-size:12.5px; padding:4px 4px; border:1px solid #d3d9e6; border-radius:7px; background:#fff; color:#223; flex:none; max-width:190px; }
+  .topbar .tsel.sec { width:118px; } .topbar .tsel.nat { width:104px; }
+  @media (max-width:1100px) { .topbar .tbt { max-width:110px; } }
+  .topbar .tz { margin-left:auto; display:flex; align-items:center; gap:1px; flex:none; padding-left:6px; }
+  .topbar .tz button { font:inherit; font-size:12px; border:0; background:transparent; color:#334; padding:5px 7px; border-radius:6px; cursor:pointer; white-space:nowrap; }
+  .topbar .tz button:hover { background:#eef2fb; }
+  .topbar .tz button.on { background:#2f5bd3; color:#fff; }
+  .topbar .tz .zv { min-width:40px; text-align:center; font-size:12px; font-weight:600; color:#223; cursor:pointer; }
+  @media (max-width:1440px) { .topbar .tb .ti { display:none; } .topbar .tb { padding:5px 8px; } }
+  @media (max-width:1280px) { .topbar .tz .zt { display:none; } }
+  @media (max-width:900px) { .topbar { flex-wrap:wrap; } .topbar .tbt { flex-basis:100%; } }
+  @media print { .topbar { display:none !important; } }
   @media print { .zbar { display:none !important; } }
   .cat::after { content:'▾'; margin-left:6px; font-size:11px; opacity:.55; transition:transform .15s; }
   .cat:not(:has(em))::after { margin-left:auto; }
@@ -629,8 +650,6 @@
         <button class="sub" data-p="p2" onclick="showModule('ltc'); showPage('p2')">② 재가서비스 이용내역서</button>
       </div>
       <div class="panel">
-        <div class="brow"><button class="sb" onclick="saveFile()" title="지금 작성한 신청서를 내 컴퓨터에 파일로 저장">저장</button><button class="sb" onclick="openFile()" title="저장해 둔 신청서 파일 열기">열기</button><button class="sb" onclick="resetAll()">새로 작성</button></div>
-        <div class="brow"><button class="sb primary" onclick="doPrint(document.getElementById('ltcBoth').checked ? 'all' : 'current')">🖨 인쇄/PDF</button><button class="sb" onclick="mmOpen('ltc')">📑 메일머지</button></div>
         <label class="sopt"><input type="checkbox" id="ltcBoth"> ② 재가서비스 이용내역서도 함께 인쇄</label>
         <div id="ltcCodePanel"></div>
         <div class="slegend">
@@ -1678,7 +1697,7 @@ function resetAll() {
 /* ---------- 화면이 좁으면(휴대폰) 서식을 화면 폭에 맞춰 축소 ---------- */
 /* ---------- 화면 배율: 가로 맞춤(기본) · 세로 맞춤 · 확대/축소 (인쇄에는 영향 없음) ---------- */
 let ZM = { mode: 'w', z: 1 };
-try { Object.assign(ZM, JSON.parse(localStorage.getItem('kit-zoom') || '{}')); } catch (e) {}
+try { localStorage.removeItem('kit-zoom'); } catch (e) {}          // 서식을 열 때마다 기본은 가로 맞춤
 function zPage() {                                            // 지금 보이는 서식의 원래 크기(px)
   const pg = document.querySelector('.module.on .page.show') || document.querySelector('.module.on .page');
   if (!pg) return null;
@@ -1689,7 +1708,7 @@ function fitPages() {
   const m = document.querySelector('.main'), p = zPage(); if (!m) return;
   let z = ZM.z;
   if (p && ZM.mode === 'w') z = (Math.min(m.clientWidth, innerWidth) - 28) / p.w;
-  if (p && ZM.mode === 'h') z = (innerHeight - 40) / p.h;
+  if (p && ZM.mode === 'h') z = (innerHeight - 40 - ((document.getElementById('topbar') || {}).offsetHeight || 46)) / p.h;
   z = Math.min(4, Math.max(0.25, z));
   if (ZM.mode !== 'z') ZM.z = z;
   document.documentElement.style.setProperty('--pz', z.toFixed(3));
@@ -1697,21 +1716,43 @@ function fitPages() {
 }
 function zSet(mode, z) {
   ZM.mode = mode; if (z != null) ZM.z = Math.min(4, Math.max(0.25, z));
-  try { localStorage.setItem('kit-zoom', JSON.stringify(ZM)); } catch (e) {}
   fitPages();
 }
 const zStep = d => zSet('z', Math.round((ZM.z * (d > 0 ? 1.1 : 1 / 1.1)) * 100) / 100);
+const MOD_TITLE = { labor: '표준근로계약서', gov: '행정 신고서류', my: '직접 만든 양식', ltc: '장기요양기관 신청서류', pub: '공개 양식 모음', collect: '제출 PDF 모아 엑셀로', lease: '부동산임대차계약서' };
+function topActs(save, open, fresh, print, merge) {
+  return `<button class="tb" onclick="${save}" title="작성한 내용을 파일로 저장"><span class="ti">💾 </span>저장</button><button class="tb" onclick="${open}" title="저장해 둔 작성 내용 열기"><span class="ti">📂 </span>열기</button>`
+    + `<button class="tb" onclick="${fresh}" title="입력한 내용을 지우고 새로 작성"><span class="ti">🧹 </span>새로 작성</button><span class="tsep"></span>`
+    + `<button class="tb pri" onclick="${print}"><span class="ti">🖨 </span>인쇄/PDF</button><button class="tb" onclick="${merge}" title="엑셀 한 줄 = 서류 한 건, 한꺼번에 작성·인쇄"><span class="ti">📑 </span>메일머지</button>`;
+}
+function topFw() {                                            // 외국인근로자: 분야 · 나라 고르기 + 번역 확인
+  const sec = CF.sector || 'fw';
+  return `<span class="tsep"></span><select class="tsel sec" title="분야" onchange="fwSwitch(this.value + (CF.cc || '04'))">${FW_SECTORS.map(([k, ic, nm]) => `<option value="${k}"${k === sec ? ' selected' : ''}>${k === 'fw' ? '🌾 농축산어업' : '🏭 제조·건설업'}</option>`).join('')}</select>`
+    + `<select class="tsel nat" title="나라(그 나라 말)" onchange="fwSwitch(this.value)">${FW_FORMS.filter(f => (f.sector || 'fw') === sec).map(f => `<option value="${f.id}"${f.id === CF.id ? ' selected' : ''} title="${esc(f.nat)}">${esc(f.lang)}${f.eng ? ' (영어판)' : ''}</option>`).join('')}</select>`
+    + `<button class="tb tr" onclick="openTranslate()" title="적은 내용을 근로자 나라 말로 옮기고, 서로 묻고 답하기"><span class="ti">🌐 </span>번역 확인</button>`;
+}
 function zbarRender() {
-  let b = document.getElementById('zbar');
-  const vis = !!document.querySelector('.module.on .page');
-  if (!b) { b = document.createElement('div'); b.id = 'zbar'; b.className = 'zbar'; document.body.appendChild(b); }
-  b.style.display = vis ? '' : 'none';
-  b.innerHTML = `<button class="${ZM.mode === 'w' ? 'on' : ''}" onclick="zSet('w')" title="서식 너비를 화면 가로에 맞춤">↔<span class="zt"> 가로 맞춤</span></button>
-    <button class="${ZM.mode === 'h' ? 'on' : ''}" onclick="zSet('h')" title="서식 한 쪽이 화면 세로에 다 보이게">↕<span class="zt"> 세로 맞춤</span></button>
-    <span class="zsep"></span>
-    <button onclick="zStep(-1)" title="축소 (Ctrl + 마우스 휠)">－</button>
-    <span class="zv" onclick="zSet('z', 1)" title="눌러서 100%">${Math.round(ZM.z * 100)}%</span>
-    <button onclick="zStep(1)" title="확대 (Ctrl + 마우스 휠)">＋</button>`;
+  const main = document.querySelector('.main'); if (!main) return;
+  let b = document.getElementById('topbar');
+  if (!b) { b = document.createElement('div'); b.id = 'topbar'; b.className = 'topbar'; main.prepend(b); }
+  if (b.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;   // 고르는 중에는 다시 그리지 않음
+  const mod = (document.querySelector('.module.on') || { dataset: {} }).dataset.mod || '';
+  const hasPage = !!document.querySelector('.module.on .page');
+  const cfOn = CF && hasPage && (CF.preset ? CF.preset === mod : mod === 'my');
+  let title = MOD_TITLE[mod] || '', badge = '', acts = '', extra = '';
+  if (mod === 'ltc') {
+    title = document.querySelector('.module[data-mod="ltc"] .page.show[data-tab="p2"]') ? '재가서비스 이용내역서' : '장기요양기관 입소·이용신청서';
+    acts = topActs('saveFile()', 'openFile()', 'resetAll()', "doPrint(document.getElementById('ltcBoth') && document.getElementById('ltcBoth').checked ? 'all' : 'current')", "mmOpen('ltc')");
+  } else if (cfOn) {
+    title = CF.fw ? '외국인 근로계약서' : CF.title;
+    if (cfMode === 'edit') badge = '🛠 칸 편집 중';
+    else acts = topActs('saveFormData()', 'pickJson()', 'clearFormData()', 'printForm()', 'mmOpen()');
+    if (CF.fw && cfMode !== 'edit') extra = topFw();
+  }
+  const zoom = hasPage ? `<div class="tz"><button class="${ZM.mode === 'w' ? 'on' : ''}" onclick="zSet('w')" title="서식 너비를 화면 가로에 맞춤">↔<span class="zt"> 가로</span></button>`
+    + `<button class="${ZM.mode === 'h' ? 'on' : ''}" onclick="zSet('h')" title="서식 한 쪽이 화면 세로에 다 보이게">↕<span class="zt"> 세로</span></button>`
+    + `<button onclick="zStep(-1)" title="축소 (Ctrl + 마우스 휠)">－</button><span class="zv" onclick="zSet('z', 1)" title="눌러서 100%">${Math.round(ZM.z * 100)}%</span><button onclick="zStep(1)" title="확대 (Ctrl + 마우스 휠)">＋</button></div>` : '';
+  b.innerHTML = `<div class="tbt" title="${esc(title)}">${esc(title)}</div>${badge ? `<span class="mbadge">${badge}</span>` : ''}${acts}${extra}${zoom}`;
 }
 window.addEventListener('resize', fitPages);
 document.addEventListener('wheel', e => {                      // Ctrl + 휠: 서식만 확대·축소
@@ -1731,14 +1772,14 @@ function showModule(m) {
   $$('.module').forEach(x => x.classList.toggle('on', x.dataset.mod === m));
   $$('.grp').forEach(x => x.classList.toggle('on', x.dataset.mod === m));
   try { localStorage.setItem('kit-module', m); } catch (e) {}
-  window.scrollTo(0, 0); fitPages();
+  ZM.mode = 'w'; window.scrollTo(0, 0); fitPages();
 }
 
 /* ---------- 화면 ---------- */
 function showPage(id) {
   $$('.module[data-mod="ltc"] .page').forEach(p => p.classList.toggle('show', p.dataset.tab === id));
   $$('.sub[data-p]').forEach(t => t.classList.toggle('on', t.dataset.p === id));
-  fitPages();
+  ZM.mode = 'w'; fitPages();
 }
 
 /* ---------- 시작 ---------- */
@@ -1903,8 +1944,9 @@ function refreshMyList() {
     ? forms.map(f => `<button class="sub fsub${CF && CF.id === f.id ? ' on' : ''}" onclick="openForm('${f.id}')">${esc(f.title)}</button>`).join('')
     : '<div class="hint">아직 만든 양식이 없습니다.</div>';
 }
-const FILE_ROWS = () => `<div class="brow"><button class="sb" onclick="saveFormData()" title="작성한 내용을 파일로 저장">저장</button><button class="sb" onclick="pickJson()" title="저장해 둔 작성 내용 열기">열기</button><button class="sb" onclick="clearFormData()">새로 작성</button></div>
-  <div class="brow"><button class="sb primary" onclick="printForm()">🖨 인쇄/PDF</button><button class="sb" onclick="mmOpen()">📑 메일머지</button></div>`;
+const FILE_ROWS = () => '';      // 저장·열기·새로 작성·인쇄·메일머지는 맨 위 막대로 옮김
+const FILE_ROWS_OLD = () => `<div class="brow"><button class="sb" onclick="saveFormData()" title="작성한 내용을 파일로 저장">저장</button><button class="sb" onclick="pickJson()" title="저장해 둔 작성 내용 열기">열기</button><button class="sb" onclick="clearFormData()">새로 작성</button></div>
+  <div class="brow"><button class="sb primary" onclick="printForm()">🖨 인쇄/PDF</button><button class="sb" onclick="mmOpen()"><span class="ti">📑 </span>메일머지</button></div>`;
 function renderMyPanel() {
   const p = document.getElementById('myPanel'), PX_ = CF && CF.preset === 'gov' ? 'gov' : 'labor', lp = document.getElementById(PX_ + 'Panel');
   const other = document.getElementById((PX_ === 'gov' ? 'labor' : 'gov') + 'Panel');
@@ -1915,7 +1957,7 @@ function renderMyPanel() {
     document.getElementById(PX_ + 'Badge').textContent = '✏️ 작성'; document.getElementById(PX_ + 'Badge').className = 'mbadge fill';
     lp.innerHTML = `
       ${FILE_ROWS()}
-      ${CF.fw ? `<div class="pt">번역</div><button class="sb" onclick="openTranslate()">🌐 번역 확인 (고용주 ↔ 근로자)</button><div class="hint">적은 내용을 근로자 나라 말로 옮기고, 서명 전에 서로 묻고 답할 수 있습니다.</div>` : ''}
+      ${false ? `<div class="pt">번역</div><button class="sb" onclick="openTranslate()">🌐 번역 확인 (고용주 ↔ 근로자)</button><div class="hint">적은 내용을 근로자 나라 말로 옮기고, 서명 전에 서로 묻고 답할 수 있습니다.</div>` : ''}
       ${comPanelHTML('cf')}
       ${codeInfoHTML('cf')}
       ${CF.preset === 'gov' ? `<div class="pt">제출받은 신고서</div><button class="sb" onclick="colOpen(); document.getElementById('colForm').value='f:${CF.id}'">📊 제출 PDF 모아 엑셀로</button><div class="hint">작성·제출된 신고서 PDF 여러 개를 한꺼번에 올리면 칸별로 엑셀 한 줄씩 정리됩니다.</div>` : ''}
@@ -1954,6 +1996,7 @@ function renderMyPanel() {
       ${pubStatusLine()}
       <button class="sb" onclick="exportForm()">📤 양식 파일로 내보내기</button>
       <button class="sb" onclick="deleteForm()">🗑 이 양식 삭제</button>`}`;
+  zbarRender();
   if (CF && !CF.preset) { clearTimeout(codeAutoReg.tm); const f = CF; codeAutoReg.tm = setTimeout(() => codeAutoReg(f), cfMode === 'edit' ? 4000 : 300); }
   if (cfMode === 'edit') renderProps();
 }
@@ -1988,7 +2031,7 @@ async function openForm(id, mode = 'fill', doc = null) {
   wrap.innerHTML = f.pages.map((p, i) => `<div class="page show cpage" data-pg="${i}" style="width:${p.w}pt;height:${p.h}pt;--h:${p.h}pt"><canvas class="bgc"></canvas><div class="flayer"></div></div>`).join('');
   document.getElementById('myEmpty').style.display = 'none'; wrap.style.display = '';
   $$('.fwmsg').forEach(e => e.remove());
-  refreshMyList(); refreshLabor(); renderMyPanel(); renderFields(); fitPages();
+  refreshMyList(); refreshLabor(); renderMyPanel(); renderFields(); ZM.mode = 'w'; fitPages();
   try {
     cfDoc = doc || await openPdf(await formBytes(f));
     for (let i = 0; i < f.pages.length; i++) {
@@ -2116,15 +2159,9 @@ function trSpeak(id) {                                         // 번역 결과 
   const u = new SpeechSynthesisUtterance(t); u.lang = id === 'trKoOut' ? trTarget() : 'ko-KR'; speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
 /* 외국인근로자 표준근로계약서: 맨 위에 나라(그 나라 말) 고르기 – 인쇄 안 됨 */
-function fwBarRender() {
-  const b = document.getElementById('fwBar'); if (!b) return;
-  if (!(CF && CF.fw)) { b.hidden = true; b.innerHTML = ''; return; }
-  b.hidden = false;
-  const sec = CF.sector || 'fw';
-  b.innerHTML = `<div class="fwrow"><span class="fwl">🏷 분야</span>` + FW_SECTORS.map(([k, ic, nm]) => `<button class="fws${k === sec ? ' on' : ''}" onclick="fwSwitch('${k}${CF.cc || '04'}')">${ic} ${nm}</button>`).join('')
-    + `<button onclick="openTranslate()" style="background:#fff6e0;border-color:#f0d58a;margin-left:auto">🌐 번역 확인<small>고용주↔근로자</small></button></div>`
-    + `<div class="fwrow"><span class="fwl">🌏 나라</span>` + FW_FORMS.filter(f => (f.sector || 'fw') === sec).map(f => `<button class="${f.id === CF.id ? 'on' : ''}" onclick="fwSwitch('${f.id}')" title="${esc(f.title)}">${esc(f.nat)}<small>${esc(f.lang.length > 2 ? f.lang.replace(/어$/, '') : f.lang)}${f.eng ? ' · 영어판' : ''}</small></button>`).join('') + `</div>`
-    + `<div class="fwnote">근로계약서 다음 장에 같은 나라 말 <b>공제 동의서</b>(숙소비·식비)가 함께 붙어 한 번에 인쇄됩니다.${CF.eng ? ' 이 나라 말 근로계약서는 없어 영어판 계약서를 씁니다.' : ''}</div>`;
+function fwBarRender() {                                       // 분야·나라 고르기는 맨 위 막대에서
+  const b = document.getElementById('fwBar'); if (b) { b.hidden = true; b.innerHTML = ''; }
+  zbarRender();
 }
 async function fwSwitch(id) {
   if (!CF || CF.id === id) return;
