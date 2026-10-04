@@ -308,15 +308,15 @@
   .topbar .tb.tr { background:#fff6e0; border-color:#f0d58a; }
   .topbar .tsep { width:1px; height:20px; background:#e1e5ee; margin:0 4px; flex:none; }
   .topbar .tsel { font:inherit; font-size:12.5px; padding:4px 4px; border:1px solid #d3d9e6; border-radius:7px; background:#fff; color:#223; flex:none; max-width:190px; }
-  .topbar .tsel.sec { width:118px; } .topbar .tsel.nat { width:104px; }
+  .topbar .tsel.sec { width:118px; } .topbar .tsel.nat { width:170px; }
   @media (max-width:1100px) { .topbar .tbt { max-width:110px; } }
+  @media (max-width:1365px) { .topbar .tbt.fwt { display:none; } }
   .topbar .tz { margin-left:auto; display:flex; align-items:center; gap:1px; flex:none; padding-left:6px; }
-  .topbar .tz button { font:inherit; font-size:12px; border:0; background:transparent; color:#334; padding:5px 7px; border-radius:6px; cursor:pointer; white-space:nowrap; }
+  .topbar .tz button { font:inherit; font-size:12px; border:0; background:transparent; color:#334; padding:5px 6px; border-radius:6px; cursor:pointer; white-space:nowrap; }
   .topbar .tz button:hover { background:#eef2fb; }
   .topbar .tz button.on { background:#2f5bd3; color:#fff; }
   .topbar .tz .zv { min-width:40px; text-align:center; font-size:12px; font-weight:600; color:#223; cursor:pointer; }
   @media (max-width:1440px) { .topbar .tb .ti { display:none; } .topbar .tb { padding:5px 8px; } }
-  @media (max-width:1280px) { .topbar .tz .zt { display:none; } }
   @media (max-width:900px) { .topbar { flex-wrap:wrap; } .topbar .tbt { flex-basis:100%; } }
   @media print { .topbar { display:none !important; } }
   @media print { .zbar { display:none !important; } }
@@ -1725,10 +1725,14 @@ function topActs(save, open, fresh, print, merge) {
     + `<button class="tb" onclick="${fresh}" title="입력한 내용을 지우고 새로 작성"><span class="ti">🧹 </span>새로 작성</button><span class="tsep"></span>`
     + `<button class="tb pri" onclick="${print}"><span class="ti">🖨 </span>인쇄/PDF</button><button class="tb" onclick="${merge}" title="엑셀 한 줄 = 서류 한 건, 한꺼번에 작성·인쇄"><span class="ti">📑 </span>메일머지</button>`;
 }
+const FW_NATIVE = { '01': '中文', '02': 'Монгол хэл', '03': 'Tiếng Việt', '04': 'English', '05': 'Tetun', '06': 'ພາສາລາວ', '07': 'සිංහල', '08': 'Oʻzbekcha',
+  '09': 'Bahasa Indonesia', '10': 'ភាសាខ្មែរ', '11': 'Кыргызча', '13': 'বাংলা', '14': 'ภาษาไทย', '15': 'မြန်မာဘာသာ', '16': 'नेपाली', '17': 'Тоҷикӣ', '18': 'اردو', '19': 'Filipino' };
+const FW_KO = { '17': '타지크어', '18': '우르두어', '19': '필리핀어' };
+const fwLangLabel = f => `${FW_KO[f.cc] || f.lang} (${FW_NATIVE[f.cc] || f.nat})${f.eng ? ' · 영어판' : ''}`;
 function topFw() {                                            // 외국인근로자: 분야 · 나라 고르기 + 번역 확인
   const sec = CF.sector || 'fw';
   return `<span class="tsep"></span><select class="tsel sec" title="분야" onchange="fwSwitch(this.value + (CF.cc || '04'))">${FW_SECTORS.map(([k, ic, nm]) => `<option value="${k}"${k === sec ? ' selected' : ''}>${k === 'fw' ? '🌾 농축산어업' : '🏭 제조·건설업'}</option>`).join('')}</select>`
-    + `<select class="tsel nat" title="나라(그 나라 말)" onchange="fwSwitch(this.value)">${FW_FORMS.filter(f => (f.sector || 'fw') === sec).map(f => `<option value="${f.id}"${f.id === CF.id ? ' selected' : ''} title="${esc(f.nat)}">${esc(f.lang)}${f.eng ? ' (영어판)' : ''}</option>`).join('')}</select>`
+    + `<select class="tsel nat" title="나라(그 나라 말)" onchange="fwSwitch(this.value)">${FW_FORMS.filter(f => (f.sector || 'fw') === sec).map(f => `<option value="${f.id}"${f.id === CF.id ? ' selected' : ''} title="${esc(f.nat)}">${esc(fwLangLabel(f))}</option>`).join('')}</select>`
     + `<button class="tb tr" onclick="openTranslate()" title="적은 내용을 근로자 나라 말로 옮기고, 서로 묻고 답하기"><span class="ti">🌐 </span>번역 확인</button>`;
 }
 function zbarRender() {
@@ -1744,15 +1748,15 @@ function zbarRender() {
     title = document.querySelector('.module[data-mod="ltc"] .page.show[data-tab="p2"]') ? '재가서비스 이용내역서' : '장기요양기관 입소·이용신청서';
     acts = topActs('saveFile()', 'openFile()', 'resetAll()', "doPrint(document.getElementById('ltcBoth') && document.getElementById('ltcBoth').checked ? 'all' : 'current')", "mmOpen('ltc')");
   } else if (cfOn) {
-    title = CF.fw ? '외국인 근로계약서' : CF.title;
+    title = CF.fw ? '외국인 계약서' : CF.title;
     if (cfMode === 'edit') badge = '🛠 칸 편집 중';
     else acts = topActs('saveFormData()', 'pickJson()', 'clearFormData()', 'printForm()', 'mmOpen()');
     if (CF.fw && cfMode !== 'edit') extra = topFw();
   }
-  const zoom = hasPage ? `<div class="tz"><button class="${ZM.mode === 'w' ? 'on' : ''}" onclick="zSet('w')" title="서식 너비를 화면 가로에 맞춤">↔<span class="zt"> 가로</span></button>`
-    + `<button class="${ZM.mode === 'h' ? 'on' : ''}" onclick="zSet('h')" title="서식 한 쪽이 화면 세로에 다 보이게">↕<span class="zt"> 세로</span></button>`
+  const zoom = hasPage ? `<div class="tz"><button class="${ZM.mode === 'w' ? 'on' : ''}" onclick="zSet('w')" title="서식 너비를 화면 가로에 맞춤">↔ 가로 맞춤</button>`
+    + `<button class="${ZM.mode === 'h' ? 'on' : ''}" onclick="zSet('h')" title="서식 한 쪽이 화면 세로에 다 보이게">↕ 세로 맞춤</button>`
     + `<button onclick="zStep(-1)" title="축소 (Ctrl + 마우스 휠)">－</button><span class="zv" onclick="zSet('z', 1)" title="눌러서 100%">${Math.round(ZM.z * 100)}%</span><button onclick="zStep(1)" title="확대 (Ctrl + 마우스 휠)">＋</button></div>` : '';
-  b.innerHTML = `<div class="tbt" title="${esc(title)}">${esc(title)}</div>${badge ? `<span class="mbadge">${badge}</span>` : ''}${acts}${extra}${zoom}`;
+  b.innerHTML = `<div class="tbt${cfOn && CF.fw ? ' fwt' : ''}" title="${esc(title)}">${esc(title)}</div>${badge ? `<span class="mbadge">${badge}</span>` : ''}${acts}${extra}${zoom}`;
 }
 window.addEventListener('resize', fitPages);
 document.addEventListener('wheel', e => {                      // Ctrl + 휠: 서식만 확대·축소
