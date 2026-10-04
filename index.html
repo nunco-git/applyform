@@ -4043,8 +4043,8 @@ function grpPanelHTML() {
   return `<div class="pt">작성할 서류 (번호 고르기)</div><div class="gsel">` + CF.groups.map(g => `<div class="sopt"><input type="checkbox"${s.nums.includes(g.n) ? ' checked' : ''} onchange="grpToggle(${g.n}, this.checked)" title="체크하면 이 서류를 작성·인쇄합니다"><span class="gnm${s.nums.includes(g.n) ? '' : ' off'}" onclick="grpGo(${g.n})" title="눌러서 이 서류로 이동"><b>${g.n}.</b> ${esc(g.title)}</span></div>`
       + (g.pick ? `<div class="gpk">${g.docs.map(d => `<label><input type="radio" name="grpp${g.n}"${grpDocs(g, s)[0].k === d.k ? ' checked' : ''} onchange="grpAlt(${g.n}, '${d.k}')"> ${esc(d.label)}</label>`).join('')}</div>` : '')).join('')
     + `</div><div class="hint">고른 번호만 낮은 번호부터 차례로 나옵니다. 대상자·기관·날짜처럼 같은 항목은 한 곳에만 적으면 모든 서류에 함께 들어갑니다.</div>`
-    + `<button class="sb primary" onclick="grpPrintAll()"${n ? '' : ' disabled'}>🖨 번호별 PDF 저장 (${n}개 파일)</button>`
-    + `<div class="hint">번호마다 인쇄 창이 하나씩 열립니다. 대상(프린터)을 ‘PDF로 저장’으로 하면 번호별로 파일이 하나씩 만들어집니다. 번호 하나만 받으려면 서식 위 ‘🖨 ○번 PDF’를 누르세요.</div>`;
+    + `<button class="sb primary" onclick="grpSaveAll()"${n ? '' : ' disabled'}>📄 번호별 PDF 한꺼번에 저장 (${n}개 파일)</button>`
+    + `<div class="hint">고른 서류가 서식 이름으로 번호마다 PDF 파일 하나씩 바로 저장됩니다 (예: ‘2. 성범죄·아동학대관련범죄 전력 조회_홍길동.pdf’). 종이로 인쇄하려면 위쪽 ‘🖨 인쇄/PDF’를 누르세요.</div>`;
 }
 function grpGo(n) {                                          // 이름 누르기: 그 서류 첫 쪽으로 이동 (선택은 바꾸지 않음)
   const s = grpSel(), g = CF.groups.find(x => x.n === n); if (!g) return;
@@ -4096,6 +4096,177 @@ function grpPrintAll() {
   if (s.nums.length === 1) return grpPrint(s.nums[0]);
   grpQueue(s.nums.slice(), grpPrint);
 }
+/* ---------- 번호별 PDF 바로 만들기 (인쇄 창 없이) ---------- */
+const PDFLIB_URL = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js', KFONT_URL = 'fw/kfont.ttf';
+let pdfLibP = null, kfontP = null;
+function pdfLibLoad() {
+  if (window.PDFLib) return Promise.resolve(window.PDFLib);
+  if (!pdfLibP) pdfLibP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = PDFLIB_URL;
+    s.onload = () => window.PDFLib ? res(window.PDFLib) : rej(new Error('PDF 도구를 불러오지 못했습니다')); s.onerror = () => { pdfLibP = null; rej(new Error('PDF 도구를 불러오지 못했습니다. 인터넷 연결을 확인하세요.')); };
+    document.head.appendChild(s); });
+  return pdfLibP;
+}
+function kfontLoad() {
+  if (!kfontP) kfontP = fetch(KFONT_URL, { cache: 'force-cache' }).then(r => { if (!r.ok) throw new Error('글꼴 파일(' + KFONT_URL + ')이 없습니다'); return r.arrayBuffer(); })
+    .then(kfParse).catch(e => { kfontP = null; throw e; });
+  return kfontP;
+}
+function kfParse(buf) {                                       // TrueType 글꼴 읽기: 글자 → 글리프 번호, 글자 폭
+  const dv = new DataView(buf), T = {};
+  for (let i = 0, n = dv.getUint16(4); i < n; i++) { const o = 12 + i * 16; T[String.fromCharCode(...new Uint8Array(buf, o, 4))] = { off: dv.getUint32(o + 8), len: dv.getUint32(o + 12) }; }
+  if (!T.glyf || !T.cmap) throw new Error('글꼴 파일 형식이 맞지 않습니다');
+  const cm = T.cmap.off; let sub = 0;
+  for (let i = 0, nt = dv.getUint16(cm + 2); i < nt; i++) { if (dv.getUint16(cm + 4 + i * 8) === 3 && dv.getUint16(cm + 6 + i * 8) === 1) sub = cm + dv.getUint32(cm + 8 + i * 8); }
+  const segX2 = dv.getUint16(sub + 6), endO = sub + 14, stO = endO + segX2 + 2, dO = stO + segX2, rO = dO + segX2;
+  const look = c => { for (let i = 0; i < segX2 / 2; i++) { if (c > dv.getUint16(endO + i * 2)) continue; const st = dv.getUint16(stO + i * 2); if (c < st) return 0;
+      const d = dv.getInt16(dO + i * 2), ro = dv.getUint16(rO + i * 2); if (!ro) return (c + d) & 0xffff; const g = dv.getUint16(rO + i * 2 + ro + (c - st) * 2); return g ? (g + d) & 0xffff : 0; } return 0; };
+  const memo = new Map(), G = c => { if (!memo.has(c)) memo.set(c, c > 0xffff ? 0 : look(c)); return memo.get(c); };
+  const upem = dv.getUint16(T.head.off + 18), locFmt = dv.getInt16(T.head.off + 50), nGl = dv.getUint16(T.maxp.off + 4), nH = dv.getUint16(T.hhea.off + 34);
+  const adv = g => dv.getUint16(T.hmtx.off + Math.min(g, nH - 1) * 4) * 1000 / upem;
+  const loc = i => locFmt ? dv.getUint32(T.loca.off + i * 4) : dv.getUint16(T.loca.off + i * 2) * 2;
+  return { buf, dv, T, nGl, G, adv, loc, width: (s, size) => [...String(s)].reduce((w, ch) => w + adv(G(ch.codePointAt(0))), 0) * size / 1000 };
+}
+function kfSubset(F, used) {                                  // 쓰인 글리프만 남긴 글꼴 (글리프 번호는 그대로)
+  const { buf, dv, T, nGl, loc } = F, parts = [], loca = new Uint8Array((nGl + 1) * 4), lv = new DataView(loca.buffer); let off = 0;
+  for (let g = 0; g < nGl; g++) {
+    lv.setUint32(g * 4, off);
+    if (g === 0 || used.has(g)) { const a = loc(g), b = loc(g + 1); if (b > a) { parts.push(new Uint8Array(buf, T.glyf.off + a, b - a)); off += b - a; const p = (4 - off % 4) % 4; if (p) { parts.push(new Uint8Array(p)); off += p; } } }
+  }
+  lv.setUint32(nGl * 4, off);
+  const glyf = new Uint8Array(off); { let o = 0; parts.forEach(p => { glyf.set(p, o); o += p.length; }); }
+  const head = new Uint8Array(buf.slice(T.head.off, T.head.off + T.head.len)); new DataView(head.buffer).setInt16(50, 1); new DataView(head.buffer).setUint32(8, 0);
+  const take = k => new Uint8Array(buf.slice(T[k].off, T[k].off + T[k].len));
+  const tabs = [['glyf', glyf], ['head', head], ['hhea', take('hhea')], ['hmtx', take('hmtx')], ['loca', loca], ['maxp', take('maxp')]];
+  const sum = u => { const p = new Uint8Array(Math.ceil(u.length / 4) * 4); p.set(u); const v = new DataView(p.buffer); let s = 0; for (let i = 0; i < p.length; i += 4) s = (s + v.getUint32(i)) >>> 0; return s; };
+  const n = tabs.length, hdr = 12 + n * 16; let size = hdr; tabs.forEach(([, u]) => size += Math.ceil(u.length / 4) * 4);
+  const out = new Uint8Array(size), ov = new DataView(out.buffer); let es = 0; while ((1 << (es + 1)) <= n) es++;
+  ov.setUint32(0, 0x00010000); ov.setUint16(4, n); ov.setUint16(6, (1 << es) * 16); ov.setUint16(8, es); ov.setUint16(10, n * 16 - (1 << es) * 16);
+  let p = hdr; tabs.forEach(([tag, u], i) => { const r = 12 + i * 16; for (let j = 0; j < 4; j++) out[r + j] = tag.charCodeAt(j);
+    ov.setUint32(r + 4, sum(u)); ov.setUint32(r + 8, p); ov.setUint32(r + 12, u.length); out.set(u, p); p += Math.ceil(u.length / 4) * 4; });
+  return out;
+}
+function kfPdfFont(L, doc, F, used, uni) {                    // PDF 글꼴 객체 (Type0 / Identity-H, 글자 복사용 ToUnicode 포함)
+  const { PDFName, PDFString, PDFArray, PDFNumber } = L, ctx = doc.context, tag = 'KITKR+NotoSansKR';
+  const ff = kfSubset(F, used), ffRef = ctx.register(ctx.flateStream(ff, { Length1: ff.length }));
+  const desc = ctx.register(ctx.obj({ Type: 'FontDescriptor', FontName: tag, Flags: 4, FontBBox: [-1000, -300, 2000, 1200], ItalicAngle: 0, Ascent: 1160, Descent: -288, CapHeight: 733, StemV: 80, FontFile2: ffRef }));
+  const gids = [...used].sort((a, b) => a - b), W = PDFArray.withContext(ctx);
+  gids.forEach(g => { W.push(PDFNumber.of(g)); const a = PDFArray.withContext(ctx); a.push(PDFNumber.of(Math.round(F.adv(g)))); W.push(a); });
+  const cid = ctx.register(ctx.obj({ Type: 'Font', Subtype: 'CIDFontType2', BaseFont: tag, CIDToGIDMap: 'Identity', DW: 1000, W, FontDescriptor: desc,
+                                      CIDSystemInfo: ctx.obj({ Registry: PDFString.of('Adobe'), Ordering: PDFString.of('Identity'), Supplement: 0 }) }));
+  const h4 = v => v.toString(16).padStart(4, '0').toUpperCase(), u16 = s => [...s].map(ch => { const c = ch.codePointAt(0);
+    if (c < 0x10000) return h4(c); const d = c - 0x10000; return h4(0xd800 + (d >> 10)) + h4(0xdc00 + (d & 0x3ff)); }).join('');
+  const lines = gids.filter(g => uni.has(g)).map(g => `<${h4(g)}> <${u16(uni.get(g))}>`), chunks = [];
+  for (let i = 0; i < lines.length; i += 100) chunks.push(`${lines.slice(i, i + 100).length} beginbfchar\n${lines.slice(i, i + 100).join('\n')}\nendbfchar`);
+  const cmap = `/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n/CMapName /Adobe-Identity-UCS def\n/CMapType 2 def\n1 begincodespacerange\n<0000> <FFFF>\nendcodespacerange\n${chunks.join('\n')}\nendcmap\nCMapName currentdict /CMap defineresource pop\nend\nend`;
+  const tu = ctx.register(ctx.flateStream(new TextEncoder().encode(cmap)));
+  return ctx.register(ctx.obj({ Type: 'Font', Subtype: 'Type0', BaseFont: tag, Encoding: 'Identity-H', DescendantFonts: [cid], ToUnicode: tu }));
+}
+const dataUrlBytes = u => { const b = atob(String(u).split(',')[1] || ''), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+/* 칸 하나가 화면·인쇄에 보이는 글자 (인쇄본과 같은 값) */
+function shownVal(f) {
+  const k = fkey(f), v = FV[k];
+  if (f.tpl) return tplVal(f);
+  if (f.type === 'check') return v ? '√' : '';
+  if (f.type === 'sign') return v || '';
+  if (f.type === 'date') return dateText(v, f.fmt || 'dot');
+  if (f.trOf) return String(v ?? '') || String(FV[f.trOf] ?? '');
+  return String(v ?? '');
+}
+async function grpBuildPdf(L, F, src, g, idx, stamp) {
+  const { PDFDocument, PDFHexString, rgb, pushGraphicsState, popGraphicsState, beginText, endText, setFontAndSize, moveText, showText, setFillingRgbColor } = L;
+  const doc = await PDFDocument.create(), pages = await doc.copyPages(src, idx); pages.forEach(p => doc.addPage(p));
+  doc.setTitle(`${g.n}. ${g.title}`); doc.setProducer('계약과 신청서류 도구모음'); doc.setCreator('계약과 신청서류 도구모음');
+  const used = new Set(), uni = new Map(), runs = [];
+  const enc = s => [...String(s)].map(ch => { const c = ch.codePointAt(0), gi = F.G(c); if (gi) { used.add(gi); if (!uni.has(gi)) uni.set(gi, ch); } return gi.toString(16).padStart(4, '0'); }).join('');
+  const text = (pi, s, x, base, size, color) => { s = String(s); if (!s.trim()) return; runs.push({ pi, hex: enc(s), x, base, size, color }); };
+  const fitSize = (s, size, w) => { const tw = F.width(s, size); return tw > w && tw > 0 ? Math.max(4, size * w / tw) : size; };
+  const wrap = (s, size, w) => String(s).split('\n').flatMap(par => { const out = []; let cur = '';
+    for (const ch of par) { if (F.width(cur + ch, size) > w && cur) { out.push(cur); cur = ch; } else cur += ch; } out.push(cur); return out; });
+  const sigs = [];
+  idx.forEach((pgi, pi) => {
+    const page = pages[pi], H = page.getHeight();
+    CF.fields.filter(f => f.page === pgi).forEach(f => {
+      if (f.mask || f.type === 'cover') page.drawRectangle({ x: f.x, y: H - f.y - f.h, width: f.w, height: f.h, color: rgb(1, 1, 1) });
+      if (f.type === 'cover') return;
+      const v = shownVal(f); if (!v) return;
+      if (f.type === 'sign') { sigs.push({ page, f, v, H }); return; }
+      if (f.type === 'check') { const s = clamp(f.h * 0.8, 7, 16); text(pi, '√', f.x + f.w / 2 - F.width('√', s) / 2, f.y + f.h / 2 + s * 0.36, s); return; }
+      const pad = f.tight ? 0 : 2, w = f.w - pad * 2, fs = f.fs || 11;
+      if (f.type === 'multi') { const ls = wrap(v, fs, w); ls.forEach((ln, i) => text(pi, ln, f.x + pad, f.y + 2 + fs * 0.95 + i * fs * 1.25, fs)); return; }
+      const s = v.replace(/\n/g, ' '), size = fitSize(s, fs, w), tw = F.width(s, size);
+      const x = f.align === 'center' ? f.x + (f.w - tw) / 2 : f.align === 'right' ? f.x + f.w - pad - tw : f.x + pad;
+      text(pi, s, x, f.y + f.h / 2 + size * 0.36, size);
+    });
+    if (stamp) {                                              // 발급번호·진위 확인 (인쇄본의 아래쪽 띠와 같은 내용)
+      const fs = 6.2, l2 = H - 5 - 1.6, l1 = l2 - fs * 1.35, qr = stamp.qr, right = 595 - 30 - (qr ? 48 + 6 : 0);
+      page.drawLine({ start: { x: 34, y: H - (l1 - fs - 1.2) }, end: { x: right, y: H - (l1 - fs - 1.2) }, thickness: 0.4, color: rgb(0.6, 0.6, 0.6) });
+      text(pi, `발급번호 ${stamp.id} · 발급 ${stamp.when} · ${pi + 1}/${idx.length}쪽`, 34, l1, fs, [0.27, 0.27, 0.27]);
+      text(pi, `진위 확인: ${qr ? 'QR을 찍거나 ' : ''}‘계약과 신청서류 도구모음’ 6번 메뉴의 진위 확인에 이 PDF를 올리면 발급 후 내용이 바뀌었는지 확인됩니다.`, 34, l2, fs, [0.27, 0.27, 0.27]);
+      if (qr) { const N = qr.length, q = 2, T = N + 2 * q, sc = 48 / T, x0 = 595 - 30 - 48, y0 = 5;                  // PDF 좌표는 아래가 0
+        page.drawRectangle({ x: x0, y: y0, width: 48, height: 48, color: rgb(1, 1, 1) });
+        qr.forEach((row, r) => row.forEach((b, c) => { if (b) page.drawRectangle({ x: x0 + (c + q) * sc, y: y0 + 48 - (r + q + 1) * sc, width: sc + 0.02, height: sc + 0.02, color: rgb(0, 0, 0) }); })); }
+    }
+  });
+  for (const s of sigs) {                                     // 서명·도장: 칸 안에 비율 유지
+    try { const by = dataUrlBytes(s.v), img = /^data:image\/jpe?g/i.test(s.v) ? await doc.embedJpg(by) : await doc.embedPng(by);
+      const k = Math.min(s.f.w / img.width, s.f.h / img.height), w = img.width * k, h = img.height * k;
+      s.page.drawImage(img, { x: s.f.x + (s.f.w - w) / 2, y: s.H - s.f.y - s.f.h + (s.f.h - h) / 2, width: w, height: h }); } catch (e) {}
+  }
+  if (runs.length) {
+    const font = kfPdfFont(L, doc, F, used, uni);
+    idx.forEach((pgi, pi) => {
+      const my = runs.filter(r => r.pi === pi); if (!my.length) return;
+      const page = pages[pi], H = page.getHeight(), key = page.node.newFontDictionary('KITKR', font), ops = [pushGraphicsState()];
+      my.forEach(r => { const c = r.color || [0, 0, 0];
+        ops.push(setFillingRgbColor(c[0], c[1], c[2]), beginText(), setFontAndSize(key, r.size), moveText(r.x, H - r.base), showText(PDFHexString.of(r.hex)), endText()); });
+      ops.push(popGraphicsState()); page.pushOperators(...ops);
+    });
+  }
+  return doc.save();
+}
+async function grpSaveAll() {
+  if (!CF || !CF.groups) return;
+  if (cfMode !== 'fill') setMode('fill');
+  flushFV();
+  const s = grpSel(), list = CF.groups.filter(g => s.nums.includes(g.n)); if (!list.length) { alert('저장할 서류 번호를 먼저 고르세요.'); return; }
+  let dir = null;
+  if (window.showDirectoryPicker) {                            // 저장할 폴더를 한 번만 고르면 모든 파일을 그 폴더에
+    try { dir = await window.showDirectoryPicker({ id: 'kit-crim', mode: 'readwrite' }); }
+    catch (e) { if (e.name === 'AbortError') return; dir = null; }
+  }
+  toast(`PDF ${list.length}개를 만드는 중…`);
+  let L, F, src;
+  try { [L, F] = await Promise.all([pdfLibLoad(), kfontLoad()]); src = await L.PDFDocument.load(await formBytes(CF)); }
+  catch (e) {
+    if (confirm(`PDF를 바로 만들지 못했습니다.\n(${e.message || e})\n\n사이트의 fw 폴더에 kfont.ttf(글꼴)가 있어야 합니다.\n대신 번호마다 인쇄 창으로 저장할까요?`)) grpPrintAll();
+    return;
+  }
+  const files = [], who = grpWho(), url0 = /^https?:$/.test(location.protocol) ? location.origin + location.pathname + '?verify=' : '';
+  let reg = 0;
+  for (const g of list) {
+    const idx = grpPrintPages(g, s); let stamp = null;
+    if (FB.enabled()) {                                       // 발급번호: 인쇄할 때와 같은 방식으로 등록
+      const vals = {}, add = (k, v) => { v = normV(v); if (v && !vals[k]) vals[k] = v; };
+      idx.forEach(pgi => CF.fields.filter(f => f.page === pgi && !f.tpl && f.type !== 'cover').sort((a, b) => a.page - b.page).forEach(f => add(fkey(f), f.type === 'sign' ? (FV[fkey(f)] ? 'Y' : '') : shownVal(f))));
+      const id = newDocId(), url = url0 ? url0 + id : '';
+      stamp = { id, when: tsWhen(new Date()), qr: url ? QR.encode(url) : null };
+      if (await registerStamp(id, { form: 'f:' + CF.id + '@' + idx.join('.'), title: `${CF.title} ${g.n}번 – ${g.title}`, vals }, true)) reg++;
+    }
+    const bytes = await grpBuildPdf(L, F, src, g, idx, stamp);
+    files.push({ name: `${g.n}. ${g.title}${who}.pdf`.replace(/[\\/:*?"<>|]+/g, ''), bytes });
+  }
+  try {
+    if (dir) { for (const f of files) { const h = await dir.getFileHandle(f.name, { create: true }), w = await h.createWritable(); await w.write(f.bytes); await w.close(); } }
+    else for (const f of files) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f.bytes], { type: 'application/pdf' })); a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000); await new Promise(r => setTimeout(r, 400));
+    }
+  } catch (e) { alert('파일을 저장하지 못했습니다.\n' + (e.message || e)); return; }
+  GRP_LAST = files.map(f => f.name);
+  toast(`PDF ${files.length}개를 저장했습니다${dir ? ` (폴더: ${dir.name})` : ' (다운로드 폴더)'}: ${files.map(f => f.name).join(', ')}` + (FB.enabled() && reg < files.length ? ` · 발급번호 등록 ${reg}/${files.length}개 (인터넷 연결 확인)` : ''));
+  return files;
+}
+let GRP_LAST = null;
 /* 'f:crim@4.5' → 인쇄한 쪽(4·5쪽)만 떼어 낸 서식 (진위 확인·엑셀에서 쪽 순서 맞추기) */
 function formBySel(sel) {
   const m = String(sel || '').match(/^f:([^@]+)(?:@([\d.]+))?$/); if (!m) return null;
@@ -4765,7 +4936,16 @@ window.addEventListener('beforeprint', stampPages);
 window.addEventListener('afterprint', () => setTimeout(() => $$('.vstamp').forEach(e => e.remove()), 500));
 
 /* PDF에서 값 읽기 (6번 엑셀·진위 확인 공통) */
+/* ‘번호별 PDF 한꺼번에 저장’으로 만든 PDF: 원본 서식 글자(년·월·일, - 등)가 그대로 있으므로 이 도구가 쓴 글자(KITKR 글꼴)만 읽음 */
+async function kitOnly(P) {
+  if (P._kit != null) return; P._kit = false;
+  const names = [...new Set(P.items.map(o => o.fn).filter(Boolean))]; if (!names.length) return;
+  try { await P.pg.getOperatorList(); } catch (e) { return; }
+  const kit = names.filter(n => { try { const f = P.pg.commonObjs.get(n); return /KITKR/.test(String(f && (f.name || '')) + String(f && f.loadedName || '')); } catch (e) { return false; } });
+  if (kit.length) { P._kit = true; P.items = P.items.filter(o => kit.includes(o.fn)); }
+}
 async function extractVals(pages, sel) {
+  for (const P of pages) await kitOnly(P);
   const pos = {}; let inside = 0, outside = 0;
   const tally = (P, rects) => P.items.forEach(o => { if (o.fs < 2) return;
     rects.some(r => o.cx > r.x - 1 && o.cx < r.x + r.w + 1 && o.cy > r.y - 1.5 && o.cy < r.y + r.h + 1.5) ? inside++ : outside++; });
@@ -4868,7 +5048,7 @@ async function pdfPageInfo(doc, i) {
   const pg = await doc.getPage(i + 1), vp = pg.getViewport({ scale: 1 }), tc = await pg.getTextContent();
   const items = tc.items.filter(it => it.str && it.str.trim()).map(it => {
     const t = pdfjsLib.Util.transform(vp.transform, it.transform), fs = Math.hypot(t[2], t[3]) || 10, base = t[5];
-    return { s: it.str, x0: t[4], x1: t[4] + it.width, fs, base, top: base - fs * 0.86, cy: base - fs * 0.33, cx: t[4] + it.width / 2 };
+    return { s: it.str, fn: it.fontName, x0: t[4], x1: t[4] + it.width, fs, base, top: base - fs * 0.86, cy: base - fs * 0.33, cx: t[4] + it.width / 2 };
   });
   let stamp = '', items2 = items;
   const sItem = items.find(o => o.s.includes('발급번호') && o.top > vp.height - 70);
