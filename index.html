@@ -191,6 +191,9 @@
     .in:focus { background:transparent !important; }
     .cf.cmask, .cf.cmask:focus, .cover { background:#fff !important; box-shadow:none !important; }
     .dpop, .tipbub, .tipdot, .l4bar, .fwbar, .fwmsg { display:none !important; }
+    body[data-print="merge"] .app, body[data-print="merge"] .zbar { display:none !important; }
+    body[data-print="merge"] #mmPrint { display:block !important; }
+    #mmPrint .page { display:block !important; }
     .vstamp { display:flex !important; position:absolute; left:34pt; right:30pt; bottom:5pt; align-items:flex-end; gap:6pt; z-index:5;
               font:6.2pt/1.35 "Malgun Gothic",sans-serif; color:#444; pointer-events:none; }
     .vstamp .vt { flex:1; border-top:0.4pt solid #999; padding-top:1.5pt; }
@@ -268,14 +271,24 @@
   .ink.on { box-shadow:0 0 0 2.5px #2f5bd3; }
   @media screen { .page { zoom:var(--pz, 1); } }
   .main { overflow-x:auto; }
-  .zbar { position:fixed; right:calc(250px + 18px); bottom:16px; z-index:40; display:flex; align-items:center; gap:2px; background:#fff; border:1px solid #d6dcea;
+  #mmPrint { display:none; }
+  #mmDlg .db { max-height:72vh; overflow:auto; }
+  .mmstep { border:1px solid #e3e8f3; border-radius:10px; padding:10px 12px; margin:0 0 10px; background:#fafbfe; }
+  .mmstep h4 { margin:0 0 6px; font-size:14px; }
+  .mmok { color:#1c7c4a; } .mmbad { color:#b4442f; }
+  .mmt { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+  .mmt th, .mmt td { border-bottom:1px solid #eef0f5; padding:4px 6px; text-align:left; white-space:nowrap; max-width:180px; overflow:hidden; text-overflow:ellipsis; }
+  .mmt th { background:#f3f6fc; position:sticky; top:0; }
+  .mmopts label { display:block; font-size:13px; margin:3px 0; }
+  .zbar { position:fixed; right:calc(250px + 16px); top:8px; z-index:40; display:flex; align-items:center; gap:2px; background:#fff; border:1px solid #d6dcea;
           border-radius:22px; box-shadow:0 4px 16px rgba(20,30,60,.16); padding:4px; font-size:12.5px; }
   .zbar button { font:inherit; border:0; background:transparent; color:#334; padding:6px 10px; border-radius:16px; cursor:pointer; white-space:nowrap; }
   .zbar button:hover { background:#eef2fb; }
   .zbar button.on { background:#2f5bd3; color:#fff; }
   .zbar .zv { min-width:48px; text-align:center; font-weight:600; color:#223; cursor:pointer; }
   .zbar .zsep { width:1px; height:18px; background:#e1e5ee; margin:0 3px; }
-  @media (max-width:900px) { .zbar { right:12px; bottom:12px; } .zbar .zt { display:none; } }
+  .modhead { padding-right:430px !important; }
+  @media (max-width:900px) { .zbar { right:8px; top:8px; } .zbar .zt { display:none; } .modhead { padding-right:230px !important; } }
   @media print { .zbar { display:none !important; } }
   .cat::after { content:'▾'; margin-left:6px; font-size:11px; opacity:.55; transition:transform .15s; }
   .cat:not(:has(em))::after { margin-left:auto; }
@@ -600,6 +613,7 @@
         <div class="pt">인쇄 · PDF</div>
         <button class="sb primary" onclick="doPrint('current')">🖨 이 양식 인쇄/PDF</button>
         <button class="sb primary" onclick="doPrint('all')">🖨 두 양식 함께 인쇄/PDF</button>
+        <button class="sb" onclick="mmOpen('ltc')">📑 메일머지 (엑셀로 일괄 작성)</button>
 
         <div class="pt">장기요양기관</div>
         <select id="instSel" class="ssel" onchange="if(this.value!=='')applyInst(+this.value)"></select>
@@ -756,6 +770,11 @@
 <div id="datePop" class="dpop" hidden></div>
 <div id="tipBub" class="tipbub" hidden role="tooltip"></div>
 <div id="pickPop" class="dpop pick" hidden></div>
+<dialog id="mmDlg" class="pdlg wide">
+  <div class="dh"><h3>📑 메일머지 – 엑셀로 일괄 작성 <small id="mmTitle" style="font-weight:400;color:#667"></small></h3><button class="b" onclick="document.getElementById('mmDlg').close()">닫기</button></div>
+  <div class="db" id="mmBody"></div>
+</dialog>
+<input type="file" id="mmFile" accept=".xlsx,.csv,.txt" hidden onchange="mmLoad(this)">
 <dialog id="codeDlg" class="pdlg wide">
   <div class="dh"><h3 id="codeDlgTitle">🔢 서식 번호</h3><button class="b" onclick="document.getElementById('codeDlg').close()">닫기</button></div>
   <div class="db" id="codeDlgBody"></div>
@@ -1353,12 +1372,17 @@ function compactS() {
   return rows.length;
 }
 function beforePrint() {
+  if (document.body.dataset.print === 'merge') return;
   if (!document.querySelector('.module[data-mod="ltc"].on')) return;
   const filled = compactS();
   printRowsS = Math.min(S_ROWS, filled + 1);
   render2(); saveDraft();
 }
-function afterPrint() { printRowsS = null; render2(); document.body.dataset.print = 'current'; }
+function afterPrint() {
+  const merged = document.body.dataset.print === 'merge';
+  printRowsS = null; if (!merged) render2(); document.body.dataset.print = 'current';
+  if (merged) setTimeout(() => { const b = document.getElementById('mmPrint'); if (b) b.innerHTML = ''; const st = document.getElementById('pgSize'); if (st) st.textContent = ''; }, 800);
+}
 window.addEventListener('beforeprint', beforePrint);
 window.addEventListener('afterprint', afterPrint);
 function doPrint(mode) { document.body.dataset.print = mode; window.print(); }
@@ -1860,6 +1884,7 @@ function renderMyPanel() {
     document.getElementById('laborBadge').textContent = '✏️ 작성'; document.getElementById('laborBadge').className = 'mbadge fill';
     lp.innerHTML = `
       <button class="sb primary" onclick="printForm()">🖨 인쇄 / PDF</button>
+      <button class="sb" onclick="mmOpen()">📑 메일머지 (엑셀로 일괄 작성)</button>
       <div class="pt">작성 내용</div>
       <button class="sb" onclick="saveFormData()">💾 작성 내용 저장</button>
       <button class="sb" onclick="pickJson()">📂 작성 내용 열기</button>
@@ -1882,6 +1907,7 @@ function renderMyPanel() {
     <div class="seg"><button class="${cfMode === 'fill' ? 'on' : ''}" onclick="setMode('fill')">✏️ 작성</button><button class="${cfMode === 'edit' ? 'on' : ''}" onclick="setMode('edit')">🛠 칸 편집</button></div>
     ${cfMode === 'fill' ? `
       <button class="sb primary" onclick="printForm()">🖨 인쇄 / PDF</button>
+      <button class="sb" onclick="mmOpen()">📑 메일머지 (엑셀로 일괄 작성)</button>
       <div class="pt">작성 내용</div>
       <button class="sb" onclick="saveFormData()">💾 작성 내용 저장</button>
       <button class="sb" onclick="pickJson()">📂 작성 내용 열기</button>
@@ -2819,6 +2845,225 @@ async function codeDel(code) {
   try { await FB.delCode(code); toast('번호를 지웠습니다.'); if (FV['__code'] === code) { delete FV['__code']; saveFVSoon(); renderMyPanel(); }
         if (S.__code === code) { delete S.__code; saveDraft(); ltcCodeRender(); } codeMine(); }
   catch (e) { alert('지우지 못했습니다.\n' + (e.message || e)); }
+}
+
+/* ====================== 메일머지: 엑셀 한 줄 = 서류 한 건 ====================== */
+let MM = { ctx: 'cf', head: null, rows: null, map: null };
+/* 엑셀(.xlsx) 읽기 – 브라우저 내장 압축 풀기 사용 (따로 받는 프로그램 없음) */
+async function unzipXlsx(u8) {
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength); let e = u8.length - 22;
+  while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('엑셀(.xlsx) 파일이 아닙니다.');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const out = {}, td = new TextDecoder();
+  for (let i = 0; i < n; i++) {
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = td.decode(u8.subarray(p + 46, p + 46 + nl)); p += 46 + nl + el + cl;
+    out[name] = async () => {
+      const a = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true), data = u8.subarray(a, a + csize);
+      if (method === 0) return data;
+      if (method === 8) return new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      throw new Error('지원하지 않는 압축 방식');
+    };
+  }
+  return out;
+}
+const xlColIdx = ref => { let n = 0; for (const ch of String(ref).replace(/\d+$/, '')) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+const xlDate = n => { const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(n) * 86400000); return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`; };
+async function readXlsx(u8) {
+  const z = await unzipXlsx(u8), td = new TextDecoder(), P = s => new DOMParser().parseFromString(s, 'application/xml');
+  const txt = async n => z[n] ? td.decode(await z[n]()) : null;
+  let sheet = Object.keys(z).filter(k => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort()[0];
+  const wb = await txt('xl/workbook.xml'), rel = await txt('xl/_rels/workbook.xml.rels');
+  if (wb && rel) {
+    const s = P(wb).getElementsByTagName('sheet')[0], rid = s && (s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id'));
+    const r = [...P(rel).getElementsByTagName('Relationship')].find(x => x.getAttribute('Id') === rid);
+    if (r) { const tg = r.getAttribute('Target'), path = tg.startsWith('/') ? tg.slice(1) : 'xl/' + tg.replace(/^\.\//, ''); if (z[path]) sheet = path; }
+  }
+  if (!sheet) throw new Error('엑셀 시트를 찾지 못했습니다.');
+  const ssx = await txt('xl/sharedStrings.xml');
+  const ss = ssx ? [...P(ssx).getElementsByTagName('si')].map(si => [...si.getElementsByTagName('t')].map(x => x.textContent).join('')) : [];
+  const dateXf = new Set(), stx = await txt('xl/styles.xml');
+  if (stx) {
+    const d = P(stx), custom = {}; [...d.getElementsByTagName('numFmt')].forEach(x => custom[x.getAttribute('numFmtId')] = x.getAttribute('formatCode') || '');
+    const xfs = d.getElementsByTagName('cellXfs')[0];
+    if (xfs) [...xfs.getElementsByTagName('xf')].forEach((x, i) => { const id = +x.getAttribute('numFmtId'), fc = (custom[id] || '').replace(/\[[^\]]*\]|"[^"]*"/g, '');
+      if ((id >= 14 && id <= 22) || (id >= 45 && id <= 47) || (custom[id] && /[yd]/i.test(fc))) dateXf.add(i); });
+  }
+  const rows = [];
+  [...P(await txt(sheet)).getElementsByTagName('row')].forEach(r => {
+    const ri = +r.getAttribute('r') - 1, row = rows[ri] = [];
+    [...r.getElementsByTagName('c')].forEach(c => {
+      const ty = c.getAttribute('t'), v = c.getElementsByTagName('v')[0]; let val = '';
+      if (ty === 's') val = ss[+(v && v.textContent)] ?? '';
+      else if (ty === 'inlineStr') val = [...c.getElementsByTagName('t')].map(x => x.textContent).join('');
+      else if (ty === 'b') val = v && v.textContent === '1' ? 'TRUE' : '';
+      else { val = v ? v.textContent : ''; if (val !== '' && dateXf.has(+c.getAttribute('s')) && !isNaN(+val)) val = xlDate(+val); }
+      row[xlColIdx(c.getAttribute('r'))] = String(val);
+    });
+  });
+  return Array.from(rows, r => Array.from(r || [], v => v ?? ''));
+}
+function readCsv(u8) {
+  let s; try { s = new TextDecoder('utf-8', { fatal: true }).decode(u8); } catch (e) { s = new TextDecoder('euc-kr').decode(u8); }
+  s = s.replace(/^﻿/, ''); const rows = [[]]; let f = '', q = false;
+  const sep = (s.split('\n')[0].match(/\t/g) || []).length > (s.split('\n')[0].match(/,/g) || []).length ? '\t' : ',';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (q) { if (ch === '"') { if (s[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+    else if (ch === '"') q = true; else if (ch === sep) { rows[rows.length - 1].push(f); f = ''; }
+    else if (ch === '\n') { rows[rows.length - 1].push(f.replace(/\r$/, '')); f = ''; rows.push([]); } else f += ch;
+  }
+  rows[rows.length - 1].push(f); return rows;
+}
+/* 지금 서식의 칸 목록 (엑셀 이름표) */
+function mmFields() {
+  if (MM.ctx === 'ltc') {
+    const seen = new Set(), out = [];
+    $$('.module[data-mod="ltc"] [data-k]').forEach(e => { const k = e.dataset.k; if (seen.has(k) || /^(sTotal|wTotal|wCount)$/.test(k)) return; seen.add(k);
+      out.push({ k, label: ltcLabel(k), type: e.classList.contains('chk') ? 'check' : 'text' }); });
+    return out;
+  }
+  const seen = new Set(), out = [];
+  CF.fields.slice().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x).forEach(g => {
+    if (g.type === 'sign' || g.type === 'cover' || g.tpl || g.trOf) return; const k = fkey(g); if (!k || seen.has(k)) return; seen.add(k);
+    out.push({ k, label: k, type: g.type, money: !!g.money });
+  });
+  return out;
+}
+const mmNorm = s => String(s || '').replace(/\s+/g, '').toLowerCase();
+const MM_YES = /^(o|ㅇ|○|●|v|√|✓|✔|y|yes|예|네|1|true|체크|선택|■|☑)$/i;
+function mmTitle() { return MM.ctx === 'ltc' ? '장기요양기관 입소·이용신청서' : CF.title; }
+function mmOpen(ctx) {
+  MM = { ctx: ctx === 'ltc' ? 'ltc' : 'cf', head: null, rows: null, map: null };
+  if (MM.ctx === 'cf') { if (!CF) { alert('먼저 서식을 여세요.'); return; } if (cfMode !== 'fill') setMode('fill'); }
+  document.getElementById('mmTitle').textContent = mmTitle();
+  mmRender(); document.getElementById('mmDlg').showModal();
+}
+function mmTemplate() {
+  const F = mmFields(), name = `${safeName(mmTitle())}_메일머지양식.xlsx`;
+  const blob = makeXlsx('메일머지', [F.map(f => f.label), ...Array.from({ length: 100 }, () => F.map(() => ''))]);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500); toast(`엑셀 양식을 저장했습니다: ${name}`);
+}
+async function mmLoad(inp) {
+  const f = inp.files[0]; inp.value = ''; if (!f) return;
+  try {
+    const u8 = new Uint8Array(await f.arrayBuffer());
+    if (/\.xls$/i.test(f.name)) throw new Error('예전 엑셀(.xls) 파일입니다. 엑셀에서 ‘다른 이름으로 저장 → Excel 통합 문서(.xlsx)’로 저장한 뒤 올려 주세요.');
+    let rows = /\.(csv|txt)$/i.test(f.name) ? readCsv(u8) : await readXlsx(u8);
+    rows = rows.map(r => r.map(v => String(v ?? '').trim()));
+    const hi = rows.findIndex(r => r.some(Boolean)); if (hi < 0) throw new Error('엑셀에 내용이 없습니다.');
+    const head = rows[hi], data = rows.slice(hi + 1).filter(r => r.some(Boolean));
+    const F = mmFields(), byName = {}; F.forEach(x => { byName[mmNorm(x.label)] = x; byName[mmNorm(x.k)] = x; });
+    MM.head = head; MM.map = head.map(h => byName[mmNorm(h)] || null); MM.rows = data.map(r => ({ r, on: true })); MM.file = f.name;
+    mmRender();
+  } catch (e) { alert('엑셀을 읽지 못했습니다.\n' + (e.message || e)); }
+}
+function mmRowVals(r) {                                       // 엑셀 한 줄 → 칸 값
+  const v = {};
+  MM.map.forEach((x, j) => {
+    if (!x) return; let s = String(r[j] ?? '').trim(); if (s === '') return;
+    if (x.type === 'check') { v[x.k] = MM.ctx === 'ltc' ? MM_YES.test(s) : (MM_YES.test(s) ? '√' : ''); return; }
+    if (x.type === 'date') { s = /^\d{5}(\.\d+)?$/.test(s) ? xlDate(+s) : (toIso(s) || s); }
+    if (x.money) s = moneyFmt(s);
+    v[x.k] = s;
+  });
+  return v;
+}
+function mmRender() {
+  const F = mmFields(), b = document.getElementById('mmBody');
+  let h = `<div class="mmstep"><h4>① 엑셀 양식 내려받기</h4>
+      <div class="hint">첫 줄(이름표)에 이 서식의 칸 이름 ${F.length}개가 들어 있는 엑셀입니다. 둘째 줄부터 <b>한 줄에 서류 한 건</b>씩 적으세요. 쓰지 않는 열은 비우거나 지워도 됩니다.<br>
+      날짜는 2026-10-04, 체크 칸은 O(또는 √·예·1), 금액은 숫자만 적으면 됩니다. 가지고 있는 엑셀이라도 첫 줄 이름표만 칸 이름과 같으면 됩니다.</div>
+      <button class="b" style="margin-top:6px" onclick="mmTemplate()">📥 ${esc(mmTitle())} 엑셀 양식 받기</button></div>
+    <div class="mmstep"><h4>② 작성한 엑셀 올리기</h4>
+      <button class="b primary" onclick="document.getElementById('mmFile').click()">📂 엑셀(.xlsx·.csv) 고르기</button>
+      ${MM.file ? ` <span style="font-size:12.5px;color:#556">${esc(MM.file)}</span>` : ''}</div>`;
+  if (MM.rows) {
+    const used = MM.map.map((x, j) => x ? j : -1).filter(j => j >= 0), miss = MM.head.filter((hh, j) => hh && !MM.map[j]);
+    const n = MM.rows.filter(x => x.on).length;
+    h += `<div class="mmstep"><h4>③ 확인하고 한꺼번에 인쇄</h4>
+      <div><span class="mmok">✔ 맞는 이름표 ${used.length}개</span>${miss.length ? ` · <span class="mmbad">✖ 서식에 없는 이름표 ${miss.length}개: ${esc(miss.slice(0, 8).join(', '))}${miss.length > 8 ? ' …' : ''}</span> (이 열은 넣지 않음)` : ''}</div>
+      <div style="max-height:260px;overflow:auto;margin-top:6px"><table class="mmt"><thead><tr><th><input type="checkbox" checked onchange="MM.rows.forEach(x=>x.on=this.checked); mmRender()"></th><th>#</th>${used.slice(0, 7).map(j => `<th>${esc(MM.head[j])}</th>`).join('')}</tr></thead>
+        <tbody>${MM.rows.map((x, i) => `<tr><td><input type="checkbox"${x.on ? ' checked' : ''} onchange="MM.rows[${i}].on=this.checked; mmRender()"></td><td>${i + 1}</td>${used.slice(0, 7).map(j => `<td title="${esc(x.r[j] || '')}">${esc(x.r[j] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="mmopts" style="margin-top:8px">
+        <label><input type="checkbox" id="mmCommon" checked> 화면에 지금 적혀 있는 내용(회사·기관 정보 등)을 모든 서류에 함께 넣기 <small style="color:#778">– 엑셀에 값이 있으면 엑셀 값이 우선</small></label>
+        <label><input type="checkbox" id="mmSig"> 화면에 해 둔 서명도 모든 서류에 넣기 <small style="color:#778">(꺼 두면 서명 칸은 비워 인쇄 → 손으로 서명)</small></label>
+        ${MM.ctx === 'ltc' ? '<label><input type="checkbox" id="mmP2"> ② 재가서비스 이용내역서도 함께</label>' : ''}
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="b primary" ${n ? '' : 'disabled'} onclick="mmPrint()">🖨 ${n}건 한꺼번에 인쇄 / PDF</button>
+        <span class="hint" style="margin:0">PDF로 저장하면 한 파일에 ${n}건이 차례로 들어갑니다. 건마다 따로 발급번호가 찍혀 진위 확인됩니다.</span>
+      </div></div>`;
+  }
+  b.innerHTML = h;
+}
+function mmCopyVals(src, dst) {                               // 복제한 쪽에 입력값 옮기기
+  const a = src.querySelectorAll('input, textarea, select'), c = dst.querySelectorAll('input, textarea, select');
+  a.forEach((e, i) => { const d = c[i]; if (!d) return;
+    if (e.tagName === 'TEXTAREA') d.textContent = e.value;
+    else if (e.tagName === 'SELECT') [...d.options].forEach((o, j) => o.toggleAttribute('selected', j === e.selectedIndex));
+    else if (e.type === 'checkbox' || e.type === 'radio') d.toggleAttribute('checked', e.checked);
+    else d.setAttribute('value', e.value); });
+}
+function mmPageVals(pages, ltc) {
+  const out = {}, add = (k, v) => { v = normV(v); if (v && !out[k]) out[k] = v; };
+  const val = e => e.classList.contains('chk') ? (e.classList.contains('on') ? '√' : '') : e.classList.contains('sig') ? (e.classList.contains('signed') ? 'Y' : '') : e.value;
+  pages.forEach(p => { p.querySelectorAll(ltc ? '[data-k]' : '[data-f]').forEach(e => add(ltc ? e.dataset.k : e.dataset.f, val(e)));
+    if (ltc) p.querySelectorAll('.sig[data-sig]').forEach(e => add(e.dataset.sig, val(e))); });
+  return out;
+}
+async function mmPrint() {
+  const sel = MM.rows.filter(x => x.on); if (!sel.length) return;
+  if (sel.length > 300 && !confirm(`${sel.length}건은 많아서 컴퓨터가 느려질 수 있습니다. 계속할까요?`)) return;
+  const common = document.getElementById('mmCommon').checked, sig = document.getElementById('mmSig').checked;
+  const p2 = MM.ctx === 'ltc' && document.getElementById('mmP2') && document.getElementById('mmP2').checked;
+  document.getElementById('mmDlg').close(); toast(`서류 ${sel.length}건을 만드는 중…`);
+  await new Promise(r => setTimeout(r, 30));
+  let box = document.getElementById('mmPrint'); if (!box) { box = document.createElement('div'); box.id = 'mmPrint'; document.body.appendChild(box); }
+  box.innerHTML = ''; const groups = [];
+  if (MM.ctx === 'ltc') {
+    const saved = collect(), keep = {}; KEEP.forEach(k => keep[k] = getVal(k));
+    const base = common ? (sig ? saved : noSig(saved)) : keep; delete base.__code;
+    for (const x of sel) {
+      apply(Object.assign(JSON.parse(JSON.stringify(base)), mmRowVals(x.r)));
+      printRowsS = Math.min(S_ROWS, compactS() + 1); render2();
+      const pages = [document.getElementById('p1')].concat(p2 ? [document.getElementById('p2')] : []).map(pg => {
+        const c = pg.cloneNode(true); mmCopyVals(pg, c); c.classList.add('show');
+        c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));   // 화면 서식 갱신이 복제본까지 바꾸지 않도록
+        box.appendChild(c); return c; });
+      groups.push({ form: 'ltc', title: '장기요양기관 입소·이용신청서', pages, vals: mmPageVals(pages, true) });
+    }
+    printRowsS = null; apply(saved); render2(); saveDraft();
+  } else {
+    flushFV(); const saved = JSON.parse(JSON.stringify(FV));
+    const bgs = $$('#myPages .cpage canvas.bgc').map(c => { try { return c.width ? c.toDataURL('image/png') : ''; } catch (e) { return ''; } });
+    for (const x of sel) {
+      if (common) FV = Object.assign(JSON.parse(JSON.stringify(sig ? saved : noSig(saved))), mmRowVals(x.r));
+      else { FV = mmRowVals(x.r); applyDefaults(); }
+      delete FV.__code;
+      renderFields(); if (typeof refreshTpls === 'function') refreshTpls();
+      const pages = $$('#myPages .cpage').map((pg, i) => {
+        const c = pg.cloneNode(true); mmCopyVals(pg, c);
+        const cv = c.querySelector('canvas.bgc');
+        if (cv) { const im = document.createElement('img'); im.className = 'bgc'; im.src = bgs[i] || ''; im.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none'; cv.replaceWith(im); }
+        c.classList.add('show'); box.appendChild(c); return c;
+      });
+      groups.push({ form: 'f:' + CF.id, title: CF.title, pages, vals: mmPageVals(pages, false) });
+    }
+    FV = saved; renderFields(); flushFV();
+    const p = CF.pages[0]; let st = document.getElementById('pgSize');
+    if (!st) { st = document.createElement('style'); st.id = 'pgSize'; document.head.appendChild(st); }
+    st.textContent = `@media print { @page { size:${p.w}pt ${p.h}pt; margin:0; } }`;
+  }
+  let reg = 0;
+  if (FB.enabled()) {
+    toast(`발급번호 ${groups.length}건을 등록하는 중…`);
+    const res = await Promise.all(groups.map(g => stampOn(g, true))); reg = res.filter(Boolean).length;
+  }
+  await new Promise(r => setTimeout(r, 200));
+  document.body.dataset.print = 'merge'; window.print();
+  if (FB.enabled()) setTimeout(() => toast(reg === groups.length ? `${groups.length}건 모두 발급번호를 등록했습니다.` : `${groups.length}건 중 ${reg}건만 발급번호가 등록되었습니다 (인터넷 연결 확인).`), 700);
 }
 
 /* 눌러서 고르는 값 목록 */
@@ -4022,9 +4267,13 @@ async function stampHashes(id, vals) {
   return { h, fh };
 }
 function stampPages() {
+  if (document.body.dataset.print === 'merge') return;          // 메일머지는 건마다 따로 찍음
   $$('.vstamp').forEach(e => e.remove());
   if (!FB.enabled()) return;
   const pv = printedValues(); if (!pv) return;
+  stampOn(pv);
+}
+function stampOn(pv, quiet) {
   if (!pv.vals) { pv.vals = {}; const add = (k, v) => { v = normV(v); if (v && !pv.vals[k]) pv.vals[k] = v; };
     pv.pages.forEach(p => { p.querySelectorAll('[data-k]').forEach(e => add(e.dataset.k, e.classList.contains('chk') ? (e.classList.contains('on') ? '√' : '') : e.value)); p.querySelectorAll('.sig[data-sig]').forEach(e => add(e.dataset.sig, e.classList.contains('signed') ? 'Y' : '')); }); }
   const id = newDocId(), when = tsWhen(new Date());
@@ -4032,16 +4281,27 @@ function stampPages() {
   const qr = url ? QR.svg(url, '48pt') : '';
   pv.pages.forEach((p, i) => p.insertAdjacentHTML('beforeend',
     `<div class="vstamp"><div class="vt">발급번호 <b>${id}</b> · 발급 ${when} · ${i + 1}/${pv.pages.length}쪽<br>진위 확인: ${url ? 'QR을 찍거나 ' : ''}‘계약과 신청서류 도구모음’ 6번 메뉴의 진위 확인에 이 PDF를 올리면 발급 후 내용이 바뀌었는지 확인됩니다.</div>${qr}</div>`));
-  registerStamp(id, pv);
+  return registerStamp(id, pv, quiet);
 }
-async function registerStamp(id, pv) {
+async function registerStamp(id, pv, quiet) {
   try {
     const { h, fh } = await stampHashes(id, pv.vals);
     await FB.registerDoc(id, { h, fh, f: pv.form, n: String(pv.title || '').slice(0, 100) });
-    setTimeout(() => toast(`발급번호 ${id}를 등록했습니다. 이 인쇄본·PDF는 진위 확인이 됩니다.`), 600);
+    if (!quiet) setTimeout(() => toast(`발급번호 ${id}를 등록했습니다. 이 인쇄본·PDF는 진위 확인이 됩니다.`), 600);
+    return true;
   } catch (e) {
-    setTimeout(() => toast(`발급번호 ${id} 등록 실패(인터넷 연결 확인) – 이 인쇄본은 진위 확인이 되지 않습니다.`), 600);
+    if (!quiet) setTimeout(() => toast(`발급번호 ${id} 등록 실패(인터넷 연결 확인) – 이 인쇄본은 진위 확인이 되지 않습니다.`), 600);
+    return false;
   }
+}
+/* 한 PDF 안에 여러 건(메일머지): 발급번호가 바뀌는 곳에서 나눔 */
+function stampIdOf(P) { const m = String(P.stamp || '').replace(/\s+/g, '').match(/발급번호(\d{6}-[0-9A-Z]{8})/); return m ? m[1] : ''; }
+function splitByStamp(pages) {
+  const ids = pages.map(stampIdOf);
+  if (new Set(ids.filter(Boolean)).size <= 1) return [pages];
+  const g = []; let cur = null, cid = null;
+  pages.forEach((P, i) => { if (!cur || (ids[i] && ids[i] !== cid)) { cur = []; g.push(cur); cid = ids[i]; } cur.push(P); });
+  return g;
 }
 window.addEventListener('beforeprint', stampPages);
 window.addEventListener('afterprint', () => setTimeout(() => $$('.vstamp').forEach(e => e.remove()), 500));
@@ -4089,8 +4349,16 @@ async function verifyFiles(files) {
     const row = document.createElement('div'); row.textContent = `${file.name}: 확인 중…`; box.appendChild(row);
     try {
       const doc = await openPdf(new Uint8Array(await file.arrayBuffer())), pages = [];
-      for (let i = 0; i < Math.min(doc.numPages, 20); i++) pages.push(await pdfPageInfo(doc, i));
-      const r = await verifyPages(pages); row.className = r.status === 'ok' ? 'ok' : r.status === 'bad' ? 'bad' : 'warn'; row.textContent = `${file.name}: ${r.text}`;
+      for (let i = 0; i < Math.min(doc.numPages, 600); i++) { pages.push(await pdfPageInfo(doc, i)); if (i % 20 === 19) row.textContent = `${file.name}: 확인 중… (${i + 1}/${doc.numPages}쪽)`; }
+      const groups = splitByStamp(pages);
+      if (groups.length === 1) { const r = await verifyPages(pages); row.className = r.status === 'ok' ? 'ok' : r.status === 'bad' ? 'bad' : 'warn'; row.textContent = `${file.name}: ${r.text}`; }
+      else {
+        const rs = []; for (const g of groups) rs.push(await verifyPages(g));
+        const ok = rs.filter(r => r.status === 'ok').length, bad = rs.filter(r => r.status === 'bad').length;
+        row.className = bad ? 'bad' : ok === rs.length ? 'ok' : 'warn';
+        row.innerHTML = `${esc(file.name)}: ${rs.length}건이 들어 있습니다 – ✅ ${ok}건 일치${bad ? `, ❌ ${bad}건 바뀜` : ''}${rs.length - ok - bad ? `, ⚠ ${rs.length - ok - bad}건 확인 못 함` : ''}`
+          + `<div style="font-size:12px;margin-top:4px">${rs.map((r, i) => `${i + 1}. ${esc(r.text)}`).join('<br>')}</div>`;
+      }
     } catch (e) { row.className = 'warn'; row.textContent = `${file.name}: PDF를 읽지 못했습니다`; }
   }
 }
@@ -4127,7 +4395,7 @@ async function colAdd(files) {
     colMsg(`읽는 중… (${++n}/${files.length}) ${file.name}`);
     try {
       const doc = await openPdf(new Uint8Array(await file.arrayBuffer()));
-      COL.push(await colRead(doc, file.name));
+      const r = await colRead(doc, file.name); Array.isArray(r) ? COL.push(...r) : COL.push(r);
     } catch (e) { COL.push({ file: file.name, err: 'PDF를 읽지 못했습니다' }); }
     colRender();
   }
@@ -4217,7 +4485,13 @@ async function readRects(P, rects, out) {
   }
 }
 async function colRead(doc, file) {
-  const pages = []; for (let i = 0; i < Math.min(doc.numPages, 20); i++) pages.push(await pdfPageInfo(doc, i));
+  const pages = []; for (let i = 0; i < Math.min(doc.numPages, 600); i++) pages.push(await pdfPageInfo(doc, i));
+  const groups = splitByStamp(pages);
+  if (groups.length === 1) return colReadPages(pages, file);
+  const out = []; for (let i = 0; i < groups.length; i++) out.push(await colReadPages(groups[i], `${file} (${i + 1}/${groups.length})`));
+  return out;
+}
+async function colReadPages(pages, file) {
   const rec = { file, vals: {}, warn: [], kind: null };
   /* 고른 서식의 입력칸 위치에 찍힌 글자 읽기 (PDF에 따로 숨겨 둔 정보는 없음) */
   const sel = document.getElementById('colForm').value, pos = {};
