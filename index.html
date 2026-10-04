@@ -281,6 +281,8 @@
   @media screen { .page { zoom:var(--pz, 1); } }
   .main { overflow-x:auto; }
   #mmPrint { display:none; }
+  .pop .q .qh { font-size:11px; color:#889; margin-left:2px; align-self:center; }
+  @media screen { .in.calc { background:#eef1f6 !important; color:#334; cursor:default; } .in.pick { cursor:pointer; } }
   #mmDlg .db { max-height:72vh; overflow:auto; }
   .mmstep { border:1px solid #e3e8f3; border-radius:10px; padding:10px 12px; margin:0 0 10px; background:#fafbfe; }
   .mmstep h4 { margin:0 0 6px; font-size:14px; }
@@ -646,11 +648,9 @@
     <div class="grp" data-mod="ltc">
       <button class="cat" onclick="showModule('ltc')"><span class="n">3</span>장기요양기관 신청서류</button>
       <div class="subs">
-        <button class="sub" data-p="p1" onclick="showModule('ltc'); showPage('p1')">① 입소·이용신청서</button>
-        <button class="sub" data-p="p2" onclick="showModule('ltc'); showPage('p2')">② 재가서비스 이용내역서</button>
+        <button class="sub" data-p="p1" onclick="showModule('ltc'); showPage('p1')">입소·이용신청서 (재가서비스 이용내역서 포함)</button>
       </div>
       <div class="panel">
-        <label class="sopt"><input type="checkbox" id="ltcBoth"> ② 재가서비스 이용내역서도 함께 인쇄</label>
         <div id="ltcCodePanel"></div>
         <div class="slegend">
           <div><i class="sw" style="background:#3fb37f"></i>초록 칸: 두 양식에 함께 입력</div>
@@ -786,11 +786,12 @@
   </div>
 </div>
 <div class="pop" id="periodPop">
-  <h5>대여기간 선택</h5>
-  <div class="r"><label>시작일</label><input type="date" id="pStart"></div>
-  <div class="r"><label>종료일</label><input type="date" id="pEnd"></div>
-  <div class="q"><button onclick="addMonths(6)">+6개월</button><button onclick="addMonths(12)">+1년</button><button onclick="addMonths(24)">+2년</button></div>
-  <label class="same"><input type="checkbox" id="pSame"> 아래 줄도 모두 같은 기간으로 입력</label>
+  <h5 id="pTitle">기간 선택</h5>
+  <div class="r"><label>시작일</label><input type="date" id="pStart" title="달력에서 선택"></div>
+  <div class="q"><button onclick="pStartQuick(0)">오늘</button><button onclick="pStartQuick(-1)">어제</button><span class="qh">또는 달력에서 선택</span></div>
+  <div class="r"><label>종료일</label><input type="date" id="pEnd" title="달력에서 선택"></div>
+  <div class="q"><button onclick="pEndYear()">연도말</button><button onclick="addMonths(12)">1년</button><button onclick="addMonths(24)">2년</button><button onclick="addMonths(36)">3년</button><span class="qh">또는 달력</span></div>
+  <label class="same" id="pSameWrap"><input type="checkbox" id="pSame"> 아래 줄도 모두 같은 기간으로 입력</label>
   <div class="btns"><button class="b" onclick="clearPeriod()">지우기</button><button class="b" onclick="closePeriod()">취소</button><button class="b primary" onclick="applyPeriod()">적용</button></div>
 </div>
 <div class="dropzone">여기에 놓으세요 · PDF는 새 양식으로, .json은 양식·작성 파일로 엽니다</div>
@@ -1054,6 +1055,8 @@ function inpHTML(k, x, y, w, h, cls = '', extra = '') {
   if (ok) return `<select class="in f2 ${cls}${lk}" data-k="${k}" title="눌러서 선택" style="left:${x.toFixed(1)}pt;top:${y.toFixed(1)}pt;width:${w.toFixed(1)}pt;height:${h.toFixed(1)}pt;font-size:${FS2}pt">`
                 + ['', ...OPTS[ok]].map(o => `<option>${o}</option>`).join('') + '</select>';
   if (/_org$/.test(k)) extra += ' list="instNames" autocomplete="off"';
+  if (/^s\d+_amt$/.test(k)) { extra += ' readonly tabindex="-1" title="수가 × 횟수/월로 자동 계산"'; cls += ' calc'; }
+  if (/^w\d+_period$/.test(k) && !/readonly/.test(extra)) extra += ' readonly title="눌러서 대여기간 선택 (오늘·어제 / 연도말·1년·2년·3년 / 달력)"';
   const st = `left:${x.toFixed(1)}pt;top:${y.toFixed(1)}pt;width:${w.toFixed(1)}pt;height:${h.toFixed(1)}pt;font-size:${FS2}pt`;
   if (cls.includes('wrap')) return `<textarea class="in f2 ${cls}${lk}" data-k="${k}" rows="2" spellcheck="false" style="${st}"></textarea>`;
   return `<input class="in f2 ${cls}${lk}" data-k="${k}"${extra} style="${st}"${lk ? ' title="두 양식에 함께 입력됩니다"' : ''}>`;
@@ -1113,9 +1116,8 @@ function render2() {
   const stEnd = cx(X[7], X[11]) - 5;
   ins.push(cellHTML('name', X[3], T1, X[6], T2, 'center'), cellHTML('rrn', X[7], T1, X[11], T2, 'center'),
            cellHTML('grade', X[3], T2, X[6], T3, 'center'), cellHTML('certNo', X[7], T2, X[11], T3, 'center'),
-           inpHTML('startDate', X[7] + 1, T3 + 1.5, stEnd - X[7] - 1, 17.5, 'center'),
-           inpHTML('periodTo', stEnd + 10, T3 + 1.5, X[11] - stEnd - 11, 17.5, 'center'),
-           `<label class="today f2t" style="left:${X[11] + 2}pt;top:${T3 + 5}pt"><input type="checkbox" data-today="start">오늘</label>`);
+           inpHTML('startDate', X[7] + 1, T3 + 1.5, stEnd - X[7] - 1, 17.5, 'center pick', ' readonly title="눌러서 시작일 선택 (오늘·어제·달력)"'),
+           inpHTML('periodTo', stEnd + 10, T3 + 1.5, X[11] - stEnd - 11, 17.5, 'center pick', ' readonly title="눌러서 종료일 선택 (연도말·1년·2년·3년·달력)"'));
   for (let i = 0; i < nS; i++) {
     const a = T6 + i * RH, b = a + RH, r = 's' + (i + 1);
     ins.push(cellHTML(r + '_kind', X[1], a, X[2], b, 'center'), cellHTML(r + '_desc', X[2], a, X[3], b, 'center wrap'),
@@ -1128,7 +1130,7 @@ function render2() {
     const a = W2 + i * RH, b = a + RH, r = 'w' + (i + 1);
     ins.push(cellHTML(r + '_name', WX[0], a, WX[1], b, 'center wrap'), cellHTML(r + '_pcode', WX[1], a, WX[2], b, 'center'),
              chkHTML(r + '_buy', WX[2], a, WX[3], b), chkHTML(r + '_rent', WX[3], a, WX[4], b),
-             cellHTML(r + '_period', WX[4], a, WX[5], b, 'center wrap'), cellHTML(r + '_amt', WX[5], a, WX[6], b, 'num'),
+             cellHTML(r + '_period', WX[4], a, WX[5], b, 'center wrap pick'), cellHTML(r + '_amt', WX[5], a, WX[6], b, 'num'),
              cellHTML(r + '_org', X[7], a, X[9], b, 'center'), cellHTML(r + '_code', X[9], a, X[11], b, 'center'));
   }
   ins.push(inpHTML('wTotal', X[3] + 1, wEnd + 1.7, won0 - X[3] - 1, 17.5, 'right total', ' readonly tabindex="-1"'));
@@ -1335,14 +1337,18 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && SP.targe
 $$('.sig[data-sig]').forEach(d => d.addEventListener('click', () => openSig(d.dataset.sig)));
 
 /* ---------- 대여기간: 달력에서 선택 ---------- */
-let periodRow = null;
+let periodRow = null, periodUse = false;                     // periodUse: 이용기간(startDate~periodTo)
 const pad2 = n => String(n).padStart(2, '0');
 const toDot = iso => iso ? iso.replace(/-/g, '.') : '';
 const toIso = t => { const m = String(t).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); return m ? `${m[1]}-${pad2(m[2])}-${pad2(m[3])}` : ''; };
 const fmtPeriod = (a, b) => a || b ? `${toDot(a)}~${b ? '\n' + toDot(b) : ''}` : '';
 function openPeriod(el) {
-  periodRow = +el.dataset.k.match(/^w(\d+)_/)[1];
-  const parts = String(getVal(`w${periodRow}_period`)).split('~');
+  periodUse = el.dataset.k === 'startDate' || el.dataset.k === 'periodTo';
+  let parts;
+  if (periodUse) { periodRow = 0; parts = [getVal('startDate'), getVal('periodTo')]; }
+  else { periodRow = +el.dataset.k.match(/^w(\d+)_/)[1]; parts = String(getVal(`w${periodRow}_period`)).split('~'); }
+  document.getElementById('pTitle').textContent = periodUse ? '이용기간 선택' : '대여기간 선택';
+  document.getElementById('pSameWrap').style.display = periodUse ? 'none' : '';
   document.getElementById('pStart').value = toIso(parts[0] || '');
   document.getElementById('pEnd').value = toIso(parts[1] || '');
   document.getElementById('pSame').checked = !!S.wSamePeriod;
@@ -1354,6 +1360,13 @@ function openPeriod(el) {
   pop.style.left = left + 'px'; pop.style.top = top + 'px';
 }
 function closePeriod() { document.getElementById('periodPop').classList.remove('on'); periodRow = null; }
+const isoOfDate = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+function pStartQuick(n) { const d = new Date(); d.setDate(d.getDate() + n); document.getElementById('pStart').value = isoOfDate(d); }
+function pEndYear() {
+  const a = document.getElementById('pStart').value, y = a ? a.slice(0, 4) : String(new Date().getFullYear());
+  document.getElementById('pEnd').value = `${y}-12-31`;
+}
+const dotKo = iso => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${y}. ${+m}. ${+d}.`; };
 function addMonths(n) {
   const a = document.getElementById('pStart').value; if (!a) { alert('시작일을 먼저 고르세요.'); return; }
   const d = new Date(a + 'T00:00:00'); d.setMonth(d.getMonth() + n); d.setDate(d.getDate() - 1);
@@ -1368,16 +1381,17 @@ function writePeriod(v) {
 function applyPeriod() {
   const a = document.getElementById('pStart').value, b = document.getElementById('pEnd').value;
   if (a && b && b < a) { alert('종료일이 시작일보다 빠릅니다.'); return; }
+  if (periodUse) { setVal('startDate', dotKo(a)); setVal('periodTo', dotKo(b)); closePeriod(); render2(); saveDraft(); return; }
   writePeriod(fmtPeriod(a, b));
 }
-function clearPeriod() { writePeriod(''); }
+function clearPeriod() { if (periodUse) { setVal('startDate', ''); setVal('periodTo', ''); closePeriod(); render2(); saveDraft(); return; } writePeriod(''); }
 document.addEventListener('mousedown', ev => {
   const pop = document.getElementById('periodPop');
-  if (!pop.classList.contains('on') || pop.contains(ev.target) || /_period$/.test(ev.target.dataset?.k || '')) return;
+  if (!pop.classList.contains('on') || pop.contains(ev.target) || /_period$|^startDate$|^periodTo$/.test(ev.target.dataset?.k || '')) return;
   closePeriod();
 });
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePeriod(); });
-document.addEventListener('click', ev => { const k = ev.target.dataset?.k || ''; if (/^w\d+_period$/.test(k)) openPeriod(ev.target); });
+document.addEventListener('click', ev => { const k = ev.target.dataset?.k || ''; if (/^w\d+_period$|^startDate$|^periodTo$/.test(k)) openPeriod(ev.target); });
 
 /* ---------- 복지용구 줄 추가/삭제 ---------- */
 const W_FIELDS = ['name','pcode','buy','rent','period','amt','org','code'];
@@ -1425,8 +1439,7 @@ function doPrint(mode) { document.body.dataset.print = mode; window.print(); }
 const num = s => { const n = parseFloat(String(s).replace(/[^\d.\-]/g, '')); return isNaN(n) ? null : n; };
 const won = n => n == null ? '' : Math.round(n).toLocaleString('ko-KR');
 function calcRow(r) {
-  const k = `s${r}_amt`;
-  if (manual.has(k)) return;
+  const k = `s${r}_amt`; manual.delete(k);                  // 직접 입력 없이 늘 계산
   const fee = num(getVal(`s${r}_fee`)), cnt = num(getVal(`s${r}_cnt`));
   setVal(k, fee != null && cnt != null ? won(fee * cnt) : '');
 }
@@ -1555,7 +1568,7 @@ document.addEventListener('input', ev => {
   const e = ev.target; if (!e.dataset || !e.dataset.k) return;
   const k = e.dataset.k;
   setVal(k, e.value, e);
-  if (/^[sw]\d+_amt$/.test(k) || k === 'birth') { e.value.trim() ? manual.add(k) : manual.delete(k); }
+  if (/^w\d+_amt$/.test(k) || k === 'birth') { e.value.trim() ? manual.add(k) : manual.delete(k); }
   let m;
   if ((m = k.match(/^s(\d+)_(fee|cnt)$/))) calcRow(m[1]);
   if (k === 'name' && !manual.has('consentName')) setVal('consentName', e.value);
@@ -1610,6 +1623,7 @@ function apply(o) {
     else { putEl(e, v); e.classList.toggle('filled', String(e.value).trim() !== ''); fit(e); }
   });
   prevInst = { iName: getVal('iName'), iCode: getVal('iCode') };
+  for (let r = 1; r <= S_ROWS; r++) calcRow(r);              // 금액/월은 늘 수가 × 횟수
   $$('#p1 [data-today]').forEach(c => c.checked = !!S['today_' + c.dataset.today]);
   if (typeof refreshSigs === 'function') refreshSigs();
   totals(); render2();
@@ -1745,8 +1759,8 @@ function zbarRender() {
   const cfOn = CF && hasPage && (CF.preset ? CF.preset === mod : mod === 'my');
   let title = MOD_TITLE[mod] || '', badge = '', acts = '', extra = '';
   if (mod === 'ltc') {
-    title = document.querySelector('.module[data-mod="ltc"] .page.show[data-tab="p2"]') ? '재가서비스 이용내역서' : '장기요양기관 입소·이용신청서';
-    acts = topActs('saveFile()', 'openFile()', 'resetAll()', "doPrint(document.getElementById('ltcBoth') && document.getElementById('ltcBoth').checked ? 'all' : 'current')", "mmOpen('ltc')");
+    title = '장기요양기관 입소·이용신청서';
+    acts = topActs('saveFile()', 'openFile()', 'resetAll()', "doPrint('all')", "mmOpen('ltc')");
   } else if (cfOn) {
     title = CF.fw ? '외국인 계약서' : CF.title;
     if (cfMode === 'edit') badge = '🛠 칸 편집 중';
@@ -1780,9 +1794,10 @@ function showModule(m) {
 }
 
 /* ---------- 화면 ---------- */
-function showPage(id) {
-  $$('.module[data-mod="ltc"] .page').forEach(p => p.classList.toggle('show', p.dataset.tab === id));
-  $$('.sub[data-p]').forEach(t => t.classList.toggle('on', t.dataset.p === id));
+function showPage(id) {                                       // 입소·이용신청서와 재가서비스 이용내역서는 한 신청서(두 쪽)로 함께 보임
+  $$('.module[data-mod="ltc"] .page').forEach(p => p.classList.add('show'));
+  $$('.sub[data-p]').forEach(t => t.classList.add('on'));
+  if (id === 'p2') { const p = document.querySelector('.module[data-mod="ltc"] .page[data-tab="p2"]'); if (p) setTimeout(() => p.scrollIntoView({ block: 'start' }), 50); }
   ZM.mode = 'w'; fitPages();
 }
 
@@ -3230,7 +3245,7 @@ function mmRender() {
       <div class="mmopts" style="margin-top:8px">
         <label><input type="checkbox" id="mmCommon" checked> 화면에 지금 적혀 있는 내용(회사·기관 정보 등)을 모든 서류에 함께 넣기 <small style="color:#778">– 엑셀에 값이 있으면 엑셀 값이 우선</small></label>
         <label><input type="checkbox" id="mmSig"> 화면에 해 둔 서명도 모든 서류에 넣기 <small style="color:#778">(꺼 두면 서명 칸은 비워 인쇄 → 손으로 서명)</small></label>
-        ${MM.ctx === 'ltc' ? '<label><input type="checkbox" id="mmP2"> ② 재가서비스 이용내역서도 함께</label>' : ''}
+
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="b primary" ${n ? '' : 'disabled'} onclick="mmPrint()">🖨 ${n}건 한꺼번에 인쇄 / PDF</button>
@@ -3258,7 +3273,7 @@ async function mmPrint() {
   const sel = MM.rows.filter(x => x.on); if (!sel.length) return;
   if (sel.length > 300 && !confirm(`${sel.length}건은 많아서 컴퓨터가 느려질 수 있습니다. 계속할까요?`)) return;
   const common = document.getElementById('mmCommon').checked, sig = document.getElementById('mmSig').checked;
-  const p2 = MM.ctx === 'ltc' && document.getElementById('mmP2') && document.getElementById('mmP2').checked;
+  const p2 = MM.ctx === 'ltc';                                 // 재가서비스 이용내역서는 늘 함께
   document.getElementById('mmDlg').close(); toast(`서류 ${sel.length}건을 만드는 중…`);
   await new Promise(r => setTimeout(r, 30));
   let box = document.getElementById('mmPrint'); if (!box) { box = document.createElement('div'); box.id = 'mmPrint'; document.body.appendChild(box); }
