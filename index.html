@@ -543,6 +543,12 @@
   .hint2 { font-size:12.5px; color:#667; line-height:1.6; margin-top:4px; }
   .prevbox { display:flex; flex-direction:column; align-items:center; gap:10px; background:#eef0f4; max-height:75vh; }
   .prevbox canvas { max-width:100%; height:auto; box-shadow:0 1px 6px rgba(0,0,0,.15); background:#fff; }
+  .bulkbar { display:flex; justify-content:space-between; align-items:center; font-size:13.5px; margin:4px 0 6px; } .bulkbar span { color:#667; font-size:12.5px; }
+  .bulklist { max-height:44vh; overflow:auto; border:1px solid #e1e5ee; border-radius:8px; }
+  .bulkrow { display:grid; grid-template-columns:24px 1fr 130px; gap:8px; align-items:center; padding:7px 10px; border-bottom:1px solid #eef1f6; font-size:13.5px; }
+  .bulkrow:last-child { border-bottom:0; } .bulkrow small { display:block; color:#778; font-size:12px; } .bulkrow select { font:inherit; font-size:12.5px; padding:4px; border:1px solid #c9d0de; border-radius:6px; }
+  .bulkrow .st { font-size:12px; font-weight:700; } .bulkrow .st.ok { color:#16834a; } .bulkrow .st.no { color:#b3261e; }
+  .bulkprog { margin-top:10px; font-size:13.5px; background:#f6f8fd; border:1px solid #dfe5f3; border-radius:8px; padding:9px 12px; }
   .soon code { background:#eef0f5; padding:1px 5px; border-radius:4px; font-size:12.5px; }
 
   /* ---------- 처음 화면 (자료취합 시스템과 같은 좌우 2단) ---------- */
@@ -809,6 +815,7 @@
       <div class="panel">
         <button class="sb primary" onclick="pickPdf()">＋ 새 양식 만들기 (PDF)</button>
         <button class="sb" onclick="pickJson()">📂 양식·작성 파일 열기</button>
+        <button class="sb" onclick="openBulkPublish()" data-tip="내 양식 여러 개를 골라 한 번에 공개 목록에 신청합니다.\n관리자 계정이면 신청과 동시에 승인되어 바로 공개됩니다.">📤 여러 양식 한꺼번에 공개</button>
         <div class="pt">내 양식</div>
         <div class="subs mylist" id="myList"></div>
         <div id="myPanel"></div>
@@ -863,6 +870,22 @@
     <div class="hint2">관리자가 확인·승인하면 ‘공개 양식 목록’에 올라가 누구나 쓸 수 있게 됩니다. 입력해 둔 내용과 서명은 올라가지 않습니다.</div>
   </div>
   <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('pubDlg').close()">취소</button><button class="b primary" id="pubGo" onclick="submitPublish()">공개 신청</button></div>
+</dialog>
+<dialog id="bulkDlg" class="pdlg wide">
+  <div class="dh"><h3>📤 여러 양식 한꺼번에 공개</h3><button class="b" onclick="document.getElementById('bulkDlg').close()">닫기</button></div>
+  <div class="db">
+    <div class="hint2" id="bulkNote" style="margin-bottom:8px"></div>
+    <div class="bulkbar"><label><input type="checkbox" id="bulkAll" onchange="bulkAllToggle(this.checked)"> 모두 선택</label><span id="bulkCnt"></span></div>
+    <div class="bulklist" id="bulkList"></div>
+    <div class="orgbox">
+      <div class="orgt">🏛 양식을 올리는 기관 <small>고른 양식 모두에 똑같이 들어갑니다</small></div>
+      <div class="prow2"><input class="fi" id="bulkO" placeholder="기관명 (예: 부여군)" maxlength="60"><input class="fi" id="bulkDp" placeholder="부서 (선택)" maxlength="60"></div>
+      <input class="fi" id="bulkTel" placeholder="문의 전화 (선택)" maxlength="30" style="margin-top:6px">
+    </div>
+    <label class="okline"><input type="checkbox" id="bulkOk"> 고른 양식은 모두 개인정보(이름·주민번호·서명 등)가 들어 있지 않은 <b>빈 서식</b>입니다.</label>
+    <div class="bulkprog" id="bulkProg" hidden></div>
+  </div>
+  <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('bulkDlg').close()">취소</button><button class="b primary" id="bulkGo" onclick="bulkSubmit()">공개 신청</button></div>
 </dialog>
 <dialog id="ovDlg" class="pdlg">
   <div class="dh"><h3>📧 기관 메일 인증</h3><button class="b" onclick="document.getElementById('ovDlg').close()">나중에 하기</button></div>
@@ -948,7 +971,7 @@
 </div>
 <div class="dropzone">여기에 놓으세요 · PDF는 새 양식으로, .json은 양식·작성 파일로 엽니다</div>
 <input type="file" id="pdfPick" accept=".pdf,application/pdf" hidden onchange="routeFile(this.files[0]); this.value=''">
-<input type="file" id="jsonPick" accept=".json,application/json" hidden onchange="routeFile(this.files[0]); this.value=''">
+<input type="file" id="jsonPick" accept=".json,application/json" multiple hidden onchange="[...this.files].forEach(routeFile); this.value=''">
 <input type="date" id="dPick" tabindex="-1" aria-hidden="true">
 <div id="datePop" class="dpop" hidden></div>
 <div id="tipBub" class="tipbub" hidden role="tooltip"></div>
@@ -4719,6 +4742,78 @@ function importTemplate(o) {
   } else forms.push(t);
   saveForms(); refreshMyList(); openForm(t.id, 'fill'); toast(`양식을 가져왔습니다: ${t.title}`);
 }
+/* 양식 묶음 파일: 여러 양식을 한 번에 '직접 만든 양식'으로 */
+function importBundle(o) {
+  const L = (o.forms || []).filter(t => t && t.pdf && Array.isArray(t.pages) && Array.isArray(t.fields));
+  if (!L.length) { alert('양식 묶음 파일에 양식이 없습니다.'); return; }
+  let add = 0, upd = 0;
+  L.forEach(t => {
+    const i = forms.findIndex(x => x.id === t.id);
+    if (i >= 0) { t.pub = forms[i].pub; forms[i] = t; upd++; } else { forms.push(t); add++; }
+  });
+  try { saveForms(); } catch (e) {}
+  refreshMyList(); placePages('my'); showModule('my'); myPages().style.display = '';
+  if (!CF) openForm(L[0].id, 'fill');
+  toast(`양식 ${L.length}개를 가져왔습니다${upd ? ` (새로 ${add}개, 바꿈 ${upd}개)` : ''}.`);
+  if (FB.enabled() && confirm(`양식 ${L.length}개를 ‘4. 직접 만든 양식’에 넣었습니다.\n이어서 공개 목록에 한꺼번에 올릴까요?`)) openBulkPublish(L.map(t => t.id));
+}
+/* 여러 양식 한꺼번에 공개 신청 (관리자는 바로 승인) */
+let BULK_PRE = null;
+async function openBulkPublish(pre) {
+  if (!forms.length) { alert('먼저 ‘직접 만든 양식’을 만들거나 양식 파일을 여세요.'); return; }
+  if (!FB.enabled()) { alert('아직 공개 양식 서버가 연결되지 않았습니다.'); return; }
+  try { await FB.init(); } catch (e) { alert('서버에 연결하지 못했습니다.\n' + (e.message || e)); return; }
+  if (!FB.user) { if (!confirm('공개 신청은 로그인이 필요합니다. 구글로 로그인할까요?')) return; await pubSignIn(); if (!FB.user) return; }
+  if (!FB.orgEmail() && !FB.admin) { alert('공개 신청은 기관 메일 인증을 마친 뒤에 할 수 있습니다.'); openOrgVerify(); return; }
+  BULK_PRE = pre || null;
+  const ids = new Set(pre || forms.filter(f => !(f.pub && f.pub.id)).map(f => f.id));
+  document.getElementById('bulkList').innerHTML = forms.map(f => {
+    const d = f.pubDraft || {}, cat = (f.pub && f.pub.category) || d.category || '기타', st = f.pub && f.pub.id ? (STATUS_TXT[f.pub.status] || STATUS_TXT.pending)[0] : '';
+    return `<label class="bulkrow"><input type="checkbox" data-bid="${f.id}"${ids.has(f.id) ? ' checked' : ''} onchange="bulkCount()">
+      <span><b>${esc(f.title)}</b><small>${f.pages.length}쪽 · 칸 ${f.fields.length}개${st ? ' · 지금: ' + st : ''}</small><small class="st" data-bst="${f.id}"></small></span>
+      <select data-bcat="${f.id}">${PUB_CATS.map(c => `<option${c === cat ? ' selected' : ''}>${c}</option>`).join('')}</select></label>`;
+  }).join('');
+  const d0 = (forms.find(f => ids.has(f.id) && f.pubDraft) || {}).pubDraft || {};
+  document.getElementById('bulkO').value = d0.org || myOrg.org || '';
+  document.getElementById('bulkDp').value = d0.dept || myOrg.dept || '';
+  document.getElementById('bulkTel').value = d0.tel || myOrg.tel || '';
+  document.getElementById('bulkOk').checked = false;
+  document.getElementById('bulkProg').hidden = true;
+  document.getElementById('bulkNote').innerHTML = FB.admin ? '🛡 <b>관리자 계정</b>입니다. 공개 신청과 동시에 <b>승인</b>되어 바로 공개 목록에 올라갑니다.'
+    : '고른 양식을 공개 신청합니다. 관리자가 승인하면 공개 목록에 올라갑니다.';
+  document.getElementById('bulkGo').textContent = FB.admin ? '공개 신청하고 바로 승인' : '공개 신청';
+  document.getElementById('bulkGo').disabled = false;
+  bulkCount(); document.getElementById('bulkDlg').showModal();
+}
+function bulkCount() { const all = $$('#bulkList [data-bid]'), on = all.filter(c => c.checked).length; document.getElementById('bulkCnt').textContent = `${on}개 선택`; document.getElementById('bulkAll').checked = on === all.length; }
+function bulkAllToggle(v) { $$('#bulkList [data-bid]').forEach(c => c.checked = v); bulkCount(); }
+async function bulkSubmit() {
+  const sel = $$('#bulkList [data-bid]').filter(c => c.checked).map(c => forms.find(f => f.id === c.dataset.bid)).filter(Boolean);
+  if (!sel.length) { alert('공개할 양식을 고르세요.'); return; }
+  if (!document.getElementById('bulkOk').checked) { alert('개인정보가 없는 빈 서식인지 확인하고 체크해 주세요.'); return; }
+  const org = document.getElementById('bulkO').value.trim().slice(0, 60), dept = document.getElementById('bulkDp').value.trim().slice(0, 60), tel = document.getElementById('bulkTel').value.trim().slice(0, 30);
+  const btn = document.getElementById('bulkGo'), prog = document.getElementById('bulkProg'); btn.disabled = true; prog.hidden = false;
+  let ok = 0, fail = 0;
+  for (let i = 0; i < sel.length; i++) {
+    const f = sel[i], st = document.querySelector(`[data-bst="${f.id}"]`), category = document.querySelector(`[data-bcat="${f.id}"]`).value;
+    prog.textContent = `올리는 중… ${i + 1} / ${sel.length} – ${f.title}`;
+    try {
+      if (!f.fields.length) throw new Error('입력칸이 없습니다');
+      if (f.pdf.length > 5.5e6) throw new Error('PDF가 너무 큽니다');
+      const desc = (f.pub && f.pub.desc) || (f.pubDraft && f.pubDraft.desc) || '';
+      const thumb = await makeThumb(f);
+      const id = await FB.publish({ title: f.title, desc, category, org, dept, tel, pages: f.pages.length, fields: f.fields.length, thumb }, f, f.pub && f.pub.id);
+      f.pub = { id, status: 'pending', desc, category, org, dept, tel, at: new Date().toISOString() };
+      if (FB.admin) { await FB.setStatus(id, 'approved', ''); f.pub.status = 'approved'; }
+      ok++; if (st) { st.className = 'st ok'; st.textContent = FB.admin ? '✔ 공개됨' : '✔ 신청됨 (승인 대기)'; }
+    } catch (e) { fail++; if (st) { st.className = 'st no'; st.textContent = '✖ ' + (e.message || e); } }
+    saveForms();
+  }
+  if (org && !myOrg.org) { myOrg = { org, dept, tel }; keepOrgLocal(); FB.saveProfile(myOrg).catch(() => {}); pubAuthChanged(); }
+  pubCache = null; refreshMyList(); if (CF) renderMyPanel();
+  prog.innerHTML = `완료: <b>${ok}개</b> ${FB.admin ? '공개' : '공개 신청'}${fail ? `, <span style="color:#b3261e">${fail}개 실패</span>` : ''}.${FB.admin && ok ? ' ‘5. 공개 양식 모음’에서 확인할 수 있습니다.' : ''}`;
+  btn.disabled = false; btn.textContent = '닫기'; btn.onclick = () => { document.getElementById('bulkDlg').close(); btn.onclick = bulkSubmit; };
+}
 function renameForm() {
   if (!CF) return; const n = prompt('양식 이름', CF.title); if (!n || !n.trim()) return;
   CF.title = n.trim(); saveForms(); refreshMyList(); renderMyPanel();
@@ -5032,6 +5127,7 @@ function routeFile(f) {
 function handleJsonText(text, fname) {
   let o; try { o = JSON.parse(text); } catch (e) { alert('JSON 파일이 아닙니다.'); return; }
   if (o && o._type === 'form-template') return importTemplate(o);
+  if (o && o._type === 'form-bundle') return importBundle(o);
   if (o && o._type === 'form-data') return loadFormData(o, fname);
   if (o && typeof o === 'object' && (o._type === FILE_TYPE || !o._type)) { showModule('ltc'); return loadText(text, fname); }
   alert('이 도구에서 쓰는 파일이 아닙니다.');
