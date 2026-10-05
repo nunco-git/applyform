@@ -852,6 +852,7 @@
       <div class="panel">
         <button class="sb primary" onclick="pickPdf()">＋ 새 양식 만들기 (PDF)</button>
         <button class="sb" onclick="pickJson()">📂 양식·작성 파일 열기</button>
+        <button class="sb" onclick="openFormCleanup()" data-tip="필요 없어진 양식을 여러 개 골라 이 컴퓨터에서 한꺼번에 지웁니다.">🗂 내 양식 정리 (여러 개 삭제)</button>
         <button class="sb" onclick="openBulkPublish()" data-tip="내 양식 여러 개를 골라 한 번에 공개 목록에 신청합니다.\n관리자 계정이면 신청과 동시에 승인되어 바로 공개됩니다.">📤 여러 양식 한꺼번에 공개</button>
         <div class="pt">내 양식</div>
         <div class="subs mylist" id="myList"></div>
@@ -906,6 +907,15 @@
     <div class="hint2">관리자가 확인·승인하면 ‘공개 양식 목록’에 올라가 누구나 쓸 수 있게 됩니다. 입력해 둔 내용과 서명은 올라가지 않습니다.</div>
   </div>
   <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('pubDlg').close()">취소</button><button class="b primary" id="pubGo" onclick="submitPublish()">공개 신청</button></div>
+</dialog>
+<dialog id="cleanDlg" class="pdlg wide">
+  <div class="dh"><h3>🗂 내 양식 정리 (여러 개 삭제)</h3><button class="b" onclick="document.getElementById('cleanDlg').close()">닫기</button></div>
+  <div class="db">
+    <div class="hint2" style="margin-bottom:8px">이 컴퓨터의 ‘직접 만든 양식’ 목록에서 지웁니다. 작성 중이던 내용도 함께 지워집니다.<br>공개 목록에 올린 양식은 서버에 그대로 남으니, 공개도 내리려면 ‘4. 공개 양식 모음 → 내가 공개 신청한 양식’에서 삭제하세요.</div>
+    <div class="bulkbar"><label><input type="checkbox" id="cleanAll" onchange="cleanAllToggle(this.checked)"> 모두 선택</label><span id="cleanN"></span></div>
+    <div class="bulklist" id="cleanList"></div>
+  </div>
+  <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('cleanDlg').close()">취소</button><button class="b primary" style="background:#c62828;border-color:#c62828" onclick="cleanRun()">🗑 선택한 양식 삭제</button></div>
 </dialog>
 <dialog id="bulkDlg" class="pdlg wide">
   <div class="dh"><h3>📤 여러 양식 한꺼번에 공개</h3><button class="b" onclick="document.getElementById('bulkDlg').close()">닫기</button></div>
@@ -2826,7 +2836,8 @@ function renderMyPanel() {
       ${pubBtnsHTML()}
       ${pubStatusLine()}
       <button class="sb" onclick="exportForm()" data-tip="양식(원본 PDF + 칸 배치)을 .json 파일로 보관합니다.\n다른 컴퓨터에서 ‘📂 양식·작성 파일 열기’로 가져오면 그대로 쓸 수 있습니다.\n칸을 고친 내용은 이 브라우저에 자동 저장되므로, 백업할 때만 누르면 됩니다.">📤 양식 파일로 내보내기</button>
-      <div class="hint keep autosv">💾 양식은 고칠 때마다 자동 저장됩니다 (이 브라우저)</div>`
+      <div class="hint keep autosv">💾 양식은 고칠 때마다 자동 저장됩니다 (이 브라우저)</div>
+      <button class="sb" onclick="deleteForm()" data-tip="이 컴퓨터의 ‘직접 만든 양식’에서 지웁니다.\n공개 목록에 올린 양식은 그대로 남습니다(공개 양식은 ‘🗑 공개 양식 삭제’로).">🗑 이 양식 삭제</button>`
     : `
       <div class="hint keep autosv">💾 칸을 고치면 바로 자동 저장됩니다 (저장 단추 필요 없음)${formsSavedAt ? ` · ${formsSavedAt} 저장됨` : ''}</div>
       <div class="hint">빈 곳 드래그: 새 칸<br>끌기: 이동 · □: 크기 · Delete: 삭제<br>Ctrl/Shift+클릭: 여러 칸 선택</div>
@@ -5074,10 +5085,32 @@ function renameForm() {
   if (!CF) return; const n = prompt('양식 이름', CF.title); if (!n || !n.trim()) return;
   CF.title = n.trim(); saveForms(); refreshMyList(); renderMyPanel();
 }
+function dropLocalForms(ids) {                                 // 이 컴퓨터의 직접 만든 양식 지우기 (작성 내용 포함)
+  const set = new Set(ids); if (CF && set.has(CF.id)) closeForm();
+  set.forEach(id => { try { localStorage.removeItem(draftKey(id)); sessionStorage.removeItem('kit-s:' + draftKey(id)); localStorage.removeItem(GRP_KEY + id); } catch (e) {} });
+  forms = forms.filter(f => !set.has(f.id)); saveForms(); refreshMyList(); renderMyPanel();
+  if (typeof homeRender === 'function' && !document.getElementById('home').hidden) homeRender();
+}
 function deleteForm() {
-  if (!CF || !confirm(`‘${CF.title}’ 양식을 삭제할까요?\n이 양식에 작성 중이던 내용도 함께 지워집니다.`)) return;
-  try { localStorage.removeItem(draftKey(CF.id)); sessionStorage.removeItem('kit-s:' + draftKey(CF.id)); } catch (e) {}
-  forms = forms.filter(f => f.id !== CF.id); saveForms(); closeForm();
+  if (!CF || CF.preset) return;
+  const pubNote = CF.pub && CF.pub.id ? '\n\n공개 목록에 올린 양식은 그대로 남습니다. 공개도 내리려면 먼저 ‘🗑 공개 양식 삭제’를 누르세요.' : '';
+  if (!confirm(`‘${CF.title}’ 양식을 이 컴퓨터에서 삭제할까요?\n이 양식에 작성 중이던 내용도 함께 지워지고 되돌릴 수 없습니다.${pubNote}`)) return;
+  const t = CF.title; dropLocalForms([CF.id]); toast(`‘${t}’ 양식을 삭제했습니다.`);
+}
+/* 여러 개 한꺼번에 정리 */
+function openFormCleanup() {
+  if (!forms.length) { alert('지울 양식이 없습니다.'); return; }
+  const st = f => f.pub && f.pub.id ? `공개 신청함 · ${(STATUS_TXT[f.pub.status] || STATUS_TXT.pending)[0]}` : f.source && f.source.pubId ? '공개 양식에서 받음' : f.source && f.source.code ? '서식 번호로 받음' : '직접 만듦';
+  document.getElementById('cleanList').innerHTML = forms.map(f => `<label class="bulkrow" style="grid-template-columns:24px 1fr"><input type="checkbox" data-cid="${esc(f.id)}" onchange="cleanCount()">
+    <span><b>${esc(f.title)}</b><small>${f.pages.length}쪽 · 칸 ${f.fields.length}개 · ${esc(st(f))}</small></span></label>`).join('');
+  document.getElementById('cleanAll').checked = false; cleanCount(); document.getElementById('cleanDlg').showModal();
+}
+function cleanCount() { const all = $$('#cleanList [data-cid]'), n = all.filter(c => c.checked).length; document.getElementById('cleanN').textContent = `${n}개 선택`; document.getElementById('cleanAll').checked = n && n === all.length; }
+function cleanAllToggle(v) { $$('#cleanList [data-cid]').forEach(c => c.checked = v); cleanCount(); }
+function cleanRun() {
+  const ids = $$('#cleanList [data-cid]').filter(c => c.checked).map(c => c.dataset.cid); if (!ids.length) { alert('지울 양식을 고르세요.'); return; }
+  if (!confirm(`양식 ${ids.length}개를 이 컴퓨터에서 삭제할까요?\n작성 중이던 내용도 함께 지워지고 되돌릴 수 없습니다.\n(공개 목록에 올린 양식은 그대로 남습니다)`)) return;
+  dropLocalForms(ids); document.getElementById('cleanDlg').close(); toast(`양식 ${ids.length}개를 삭제했습니다.`);
 }
 
 /* ---------- 인쇄 ---------- */
