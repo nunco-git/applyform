@@ -85,6 +85,7 @@
   .comnow { font-size:12px; color:#cfd7ea; margin:0 4px 6px; }
   #comDlg .db { max-height:70vh; overflow:auto; }
   .comgrid { display:grid; grid-template-columns:140px 1fr; gap:6px 10px; align-items:center; font-size:13px; }
+  .comgrid .comchk { display:flex; align-items:center; gap:6px; } .comgrid .comchk input { width:auto; }
   .comgrid input { font:inherit; padding:6px 8px; border:1px solid #cfd6e4; border-radius:6px; width:100%; box-sizing:border-box; }
   .sb.primary { background:#2f5bd3; border-color:#2f5bd3; color:#fff; font-weight:600; }
   .sb.primary:hover { background:#3a66e0; }
@@ -480,6 +481,7 @@
   .dpop .dpg { display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; margin:6px 0; }
   .dpop button { font:inherit; font-size:12.5px; padding:6px 4px; border:1px solid #c6cfe4; background:#f5f7fd; color:#2747a8; border-radius:6px; cursor:pointer; }
   .dpop button:hover { background:#e6ecfb; }
+  .dpop .tgrid { grid-template-columns:repeat(6, 1fr); } .dpop .tgrid button { font-size:12px; padding:6px 2px; } .dpop button:disabled { opacity:.4; cursor:default; }
   .dpop button.on { background:#2f5bd3; border-color:#2f5bd3; color:#fff; }
   .dpop .dpc { display:flex; align-items:center; gap:6px; margin-top:4px; }
   .dpop .dpc label { font-size:12px; color:#556; white-space:nowrap; }
@@ -2117,10 +2119,12 @@ window.addEventListener('drop', e => {
   if (document.querySelector('.module[data-mod="collect"].on')) { colAdd([...e.dataTransfer.files]); return; }
   routeFile(e.dataTransfer.files[0]);
 });
-function resetAll() {
-  if (!confirm('두 양식의 입력 내용을 모두 지울까요?\n(단체장 명칭과 기관 프리셋은 유지됩니다)')) return;
-  const keep = {}; KEEP.forEach(k => keep[k] = getVal(k));
-  apply(keep); setToday('apply', true); comLtcAuto(); saveDraft(); if (typeof ltcCodeRender === 'function') ltcCodeRender();
+function resetAll(keepCom) {
+  if (!confirm(keepCom ? '기관명·기관기호·주소·전화·제출처(공통 정보)는 그대로 두고\n수급자·신청인 내용만 지울까요?'
+                       : '두 양식의 입력 내용을 공통 정보 칸까지 모두 지울까요?\n(저장해 둔 공통 정보 자체는 지워지지 않습니다)')) return;
+  const keep = {}; if (keepCom) COM_F.forEach(c => { if (c.l) keep[c.l] = getVal(c.l); });
+  apply(keep); setToday('apply', true); saveDraft(); if (typeof ltcCodeRender === 'function') ltcCodeRender();
+  toast(keepCom ? '공통 정보만 남기고 지웠습니다.' : '모두 지웠습니다.');
 }
 
 /* ---------- 화면이 좁으면(휴대폰) 서식을 화면 폭에 맞춰 축소 ---------- */
@@ -2151,8 +2155,10 @@ const zStep = d => zSet('z', Math.round((ZM.z * (d > 0 ? 1.1 : 1 / 1.1)) * 100) 
 const MOD_TITLE = { labor: '표준근로계약서', gov: '행정 신고서류', my: '직접 만든 양식', ltc: '장기요양기관 신청서류', pub: '공개 양식 모음', collect: '제출 PDF 모아 엑셀로', crim: '범죄경력 등 조회 신청서류' };
 function topActs(save, open, fresh, print, merge) {
   return `<button class="tb" onclick="${save}" data-tip="지금 적은 내용(입력값)을 .json 파일로 저장합니다.\n나중에 ‘📂 열기’로 불러와 이어서 작성할 수 있습니다.\n서명은 저장되지 않습니다. 양식(칸 배치)은 자동 저장되므로 따로 저장할 필요 없습니다."><span class="ti">💾 </span>저장</button><button class="tb" onclick="${open}" data-tip="‘💾 저장’으로 받아 둔 작성 내용 파일(.json)을 불러옵니다."><span class="ti">📂 </span>열기</button>`
-    + `<button class="tb" onclick="${fresh}" title="입력한 내용을 지우고 새로 작성"><span class="ti">🧹 </span>새로 작성</button><span class="tsep"></span>`
-    + `<button class="tb pri" onclick="${print}"><span class="ti">🖨 </span>인쇄/PDF</button><button class="tb" onclick="${merge}" title="엑셀 한 줄 = 서류 한 건, 한꺼번에 작성·인쇄"><span class="ti">📑 </span>메일머지</button>`;
+    + `<span class="tsep"></span>`
+    + `<button class="tb pri" onclick="${print}"><span class="ti">🖨 </span>인쇄/PDF</button><button class="tb" onclick="${merge}" title="엑셀 한 줄 = 서류 한 건, 한꺼번에 작성·인쇄"><span class="ti">📑 </span>메일머지</button>`
+    + `<span class="tsep"></span><button class="tb" onclick="${fresh}(false)" data-tip="이 서식에 적은 내용을 모두 지웁니다.\n기관명·대표자·주소 같은 공통 정보 칸도 비워집니다.\n(저장해 둔 공통 정보 자체는 지워지지 않습니다)"><span class="ti">🧹 </span>전체 초기화</button>`
+    + `<button class="tb" onclick="${fresh}(true)" data-tip="기관명·대표자·주소 등 공통 정보 칸은 그대로 두고\n대상자(근로자·신청인) 내용만 지웁니다.\n다음 사람 서류를 쓸 때 편리합니다."><span class="ti">🧽 </span>공통정보 제외 초기화</button>`;
 }
 const FW_NATIVE = { '01': '中文', '02': 'Монгол хэл', '03': 'Tiếng Việt', '04': 'English', '05': 'Tetun', '06': 'ພາສາລາວ', '07': 'සිංහල', '08': 'Oʻzbekcha',
   '09': 'Bahasa Indonesia', '10': 'ភាសាខ្មែរ', '11': 'Кыргызча', '13': 'বাংলা', '14': 'ภาษาไทย', '15': 'မြန်မာဘာသာ', '16': 'नेपाली', '17': 'Тоҷикӣ', '18': 'اردو', '19': 'Filipino' };
@@ -2175,11 +2181,11 @@ function zbarRender() {
   let title = MOD_TITLE[mod] || '', badge = '', acts = '', extra = '';
   if (mod === 'ltc') {
     title = '장기요양기관 입소·이용신청서';
-    acts = topActs('saveFile()', 'openFile()', 'resetAll()', "doPrint('all')", "mmOpen('ltc')");
+    acts = topActs('saveFile()', 'openFile()', 'resetAll', "doPrint('all')", "mmOpen('ltc')");
   } else if (cfOn) {
     title = CF.fw ? '외국인 계약서' : CF.title;
     if (cfMode === 'edit') badge = '🛠 칸 편집 중';
-    else acts = topActs('saveFormData()', 'pickJson()', 'clearFormData()', 'printForm()', 'mmOpen()');
+    else acts = topActs('saveFormData()', 'pickJson()', 'clearFormData', 'printForm()', 'mmOpen()');
     if (CF.fw && cfMode !== 'edit') extra = topFw();
   }
   const zoom = hasPage ? `<div class="tz"><button class="${ZM.mode === 'w' ? 'on' : ''}" onclick="zSet('w')" title="서식 너비를 화면 가로에 맞춤">↔ 가로 맞춤</button>`
@@ -2397,7 +2403,10 @@ async function openPdf(bytes) {
 
 const FORMS_KEY = 'kit-forms', CUR_FORM_KEY = 'kit-cur-form';
 const TYPES = { text:'글자', multi:'여러 줄', check:'체크(√)', date:'날짜', sign:'서명', select:'선택 목록', addrtitle:'주소 연계 명칭',
-  rrn:'주민등록번호', birth:'생년월일', bizno:'사업자등록번호', tel:'전화번호', money:'금액', time:'시간', calc:'함수(자동 계산)', cover:'가림 상자(입력 없음)' };
+  rrn:'주민등록번호', birth:'생년월일', bizno:'사업자등록번호', tel:'전화번호', money:'금액', time:'시간', calc:'함수(자동 계산)', cover:'가림 상자(입력 없음)', fixed:'입력 상자' };
+/* 종류 고르기 순서 (사용자가 정한 순서) */
+const TYPE_MENU = [['text', '글자(명칭)'], ['rrn', '주민등록번호'], ['birth', '생년월일'], ['tel', '전화번호'], ['bizno', '사업자등록번호'], ['money', '금액'], ['date', '날짜'], ['time', '시간'], ['sign', '서명'],
+  ['calc', '함수(자동 계산)'], ['cover', '가림 상자'], ['fixed', '입력 상자(글자 고정)'], ['check', '체크(√)'], ['multi', '여러 줄'], ['select', '선택 목록'], ['addrtitle', '주소 연계 명칭']];
 /* ---------- 모양이 정해진 칸 (주민번호·생년월일·사업자번호·전화·금액·시간·함수) ---------- */
 const FMT_TYPES = /^(rrn|birth|bizno|tel|money|time|calc)$/;
 const MONEY_FMTS = { n: '35,000', won: '35,000원', geum: '금 35,000원', both: '35,000원(금삼만오천원정)', kor: '금삼만오천원정(₩35,000)', kor2: '일금 삼만오천원정', kor3: '금삼만오천원정' };
@@ -2570,7 +2579,7 @@ function renderMyPanel() {
       ${comPanelHTML('cf')}
       ${codeInfoHTML('cf')}
       ${CF.preset === 'gov' && !CF.groups ? `<div class="pt">제출받은 신고서</div><button class="sb" onclick="colOpen(); document.getElementById('colForm').value='f:${CF.id}'">📊 제출 PDF 모아 엑셀로</button><div class="hint">신고서 PDF 여러 개 → 엑셀 한 줄씩</div>` : ''}
-      ${CF.groups ? '' : `<div class="pt">칸 고치기</div>
+      ${CF.preset ? '' : `<div class="pt">칸 고치기</div>
       <button class="sb" onclick="copyPresetToMine()">📋 내 양식으로 복사해 칸 편집</button>
       <div class="hint">칸 위치·이름을 고치려면 내 양식으로 복사</div>`}`;
     return;
@@ -3158,8 +3167,8 @@ function coversText(f) {
 const isEnd = f => !!(f.type === 'date' && f.periodOf && CF && CF.fields.some(g => g !== f && g.type === 'date' && fkey(g) === f.periodOf));
 function efInner(f) {
   const n = f.name && !f.part && f.type !== 'cover' ? groupOf(fkey(f)).length : 1;
-  const label = f.type === 'cover' ? '가림' : (f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : '');
-  const ic = f.type === 'cover' ? '▭ ' : f.type === 'addrtitle' ? '🏛 ' : f.type === 'date' || f.part ? (isEnd(f) ? '📅~ ' : '📅 ') : '';
+  const label = f.type === 'cover' ? '가림' : f.type === 'fixed' ? (String(f.text ?? '').trim() || '입력 상자 (글자를 정하세요)') : (f.name || TYPES[f.type]) + (f.part ? ` (${PART_TXT[f.part]})` : '');
+  const ic = f.type === 'cover' ? '▭ ' : f.type === 'fixed' ? '📌 ' : f.type === 'addrtitle' ? '🏛 ' : f.type === 'date' || f.part ? (isEnd(f) ? '📅~ ' : '📅 ') : '';
   return `<span class="en">${ic}${esc(label)}${(f.tip || '').trim() && f.type !== 'cover' ? ' 💬' : ''}${f.mask && f.type !== 'cover' ? ' <b class="lk">가림</b>' : ''}${n > 1 ? ` <b class="lk">🔗${n}</b>` : ''}</span><i class="rh"></i>`;
 }
 const efClass = f => `ef t-${f.type}${f.mask || f.type === 'cover' ? ' mk' : ''}${cfSelSet.has(f.id) ? ' sel' : ''}`;
@@ -3205,6 +3214,8 @@ function refreshTpls() {
 }
 function fillHTML(f) {
   if (f.tpl) return tplHTML(f);
+  if (f.type === 'fixed') { const st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'left'}`, t = String(f.text ?? '');
+    return /\n/.test(t) ? `<textarea class="in cf ml fixedtxt" readonly tabindex="-1" style="${st}">${esc(t)}</textarea>` : `<input class="in cf fixedtxt" readonly tabindex="-1" value="${esc(t)}" style="${st}">`; }
   const k = esc(fkey(f)), v = FV[fkey(f)] ?? '', st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'left'}${f.tight ? ';padding:0' : ''}`, mk = f.mask ? ' cmask' : '';
   switch (f.type) {
     case 'cover':  return f.coverIf ? `<div class="cover" data-coverif="${esc(f.coverIf)}" style="${fStyle(f)}${String(FV[f.coverIf] ?? '').trim() ? '' : ';visibility:hidden'}"></div>` : `<div class="cover" style="${fStyle(f)}"></div>`;
@@ -3213,7 +3224,7 @@ function fillHTML(f) {
     case 'check':  return `<span class="chk cf${mk}${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
     case 'sign':   return `<div class="sig cf${mk}${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
     case 'rrn': case 'birth': case 'bizno': case 'tel': case 'money': case 'time': case 'calc':
-      return `<input class="in cf${mk}${f.type === 'calc' ? ' calc' : ''}" data-f="${k}" data-fid="${esc(f.id)}" data-fmtk="${f.type}" value="${esc(fmtShow(f, v))}"${f.type === 'calc' ? ' readonly tabindex="-1" title="다른 칸을 따라 자동 계산됩니다"' : ''}${/^(rrn|bizno|tel)$/.test(f.type) ? ' inputmode="numeric"' : ''} autocomplete="off" style="${st}">`;
+      return `<input class="in cf${mk}${f.type === 'calc' ? ' calc' : ''}" data-f="${k}" data-fid="${esc(f.id)}" data-fmtk="${f.type}" value="${esc(fmtShow(f, v))}"${f.type === 'time' ? ' readonly placeholder="🕒 시간 선택" title="눌러서 시·분을 고릅니다"' : ''}${f.type === 'calc' ? ' readonly tabindex="-1" title="다른 칸을 따라 자동 계산됩니다"' : ''}${/^(rrn|bizno|tel)$/.test(f.type) ? ' inputmode="numeric"' : ''} autocomplete="off" style="${st}">`;
     case 'select': { const ops = f.options || []; return `<select class="in cf${mk}" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
                       ['', ...ops, ...(v && !ops.includes(v) ? [v] : [])].map(o => `<option${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('') + '</select>'; }
     case 'date': {
@@ -3485,6 +3496,7 @@ const COM_KEY = 'kit-common';
 const COM_F = [
   { k: '기관·사업체명', a: ['사업체명', '업체명', '기관명', '상호', '사업장명'], l: 'iName' },
   { k: '대표자', a: ['대표자', '대표자 성명', '대표자명', '사업주 성명', '요청인(기관장) 성명'] },
+  { k: '대표자 직위', a: ['요청인 직위'] },
   { k: '주소', a: ['사업주 주소', '사업장 주소', '기관 주소', '소재지'], l: 'iAddr' },
   { k: '전화번호', a: ['사업주 전화', '사업장 전화', '기관 전화', '기관 전화번호'], l: 'iTel' },
   { k: '사업자등록번호', a: ['사업자등록번호'] },
@@ -3492,6 +3504,15 @@ const COM_F = [
   { k: '제출처(단체장)', a: ['단체장'], l: 'chief' },
 ];
 const COM_X = EMP_FIELDS.filter(n => !COM_F.some(c => c.a.includes(n)));       // 근무장소·임금지급일 등 계약서 기본값
+function comFieldsFor(ctx) {                                  // 이 서식에 실제로 들어가는 기관 정보만 (대상자가 바뀌어도 그대로인 것)
+  if (ctx === 'ltc') return COM_F.filter(c => c.l).map(c => ({ k: c.k, kind: 'v' }));
+  if (!CF) return [];
+  const fld = n => CF.fields.find(g => fkey(g) === n);
+  const out = COM_F.filter(c => c.a.some(fld)).map(c => ({ k: c.k, kind: 'v' }));
+  COM_X.forEach(n => { const g = fld(n); if (g) out.push({ k: n, kind: 'x', check: g.type === 'check' }); });
+  return out;
+}
+const comIsCheck = k => !!(CF && CF.fields.some(g => fkey(g) === k && g.type === 'check'));
 function comList() {
   let L = null; try { L = JSON.parse(localStorage.getItem(COM_KEY) || 'null'); } catch (e) {}
   if (!L) {                                                   // 처음: 예전 ‘사업주 정보’·‘장기요양기관’ 목록을 옮겨 옴
@@ -3516,7 +3537,7 @@ function comFromCur(ctx) {
   else if (CF) {
     const has = n => CF.fields.some(g => fkey(g) === n);
     COM_F.forEach(c => { const a = c.a.find(n => has(n) && ok(n, FV[n])); if (a) v[c.k] = String(FV[a]); });
-    COM_X.forEach(n => { if (has(n) && ok(n, FV[n])) x[n] = String(FV[n]); });
+    COM_X.forEach(n => { if (!has(n)) return; if (comIsCheck(n)) { if (FV[n] && FV[n] !== 'false') x[n] = 'true'; } else if (ok(n, FV[n])) x[n] = String(FV[n]); });
   }
   return { v, x };
 }
@@ -3531,13 +3552,14 @@ function comApply(p, ctx, onlyEmpty, quiet) {
   if (!CF) return 0;
   const has = k => CF.fields.some(g => fkey(g) === k), put = (k, s) => { if (!has(k) || s == null || s === '') return; if (onlyEmpty && String(FV[k] ?? '').trim()) return; FV[k] = s; n++; };
   COM_F.forEach(c => c.a.forEach(a => put(a, p.v[c.k])));
-  Object.entries(p.x || {}).forEach(([k, s]) => put(k, s));
+  Object.entries(p.x || {}).forEach(([k, s]) => { if (comIsCheck(k)) { if (s && s !== 'false') put(k, true); } else put(k, s); });
   if (n && !quiet) { CF.fields.forEach(g => { if (g.money && FV[fkey(g)]) FV[fkey(g)] = moneyFmt(FV[fkey(g)]); }); saveFVSoon(); renderFields(); }
   return n;
 }
 function comAutoFill() { const L = comList(); if (L.length) comApply(L[0], 'cf', true, true); }
 function comLtcAuto() { const L = comList(); const p = L.find(q => q.v['장기요양기관 기호']) || L[0]; if (p) comApply(p, 'ltc', true, true); }
 function comPanelHTML(ctx) {
+  if (!comFieldsFor(ctx).length) return '';                   // 예: 자연재난 피해신고서 – 신고인마다 다른 정보뿐
   const L = comList(), c = `'${ctx}'`;
   return `<div class="pt">공통 정보</div>
     ${L.length > 1 ? `<select class="ssel" onchange="comPick(+this.value, ${c})">${L.map((p, i) => `<option value="${i}"${comName(p) === String(ctx === 'ltc' ? getVal('iName') : (FV['사업체명'] ?? FV['업체명'] ?? FV['기관명'] ?? '')) ? ' selected' : ''}>${esc(comName(p))}${p.v['대표자'] ? ' · ' + esc(p.v['대표자']) : ''}</option>`).join('')}</select>`
@@ -3563,12 +3585,15 @@ function comSaveCur(ctx) {
 }
 function comEdit(ctx) {
   const L = comList(), p = L[0] || { name: '', v: {}, x: {} }, cur = comFromCur(ctx);
-  const val = k => p.v[k] ?? cur.v[k] ?? '';
+  const val = k => p.v[k] ?? cur.v[k] ?? '', xval = k => (p.x || {})[k] ?? cur.x[k] ?? '';
+  const F = comFieldsFor(ctx);
   window.__comCtx = ctx;
+  const nm = ctx === 'ltc' ? '장기요양기관 신청서류' : (CF ? CF.title : '');
   document.getElementById('comBody').innerHTML = `
-    <div class="hint" style="margin:0 0 10px">한 번 입력해 두면 모든 서식의 같은 칸에 자동으로 들어갑니다. 개인(근로자·신청인)의 정보는 넣지 마세요.</div>
-    <div class="comgrid">${COM_F.map(c => `<label>${esc(c.k)}</label><input data-ck="${esc(c.k)}" value="${esc(val(c.k))}">`).join('')}
-      ${Object.keys(p.x || {}).map(k => `<label>${esc(k)}</label><input data-cx="${esc(k)}" value="${esc(p.x[k])}">`).join('')}</div>
+    <div class="hint" style="margin:0 0 10px"><b>${esc(nm)}</b>에 들어가는 기관 정보만 보입니다. 대상자(근로자·신청인)가 바뀌어도 그대로인 정보만 저장하고, 개인 정보는 넣지 마세요.<br>다른 서식에만 쓰는 정보(예: 장기요양기관 기호)는 그 서식에서 입력하면 함께 보관됩니다.</div>
+    <div class="comgrid">${F.map(c => c.kind === 'v' ? `<label>${esc(c.k)}</label><input data-ck="${esc(c.k)}" value="${esc(val(c.k))}">`
+      : c.check ? `<label>${esc(c.k)}</label><label class="comchk"><input type="checkbox" data-cx="${esc(c.k)}" data-chk="1"${xval(c.k) && xval(c.k) !== 'false' ? ' checked' : ''}> 표시</label>`
+      : `<label>${esc(c.k)}</label><input data-cx="${esc(c.k)}" value="${esc(xval(c.k))}">`).join('')}</div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="b primary" onclick="comEditSave(false)">💾 저장해서 계속 사용</button>
       ${L.length ? '<button class="b" onclick="comEditSave(true)">➕ 다른 기관으로 새로 저장</button><button class="b" onclick="comDelete()">🗑 이 정보 지우기</button>' : ''}
@@ -3576,14 +3601,15 @@ function comEdit(ctx) {
   document.getElementById('comDlg').showModal();
 }
 function comEditSave(asNew) {
-  const v = {}, x = {};
-  $$('#comBody [data-ck]').forEach(e => { if (e.value.trim()) v[e.dataset.ck] = e.value.trim(); });
-  $$('#comBody [data-cx]').forEach(e => { if (e.value.trim()) x[e.dataset.cx] = e.value.trim(); });
+  const L0 = comList(), base = asNew ? null : L0[0], v = Object.assign({}, base ? base.v : {}), x = Object.assign({}, base ? base.x : {});
+  $$('#comBody [data-ck]').forEach(e => { if (e.value.trim()) v[e.dataset.ck] = e.value.trim(); else delete v[e.dataset.ck]; });
+  $$('#comBody [data-cx]').forEach(e => { const s = e.dataset.chk ? (e.checked ? 'true' : '') : e.value.trim(); if (s) x[e.dataset.cx] = s; else delete x[e.dataset.cx]; });
   const bad = Object.entries(v).find(([k, s]) => codeBlocked(k, k, s, ''));
   if (bad) { alert(`‘${bad[0]}’에 주민등록번호 같은 개인정보는 넣을 수 없습니다.`); return; }
   if (!v['기관·사업체명']) { alert('기관·사업체명을 입력하세요.'); return; }
   const L = comList(), name = v['기관·사업체명'];
   const old = asNew ? null : (L.find(p => comName(p) === name) || L[0]);
+  if (!asNew && old && old !== L[0] && comName(old) === name) { Object.keys(old.v).forEach(k => { if (!(k in v) && !$$('#comBody [data-ck]').some(e => e.dataset.ck === k)) v[k] = old.v[k]; }); Object.keys(old.x || {}).forEach(k => { if (!(k in x) && !$$('#comBody [data-cx]').some(e => e.dataset.cx === k)) x[k] = old.x[k]; }); }
   const rest = L.filter(q => q !== old && comName(q) !== name);
   comSave([{ name, v, x, at: Date.now() }, ...rest]);
   document.getElementById('comDlg').close();
@@ -3619,7 +3645,7 @@ function codeDlg(title, html) {
 function codeFieldRows() {                                    // 지금 채워진 칸 (서명·가림·자동표시 칸 제외)
   const seen = new Set(), rows = [];
   CF.fields.forEach(g => {
-    if (g.type === 'sign' || g.type === 'cover' || g.tpl) return;
+    if (g.type === 'sign' || g.type === 'cover' || g.type === 'fixed' || g.tpl) return;
     const k = fkey(g); if (!k || seen.has(k)) return; seen.add(k);
     const v = FV[k]; if (v == null || String(v).trim() === '') return;
     const block = codeBlocked(k, k, v, '');
@@ -3843,7 +3869,7 @@ function mmFields() {
   const seen = new Set(), out = [];
   const gp = CF.groups ? grpOnPages() : null;
   CF.fields.slice().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x).forEach(g => {
-    if (g.type === 'sign' || g.type === 'cover' || g.type === 'calc' || g.tpl || g.trOf) return; const k = fkey(g); if (!k || seen.has(k)) return;
+    if (g.type === 'sign' || g.type === 'cover' || g.type === 'fixed' || g.type === 'calc' || g.tpl || g.trOf) return; const k = fkey(g); if (!k || seen.has(k)) return;
     if (gp && (g.bulk || g.maskIf || !gp.has(g.page))) return; seen.add(k);
     out.push({ k, label: k, type: g.type, money: !!g.money || g.type === 'money' });
   });
@@ -4047,9 +4073,35 @@ function openPickPop(el) {
   pop.style.left = x + 'px'; pop.style.top = y + 'px';
   const on = pop.querySelector('button.on'); if (on) on.scrollIntoView({ block: 'nearest' });
 }
+const timeShow = k => $$('#myPages input[data-fid]').forEach(e => { const o = CF.fields.find(q => q.id === e.dataset.fid); if (o && fkey(o) === k) { e.value = fmtShow(o, FV[k]); fit(e); } });
+function openTimePop(el, hSel) {                             // 시간 칸: 시 → 분 차례로 눌러서
+  const k = el.dataset.f, f = CF && CF.fields.find(g => fkey(g) === k); if (!f) return;
+  const m0 = String(FV[k] ?? '').match(/^(\d{1,2}):(\d{2})/), h = hSel != null ? hSel : (m0 ? +m0[1] : null), mm = m0 && hSel == null ? m0[2] : null;
+  const pop = document.getElementById('pickPop'); PK = { k, el, time: true, h };
+  pop.style.setProperty('--pc', 6);
+  const hb = i => `<button type="button" class="${i === h ? 'on' : ''}" data-th="${i}">${i < 12 ? '오전' : '오후'} ${i % 12 === 0 ? 12 : i % 12}</button>`;
+  pop.innerHTML = `<div class="dph">🕒 ${esc(f.name || '시간')}</div>
+    <div class="dps">① 시</div><div class="dpg tgrid">${[...Array(24)].map((_, i) => hb(i)).join('')}</div>
+    <div class="dps">② 분 ${h == null ? '<small>(시를 먼저 고르세요)</small>' : ''}</div>
+    <div class="dpg tgrid">${MINS.map(m => `<button type="button" class="${m === mm ? 'on' : ''}" data-tm="${m}"${h == null ? ' disabled' : ''}>${m}분</button>`).join('')}</div>
+    <button type="button" class="dpx" data-tclear="1">지우기</button>`;
+  pop.hidden = false;
+  const r = el.getBoundingClientRect(), W = pop.offsetWidth, H = pop.offsetHeight;
+  let x = clamp(r.left + r.width / 2 - W / 2, 6, innerWidth - W - 6), y = r.bottom + 6;
+  if (y + H > innerHeight - 6) y = Math.max(6, r.top - H - 6);
+  pop.style.left = x + 'px'; pop.style.top = y + 'px';
+}
+document.addEventListener('click', ev => {
+  if (!PK || !PK.time) return;
+  const b = ev.target.closest('#pickPop button'); if (!b) return;
+  const { k, el, h } = PK;
+  if (b.dataset.th != null) { openTimePop(el, +b.dataset.th); return; }
+  if (b.dataset.tm != null && h != null) { closePickPop(); setFV(k, String(h).padStart(2, '0') + ':' + b.dataset.tm); fieldChanged(k); timeShow(k); return; }
+  if (b.dataset.tclear) { closePickPop(); setFV(k, ''); fieldChanged(k); timeShow(k); }
+});
 function closePickPop() { const p = document.getElementById('pickPop'); if (p) p.hidden = true; PK = null; }
 document.addEventListener('click', ev => {
-  const b = ev.target.closest('#pickPop button[data-v]'); if (!b || !PK) return;
+  const b = ev.target.closest('#pickPop button[data-v]'); if (!b || !PK || PK.time) return;
   const { k } = PK; closePickPop(); setFV(k, b.dataset.v); fieldChanged(k);
 });
 document.addEventListener('pointerdown', ev => { if (PK && !ev.target.closest('#pickPop') && ev.target !== PK.el) closePickPop(); }, true);
@@ -4149,7 +4201,7 @@ function renderProps() {
       ${sel.length === 2 && sel.every(f => f.type === 'date') ? '<button class="sb" onclick="periodSel()">📅~ 기간(시작~끝)으로 잇기</button>' : ''}
       <div class="prow"><button class="sb" onclick="maskSel(true)">◻ 원래 글자 가리기</button><button class="sb" onclick="maskSel(false)">가리기 끄기</button></div>
       <div class="prow">
-        <div><label class="pl">종류 한꺼번에</label><select class="ssel" id="mType"><option value="">그대로</option>${Object.entries(TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
+        <div><label class="pl">종류 한꺼번에</label><select class="ssel" id="mType"><option value="">그대로</option>${TYPE_MENU.map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
         <div><label class="pl">글자 크기</label><input class="sin" id="mFs" type="number" min="6" max="30" step="0.5" placeholder="그대로"></div>
       </div>
       <label class="pl">💬 입력 도움말 한꺼번에 <small>인쇄 안 됨</small></label>
@@ -4168,7 +4220,7 @@ function renderProps() {
     <input class="sin" id="pName" value="${esc(f.name || '')}" placeholder="예) 성명">
     ${grpInfo}
     <label class="pl">종류</label>
-    <select class="ssel" id="pType">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}"${k === f.type ? ' selected' : ''}>${v}</option>`).join('')}</select>
+    <select class="ssel" id="pType">${TYPE_MENU.map(([k, v]) => `<option value="${k}"${k === f.type ? ' selected' : ''}>${v}</option>`).join('')}</select>
     <div class="prow">
       <div><label class="pl">글자 크기(pt)</label><input class="sin" id="pFs" type="number" min="6" max="30" step="0.5" value="${f.fs || 11}"></div>
       <div><label class="pl">정렬</label><select class="ssel" id="pAlign">${[['left', '왼쪽'], ['center', '가운데'], ['right', '오른쪽']].map(([k, v]) => `<option value="${k}"${k === (f.align || 'left') ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
@@ -4186,10 +4238,12 @@ function renderProps() {
       <div><label class="pl">기본값</label><input class="sin" id="pDef" value="${esc(f.def ?? '')}" placeholder="예) 5"></div>
       <div><label class="pl">눌러서 고를 값 <small>쉼표로</small></label><input class="sin" id="pPick" value="${esc(Array.isArray(f.pick) ? f.pick.join(', ') : ({ hour: '0~23시', min: '00~55분', week: '월~일', days: '1~7' }[f.pick] || f.pick || ''))}" placeholder="예) 월, 화, 수"></div>
     </div><label class="sopt"><input type="checkbox" id="pMoney"${f.money ? ' checked' : ''}> 금액 (세 자리마다 쉼표)</label>` : ''}
+    ${f.type === 'fixed' ? `<label class="pl">서식에 고정할 글자 <small>여러 줄 가능</small></label><textarea class="sin" id="pFixed" rows="3" placeholder="예) 해당 없음">${esc(f.text ?? '')}</textarea>
+      <div class="hint keep">📌 입력 상자: 적은 글자가 이 자리에 늘 찍힙니다. 작성하는 사람은 고칠 수 없고, 인쇄·PDF에 그대로 나옵니다.</div>` : ''}
     ${f.type === 'money' ? `<label class="pl">금액 모양</label><select class="ssel" id="pMfmt">${Object.entries(MONEY_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.mfmt || 'won') ? ' selected' : ''}>${v}</option>`).join('')}</select>
       <div class="hint keep">숫자만 적으면 칸을 벗어날 때 고른 모양으로 바뀝니다.</div>` : ''}
-    ${f.type === 'time' ? `<label class="pl">시간 모양</label><select class="ssel" id="pTfmt">${Object.entries(TIME_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.tfmt || 'hm') ? ' selected' : ''}>${v}</option>`).join('')}</select>
-      <div class="hint keep">1430, 9:30, 오후 2시처럼 적어도 됩니다.</div>` : ''}
+    ${f.type === 'time' ? `<label class="pl">시간 모양 <small>작성할 때 눌러서 시·분을 고릅니다</small></label><select class="ssel" id="pTfmt">${Object.entries(TIME_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.tfmt || 'hm') ? ' selected' : ''}>${v}</option>`).join('')}</select>
+` : ''}
     ${f.type === 'birth' ? `<div class="prow">
       <div><label class="pl">날짜 모양</label><select class="ssel" id="pBfmt">${Object.entries(BIRTH_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.bfmt || 'dot') ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
       <div><label class="pl">주민번호에서 자동</label><select class="ssel" id="pBirthOf"><option value="">직접 입력</option>${[...new Set(CF.fields.filter(o => o !== f && (o.type === 'rrn' || /주민/.test(o.name || ''))).map(fkey))].map(k => `<option value="${esc(k)}"${k === f.birthOf ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select></div>
@@ -4230,6 +4284,7 @@ function renderProps() {
     if (g('pSrc')) { if (g('pSrc').value) f.src = g('pSrc').value; else delete f.src; }
     if (g('pMfmt')) f.mfmt = g('pMfmt').value;
     if (g('pTfmt')) f.tfmt = g('pTfmt').value;
+    if (g('pFixed')) f.text = g('pFixed').value;
     if (g('pBfmt')) f.bfmt = g('pBfmt').value;
     if (g('pBirthOf')) { if (g('pBirthOf').value) f.birthOf = g('pBirthOf').value; else delete f.birthOf; }
     if (g('pOp')) { f.op = g('pOp').value; f.kconst = g('pK').value.trim(); f.dec = +g('pDec').value || 0; f.cfmt = g('pCfmt').value; if (g('pUnit')) f.unit = g('pUnit').value;
@@ -4239,7 +4294,7 @@ function renderProps() {
     g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
     CF.fields.forEach(refreshBox); markSel(); saveFormsSoon();
   };
-  ['pName', 'pType', 'pFs', 'pAlign', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit'].forEach(id => g(id) && g(id).addEventListener(/^(pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
+  ['pName', 'pType', 'pFs', 'pAlign', 'pFixed', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit'].forEach(id => g(id) && g(id).addEventListener(/^(pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
   if (g('pArgs')) g('pArgs').addEventListener('change', e => {     // 고른 순서 기억 (A, B, C …)
     const c = e.target; if (c.type !== 'checkbox') return;
     if (c.checked) c.dataset.ord = String(Date.now()); upd(); calcArgsLabel();
@@ -4429,7 +4484,7 @@ function setupEditor() {
   /* 입력 도움말 풍선: 칸에 들어가거나(포커스) 마우스를 올리거나 누르면 위에 뜸 */
   const tipOf = t => cfMode === 'fill' && t && t.closest ? t.closest('#myPages [data-tip]') : null;
   wrap.addEventListener('focusin', ev => { const e = tipOf(ev.target); e ? showTip(e) : hideTip();
-    const x = ev.target; if (x.dataset && /^(money|time|birth)$/.test(x.dataset.fmtk || '') && cfMode === 'fill') { const g = CF.fields.find(o => o.id === x.dataset.fid); if (g) x.value = fmtEdit(g, FV[fkey(g)]); } });
+    const x = ev.target; if (x.dataset && /^(money|birth)$/.test(x.dataset.fmtk || '') && cfMode === 'fill') { const g = CF.fields.find(o => o.id === x.dataset.fid); if (g) x.value = fmtEdit(g, FV[fkey(g)]); } });
   wrap.addEventListener('focusout', ev => {                  // 칸을 벗어나면 정한 모양으로 (금액 → 35,000원(금삼만오천원정) 등)
     const x = ev.target; if (!x.dataset || !/^(money|time|birth)$/.test(x.dataset.fmtk || '') || cfMode !== 'fill') return;
     const g = CF.fields.find(o => o.id === x.dataset.fid); if (!g) return; const k = fkey(g);
@@ -4502,6 +4557,7 @@ function setupEditor() {
     const s = ev.target.closest('.sig[data-f]');
     if (s) { hideTip(); const k = s.dataset.f; openSigFor(s.dataset.title, v => setFV(k, v), s); return; }
     const p = ev.target.closest('.dsingle, .dpart'); if (p) { openDatePop(p); return; }
+    const tm = ev.target.closest('input.cf[data-fmtk="time"]'); if (tm) { openTimePop(tm); return; }
     const q = ev.target.closest('input.cf[data-pick]'); if (q) openPickPop(q);
   });
   document.getElementById('dPick').addEventListener('change', ev => {
@@ -4618,9 +4674,19 @@ function saveFormData() {
     { _type: 'form-data', _version: 1, formId: CF.id, formTitle: CF.title, savedAt: t.toISOString(),
       values: Object.fromEntries(Object.entries(noSig(FV)).filter(([k]) => !k.startsWith('__today:'))) }, '작성 내용 파일');   // 날짜는 저장한 날로 고정
 }
-function clearFormData() {
-  if (!CF || !confirm('이 양식에 입력한 내용을 모두 지울까요?')) return;
-  FV = {}; applyDefaults(); saveFVSoon(); renderFields();
+function clearFormData(keepCom) {
+  if (!CF) return;
+  if (!confirm(keepCom ? '기관명·대표자·주소 등 공통 정보 칸은 그대로 두고\n대상자(근로자·신청인) 내용만 지울까요?'
+                       : '이 양식에 입력한 내용을 공통 정보 칸까지 모두 지울까요?\n(저장해 둔 공통 정보 자체는 지워지지 않습니다)')) return;
+  flushFV();
+  const keep = {};
+  if (keepCom) {
+    const ks = new Set([...COM_F.flatMap(c => c.a), ...COM_X]);
+    CF.fields.forEach(g => { const k = fkey(g); if (ks.has(k) || g.policeOf) { if (FV[k] != null) keep[k] = FV[k]; if (FV['__man:' + k] != null) keep['__man:' + k] = FV['__man:' + k]; } });
+    if (FV['__code']) keep['__code'] = FV['__code'];
+  }
+  FV = keep; applyDefaults(); saveFVSoon(); renderFields(); if (typeof refreshCalcs === 'function') refreshCalcs(); renderMyPanel();
+  toast(keepCom ? '공통 정보만 남기고 지웠습니다.' : '모두 지웠습니다.');
 }
 async function loadFormData(o, fname) {
   const f = formById(o.formId) || allForms().find(x => x.title === o.formTitle);
@@ -4685,7 +4751,7 @@ function grpSel() {
 const grpSave = s => { try { localStorage.setItem(GRP_KEY + CF.id, JSON.stringify(s)); } catch (e) {} };
 const grpDocs = (g, s) => g.pick ? g.docs.filter(d => d.k === (s.alt[g.n] && g.docs.some(x => x.k === s.alt[g.n]) ? s.alt[g.n] : g.docs[g.docs.length - 1].k)) : g.docs;
 const grpPages = (g, s) => grpDocs(g, s).flatMap(d => [...d.pages, ...(d.back || [])]);
-const grpHasVal = pg => CF.fields.some(f => f.page === pg && !f.tpl && f.type !== 'cover' && String(FV[fkey(f)] ?? '').trim());
+const grpHasVal = pg => CF.fields.some(f => f.page === pg && !f.tpl && f.type !== 'cover' && f.type !== 'fixed' && String(FV[fkey(f)] ?? '').trim());
 const grpPrintPages = (g, s) => grpDocs(g, s).flatMap(d => [...d.pages, ...(d.back || []).filter(grpHasVal)]);
 function grpOnPages() { const s = grpSel(); return new Set(CF.groups.filter(g => s.nums.includes(g.n)).flatMap(g => grpPages(g, s))); }
 function grpApply() {
@@ -4839,6 +4905,7 @@ const dataUrlBytes = u => { const b = atob(String(u).split(',')[1] || ''), a = n
 function shownVal(f) {
   const k = fkey(f), v = FV[k];
   if (f.tpl) return tplVal(f);
+  if (f.type === 'fixed') return String(f.text ?? '');
   if (f.type === 'check') return v ? '√' : '';
   if (f.type === 'sign') return v || '';
   if (f.type === 'date') return dateText(v, f.fmt || 'dot');
@@ -4921,7 +4988,7 @@ async function grpSaveAll() {
     const idx = grpPrintPages(g, s); let stamp = null;
     if (FB.enabled() && !CF.noStamp) {                                       // 발급번호: 인쇄할 때와 같은 방식으로 등록
       const vals = {}, add = (k, v) => { v = normV(v); if (v && !vals[k]) vals[k] = v; };
-      idx.forEach(pgi => CF.fields.filter(f => f.page === pgi && !f.tpl && f.type !== 'cover').sort((a, b) => a.page - b.page).forEach(f => add(fkey(f), f.type === 'sign' ? (FV[fkey(f)] ? 'Y' : '') : shownVal(f))));
+      idx.forEach(pgi => CF.fields.filter(f => f.page === pgi && !f.tpl && f.type !== 'cover' && f.type !== 'fixed').sort((a, b) => a.page - b.page).forEach(f => add(fkey(f), f.type === 'sign' ? (FV[fkey(f)] ? 'Y' : '') : shownVal(f))));
       const id = newDocId(), url = url0 ? url0 + id : '';
       stamp = { id, when: tsWhen(new Date()), qr: url ? QR.encode(url) : null };
       if (await registerStamp(id, { form: 'f:' + CF.id + '@' + idx.join('.'), title: `${CF.title} ${g.n}번 – ${g.title}`, vals }, true)) reg++;
@@ -5646,7 +5713,7 @@ async function extractVals(pages, sel) {
     if (f && f.fw && !f.fields) { try { await fwEnsure(f); } catch (e) {} }
     if (f && f.fields) for (let i = 0; i < pages.length && i < f.pages.length; i++) {
       const P = pages[i], kx = P.w / f.pages[i].w, ky = P.h / f.pages[i].h;
-      const rects = f.fields.filter(g => g.page === i && g.type !== 'cover' && !g.tpl).map(g => ({ k: fkey(g), x: g.x * kx, y: g.y * ky, w: g.w * kx, h: g.h * ky, chk: g.type === 'check', sig: g.type === 'sign' }));
+      const rects = f.fields.filter(g => g.page === i && g.type !== 'cover' && g.type !== 'fixed' && !g.tpl).map(g => ({ k: fkey(g), x: g.x * kx, y: g.y * ky, w: g.w * kx, h: g.h * ky, chk: g.type === 'check', sig: g.type === 'sign' }));
       tally(P, rects); await readRects(P, rects, pos);
     }
   }
@@ -5869,7 +5936,7 @@ function colColumns(sel, recs) {
   const f = formBySel(sel); if (!f) return [];
   const seen = new Set(), cols = [];
   f.fields.slice().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x).forEach(g => {
-    if (g.type === 'cover' || g.tpl) return; const k = fkey(g); if (seen.has(k)) return; seen.add(k);
+    if (g.type === 'cover' || g.type === 'fixed' || g.tpl) return; const k = fkey(g); if (seen.has(k)) return; seen.add(k);
     const lbl = g.name || TYPES[g.type];
     cols.push([lbl, v => { const x = v[k] ?? '';
       if (g.type === 'sign') return x ? '있음' : '없음';
