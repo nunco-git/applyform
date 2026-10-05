@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://apis.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com https://www.gstatic.com; connect-src 'self' data: blob: https://cdn.jsdelivr.net https://*.googleapis.com https://www.gstatic.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com; frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com https://apis.google.com; worker-src 'self' blob: https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://apis.google.com https://*.googleapis.com https://www.google.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com https://www.gstatic.com; connect-src 'self' data: blob: https://cdn.jsdelivr.net https://www.google.com https://*.googleapis.com https://www.gstatic.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com; frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com https://apis.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; worker-src 'self' blob: https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>계약과 신청서류 도구모음</title>
 <style>
@@ -5378,15 +5378,20 @@ function handleJsonText(text, fname) {
    ===================================================================== */
 const FB_VER = 'https://www.gstatic.com/firebasejs/10.12.2/';
 const PUB_CATS = ['복지·돌봄', '계약', '행정·민원', '교육', '기타'];
+/* App Check: 이 앱에서 온 요청만 서버가 받도록 (reCAPTCHA Enterprise, 화면에 문제 안 뜸) */
+const APPCHECK_SITE_KEY = '6LeISuAtAAAAADDLmTtJZQG4PTO_g3Nil6z41uls';
 const realFB = {
   ready: null, m: null, app: null, auth: null, db: null, user: null, admin: false,
   enabled() { return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId); },
   init() {
     if (this.ready) return this.ready;
     this.ready = (async () => {
-      const [a, au, fs] = await Promise.all([import(FB_VER + 'firebase-app.js'), import(FB_VER + 'firebase-auth.js'), import(FB_VER + 'firebase-firestore.js')]);
+      const useAC = !!APPCHECK_SITE_KEY && /^https:$/.test(location.protocol);
+      const [a, au, fs, ac] = await Promise.all([import(FB_VER + 'firebase-app.js'), import(FB_VER + 'firebase-auth.js'), import(FB_VER + 'firebase-firestore.js'),
+                                                 useAC ? import(FB_VER + 'firebase-app-check.js').catch(() => null) : null]);
       this.m = Object.assign({}, a, au, fs);
-      this.app = a.initializeApp(FIREBASE_CONFIG); this.auth = au.getAuth(this.app); this.auth.languageCode = 'ko'; this.db = fs.getFirestore(this.app);
+      this.app = a.initializeApp(FIREBASE_CONFIG);
+      if (ac) { try { ac.initializeAppCheck(this.app, { provider: new ac.ReCaptchaEnterpriseProvider(APPCHECK_SITE_KEY), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn('App Check', e); } } this.auth = au.getAuth(this.app); this.auth.languageCode = 'ko'; this.db = fs.getFirestore(this.app);
       try { await au.getRedirectResult(this.auth); } catch (e) {}
       await new Promise(res => {
         let first = true;
