@@ -1242,13 +1242,8 @@ function openSignPad({ title, who, target, showSame, onApply }) {
   /* 휴대폰·태블릿: 브라우저 주소창까지 숨기고 화면 전체로 (지원하는 기기만) */
   try { if (matchMedia('(pointer:coarse)').matches && ov.requestFullscreen && !document.fullscreenElement) ov.requestFullscreen({ navigationUI: 'hide' }).then(() => setTimeout(layoutPad, 60)).catch(() => {}); } catch (e) {}
   layoutPad();
-  /* 서명 칸에서 화면 가득 커지는 효과 */
-  const from = target.getBoundingClientRect(), to = padBoxScreen();
-  if (from.width && to.width && ov.animate) {
-    const sx = from.width / to.width, tx = from.left - to.left * sx, ty = from.top - to.top * sx;
-    document.querySelector('#signOv .stage').animate([{ transform: `translate(${tx}px,${ty}px) scale(${sx})`, opacity: .3, transformOrigin: '0 0' },
-      { transform: 'none', opacity: 1, transformOrigin: '0 0' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
-  }
+  /* 나타나는 효과: 크기 변화(확대 애니메이션)는 크롬에서 글자·그림이 흐리게 남는 경우가 있어 투명도만 */
+  if (ov.animate) { const an = document.querySelector('#signOv .stage').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' }); an.onfinish = () => { if (SP.target) layoutPad(); }; }
 }
 /* 휴대폰에서 손가락으로 확대한 상태여도 서명판은 확대 전 화면(좌우 꽉 채움)처럼 보이게: 보이는 영역에 맞춰 되돌려 줄임 */
 function sigFitView() {
