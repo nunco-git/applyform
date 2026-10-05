@@ -2345,7 +2345,7 @@ function homeAuth() {
     const ok = FB.orgEmail();
     a.innerHTML = `<div class="hme"><span class="av">${esc((u.displayName || u.email || '?').slice(0, 1))}</span>
       <span class="nm"><b>${esc(u.displayName || u.email)}</b>${FB.admin ? ' · 관리자' : ''}<br><small>${esc(u.email || '')}</small>
-      <small class="${ok ? 'ok' : 'no'}"> · ${ok ? '✔ 기관 메일 인증됨' : '⚠ 기관 메일 미인증'}</small></span>
+      <small class="${ok || FB.admin ? 'ok' : 'no'}"> · ${ok ? '✔ 기관 메일 인증됨' : FB.admin ? '🛡 관리자 (기관 메일 인증 필요 없음)' : '⚠ 기관 메일 미인증'}</small></span>
       <button type="button" onclick="pubSignOut()">로그아웃</button></div>`;
   }
   if (go) go.textContent = u ? (last ? `이어서 작성하기 — ${last} →` : '시작하기 →') : (last ? `로그인 없이 이어서 작성하기 — ${last} →` : '로그인 없이 바로 시작하기 →');
@@ -5591,8 +5591,8 @@ function renderTopAuth() {
   const ok = FB.orgEmail();
   t.innerHTML = `<button class="tbtn me" onclick="pubTab('list'); pubOpen()" title="계정 메뉴 열기">
       <span class="av">${esc((u.displayName || u.email || '?').slice(0, 1))}</span>
-      <span class="nm">${esc(u.displayName || u.email)}${FB.admin ? ' <em>관리자</em>' : ''}<br><small class="${ok ? 'ok' : 'no'}">${ok ? '✔ 기관 메일 인증됨' : '⚠ 기관 메일 미인증'}</small></span></button>
-    ${ok ? '' : '<button class="tbtn small" onclick="openOrgVerify()">📧 기관 메일 인증하기</button>'}`;
+      <span class="nm">${esc(u.displayName || u.email)}${FB.admin ? ' <em>관리자</em>' : ''}<br><small class="${ok || FB.admin ? 'ok' : 'no'}">${ok ? '✔ 기관 메일 인증됨' : FB.admin ? '🛡 인증 없이 공개·승인 가능' : '⚠ 기관 메일 미인증'}</small></span></button>
+    ${ok || FB.admin ? '' : '<button class="tbtn small" onclick="openOrgVerify()">📧 기관 메일 인증하기</button>'}`;
 }
 function pubAuthChanged() {
   renderTopAuth();
@@ -5601,7 +5601,7 @@ function pubAuthChanged() {
   el.innerHTML = !FB.enabled() ? '<div class="hint keep">아직 서버가 연결되지 않았습니다.</div>'
     : u ? `<div class="who2"><b>${esc(u.displayName || u.email)}</b>${FB.admin ? ' <em>관리자</em>' : ''}<br><small>${esc(u.email || '')}</small>
           ${myOrg.org ? `<br>🏛 ${esc(myOrg.org)}${myOrg.dept ? ' · ' + esc(myOrg.dept) : ''}` : ''}</div>
-          ${FB.orgEmail() ? `<div class="ovok">✔ 기관 메일 인증됨<br><small>${esc(FB.orgEmail())}</small></div>` : `<div class="ovno">⚠ 기관 메일 미인증 <small>(공개 신청 불가)</small></div><button class="sb primary" onclick="openOrgVerify()">📧 기관 메일 인증하기</button>`}
+          ${!FB.orgEmail() && FB.admin ? '<div class="ovok">🛡 관리자 계정<br><small>기관 메일 인증 없이 공개 신청·승인 가능</small></div>' : FB.orgEmail() ? `<div class="ovok">✔ 기관 메일 인증됨<br><small>${esc(FB.orgEmail())}</small></div>` : `<div class="ovno">⚠ 기관 메일 미인증 <small>(공개 신청 불가)</small></div><button class="sb primary" onclick="openOrgVerify()">📧 기관 메일 인증하기</button>`}
           <button class="sb" onclick="openOrgDlg()">🏛 내 기관 정보${myOrg.org ? ' 수정' : ' 등록'}</button>
           ${FB.orgEmail() ? '<button class="sb" onclick="changeOrgMail()">인증 메일 바꾸기</button>' : ''}<button class="sb" onclick="pubSignOut()">로그아웃</button>`
         : `<button class="sb primary" onclick="pubSignIn()">G 구글로 로그인</button><div class="hint">양식 사용은 로그인 없이 가능<br>공개 신청·신고만 로그인 필요</div>`;
