@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.gstatic.com https://apis.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com https://www.gstatic.com; connect-src 'self' data: blob: https://cdn.jsdelivr.net https://*.googleapis.com https://www.gstatic.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com; frame-src https://*.firebaseapp.com https://*.web.app https://accounts.google.com https://apis.google.com; worker-src 'self' blob: https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>계약과 신청서류 도구모음</title>
 <style>
   * { box-sizing:border-box; }
@@ -409,6 +411,17 @@
             white-space:nowrap; pointer-events:none; max-width:160pt; overflow:hidden; text-overflow:ellipsis; opacity:.9; }
   .ef.sel { outline:2px solid #ff8a00; outline-offset:1px; z-index:3; }
   .ef.sib { outline:2px dashed #ff8a00; outline-offset:1px; }
+  .ef.carg { outline:2.5px solid #e8590c; outline-offset:1px; }
+  .ef.carg::after { content:attr(data-ca); position:absolute; right:-9pt; top:-9pt; width:15pt; height:15pt; border-radius:50%; background:#e8590c; color:#fff;
+                    font:700 9pt/15pt "Malgun Gothic",sans-serif; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.3); z-index:4; pointer-events:none; }
+  body.cpick #myPages .ef { cursor:copy; }
+  .cchips { display:flex; flex-wrap:wrap; gap:4px; margin:4px 0 6px; }
+  .cchip { display:inline-flex; align-items:center; gap:4px; background:#fff3e6; border:1px solid #f3c08a; color:#7a3d00; border-radius:12px; padding:2px 4px 2px 3px; font-size:12px; }
+  .cchip b { background:#e8590c; color:#fff; border-radius:50%; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; font-size:11px; }
+  .cchip button { border:0; background:none; color:#a0522d; cursor:pointer; font-size:12px; padding:0 2px; }
+  #calcBanner { position:fixed; left:50%; top:10px; transform:translateX(-50%); z-index:45; background:#e8590c; color:#fff; border-radius:10px; padding:8px 12px; font-size:13.5px;
+                box-shadow:0 6px 20px rgba(0,0,0,.25); display:flex; gap:10px; align-items:center; }
+  #calcBanner[hidden] { display:none; } #calcBanner button { font:inherit; font-size:13px; border:0; border-radius:7px; padding:5px 10px; background:#fff; color:#b34700; font-weight:700; cursor:pointer; }
   .ef .lk { font-weight:700; background:rgba(255,255,255,.25); border-radius:6px; padding:0 3px; }
   .marq { position:absolute; border:1.5px dashed #2f5bd3; background:rgba(47,91,211,.08); pointer-events:none; z-index:5; }
   .msel { font-size:13px; color:#fff; background:rgba(255,138,0,.25); border:1px solid rgba(255,138,0,.6); border-radius:7px; padding:7px 9px; margin:4px 0 6px; }
@@ -611,6 +624,18 @@
   .apptitle.homelink { cursor:pointer; } .apptitle.homelink:hover { color:#ffd88a; }
   @media (max-width:760px) { .hsplit { flex-direction:column; } .hleft, .hright { flex:1 1 auto; min-width:0; } .hwrap { margin:8px; padding:14px; } .hhead h1 { font-size:1.5rem; } .hdd > summary { font-size:14.5px; padding:11px 12px; } .hbox, .hsum { padding:16px; } }
   @media print { #home { display:none !important; } }
+  /* 작성할 때 여러 칸 골라 한 번에 입력 */
+  #myPages .fsel { outline:2.5px solid #e8590c !important; outline-offset:1px; box-shadow:inset 0 0 0 999px rgba(255,170,60,.22) !important; }
+  body.fselon .toast { bottom:86px; }
+  body.fmulti #myPages [data-f] { cursor:copy !important; }
+  #fselBar { position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:45; display:flex; flex-wrap:wrap; align-items:center; gap:6px; max-width:min(940px,96vw);
+             background:#1f2a44; color:#fff; border-radius:12px; padding:9px 12px; box-shadow:0 8px 28px rgba(10,20,40,.35); font-size:13.5px; }
+  #fselBar[hidden] { display:none; }
+  #fselBar b { color:#ffd88a; }
+  #fselBar input { font:inherit; font-size:14px; padding:7px 10px; border-radius:7px; border:1px solid #8ea0c8; min-width:180px; flex:1; }
+  #fselBar button { font:inherit; font-size:13px; padding:7px 10px; border-radius:7px; border:1px solid #5d6f97; background:#2c3b5e; color:#fff; cursor:pointer; white-space:nowrap; }
+  #fselBar button.pri { background:#2f5bd3; border-color:#2f5bd3; } #fselBar button:hover { filter:brightness(1.15); }
+  @media print { #fselBar { display:none !important; } #myPages .fsel { outline:none !important; background:none !important; } }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" media="print" onload="this.media='all'">
 </head>
@@ -854,6 +879,17 @@
 
 <datalist id="instNames"></datalist>
 <div class="toast" id="toast"></div>
+<div id="calcBanner" hidden>🧮 <span id="calcBannerT">계산할 칸을 문서에서 차례로 누르세요 (A, B, C … 순서) · 다시 누르면 빠짐</span><button onclick="calcPickStop()">✔ 다 골랐음</button></div>
+<div id="fselBar" hidden>
+  <span>☑ <b id="fselN">0</b>칸 선택</span>
+  <input id="fselIn" placeholder="고른 칸에 똑같이 넣을 내용" onkeydown="if(event.key==='Enter'){event.preventDefault();fselApply()}">
+  <button class="pri" onclick="fselApply()">넣기</button>
+  <button id="fselChk" onclick="fselCheck()" hidden>✔ 체크</button>
+  <button id="fselSig" onclick="fselSign()" hidden>✍ 서명 한 번에</button>
+  <button onclick="fselApply('')">🧹 비우기</button>
+  <button id="fselLink" onclick="fselLink()" hidden data-tip="고른 칸을 같은 이름으로 묶어, 다음부터는 한 곳에만 입력해도 모두 채워지게 합니다 (직접 만든 양식만)">🔗 앞으로도 함께 입력</button>
+  <button onclick="fselClear()">선택 해제</button>
+</div>
 <dialog id="pubDlg" class="pdlg">
   <div class="dh"><h3>공개 목록에 올리기</h3><button class="b" onclick="document.getElementById('pubDlg').close()">닫기</button></div>
   <div class="db">
@@ -1150,7 +1186,7 @@ const KEEP_KEY = 'ltc-kit-keep', DRAFT_KEY = 'ltc-kit-draft';
 const S_ROWS = 6;                                          // 급여 이용 신청내용 기본 줄 수
 const S = {};                                              // 모든 입력값
 const manual = new Set();                                  // 사용자가 직접 고친 자동계산 칸
-const wCount = () => Math.max(1, +S.wCount || 3);
+const wCount = () => Math.min(60, Math.max(1, Math.floor(+S.wCount) || 3));
 
 /* ---------- 값 읽기/쓰기 ---------- */
 const OPTS = {
@@ -1350,7 +1386,7 @@ function penFor(look) {                                       // 무작위면 �
 const spc = () => document.getElementById('sigPad');
 
 function refreshSigs() {
-  $$('.sig[data-sig]').forEach(d => { const v = getVal(d.dataset.sig); d.classList.toggle('signed', !!v); const im = d.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); });
+  $$('.sig[data-sig]').forEach(d => { const v = getVal(d.dataset.sig), ok = SIG_OK(v); d.classList.toggle('signed', ok); const im = d.querySelector('img'); if (ok) im.src = v; else im.removeAttribute('src'); });
 }
 function openSig(key) {                                   // 장기요양 서식
   sigKey = key; sigCb = null;
@@ -2071,7 +2107,7 @@ function apply(o) {
 function saveKeep() { try { const o = {}; KEEP.forEach(k => o[k] = getVal(k)); localStorage.setItem(KEEP_KEY, JSON.stringify(o)); } catch (e) {} }
 /* 서명·도장 그림은 브라우저에도, 저장 파일에도 남기지 않음(인쇄할 때마다 새로 서명) */
 const noSig = o => { const r = {}; Object.keys(o || {}).forEach(k => { const v = o[k]; if (!(typeof v === 'string' && v.startsWith('data:image'))) r[k] = v; }); return r; };
-function saveDraft() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(noSig(collect()))); } catch (e) {} }
+function saveDraft() { try { draftPut(DRAFT_KEY, noSig(collect()), k => k === 'rrn'); } catch (e) {} }
 function toast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on');
   clearTimeout(toast.tm); toast.tm = setTimeout(() => t.classList.remove('on'), 2600);
@@ -2313,12 +2349,157 @@ async function homeCrim(n) {
   setTimeout(() => grpGo(n), 200);
 }
 
+/* ---------- 작성할 때: 여러 칸을 골라 같은 내용을 한 번에 ---------- */
+let FSEL = new Set(), fillMulti = false, fselSkip = false;
+function fselPanelHTML() {
+  return `<button class="sb${fillMulti ? ' primary' : ''}" onclick="fillMultiToggle()" data-tip="같은 내용이 들어갈 칸을 여러 개 골라 한 번에 입력합니다.\nPC에서는 Ctrl(또는 Shift)을 누른 채 칸을 클릭해도 됩니다.">${fillMulti ? '☑ 여러 칸 골라 입력 켜짐 (끄기)' : '☐ 여러 칸 골라 한 번에 입력'}</button>`;
+}
+function fillMultiToggle() {
+  fillMulti = !fillMulti; document.body.classList.toggle('fmulti', fillMulti);
+  if (!fillMulti) fselClear(); else { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); toast('같은 내용을 넣을 칸을 차례로 누르세요. 다시 누르면 빠집니다.'); }
+  renderMyPanel(); fselPaint();
+}
+const fselField = k => CF && (CF.fields.find(g => fkey(g) === k));
+function fselPaint() {
+  $$('#myPages .fsel').forEach(e => e.classList.remove('fsel'));
+  $$('#myPages [data-f]').forEach(e => { if (FSEL.has(e.dataset.f)) e.classList.add('fsel'); });
+  const bar = document.getElementById('fselBar'); if (!bar) return;
+  bar.hidden = !(CF && cfMode === 'fill' && FSEL.size);
+  document.body.classList.toggle('fselon', !bar.hidden);
+  document.getElementById('fselN').textContent = FSEL.size;
+  const types = [...FSEL].map(k => (fselField(k) || {}).type);
+  document.getElementById('fselChk').hidden = !types.includes('check');
+  document.getElementById('fselSig').hidden = !types.includes('sign');
+  document.getElementById('fselLink').hidden = !(CF && !CF.preset && FSEL.size > 1);
+  document.getElementById('fselIn').hidden = types.every(t => t === 'check' || t === 'sign');
+}
+function fselClear() { FSEL.clear(); fselPaint(); }
+function fselToggle(k) { if (FSEL.has(k)) FSEL.delete(k); else FSEL.add(k); fselPaint(); if (FSEL.size === 1) setTimeout(() => { const i = document.getElementById('fselIn'); if (i && !i.hidden && !fillMulti) i.focus(); }, 0); }
+function fselVal(g, v) {
+  if (v === '') return '';
+  switch (g.type) {
+    case 'check': return '√';
+    case 'date': { const m = String(v).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/) || String(v).match(/^(\d{4})(\d{2})(\d{2})$/); return m ? `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}` : null; }
+    case 'birth': return birthIso(v) || v;
+    case 'time': return timeNorm(v) || null;
+    case 'money': return moneyFmt ? moneyFmt(v) : v;
+    case 'select': return (g.options || []).includes(v) || !(g.options || []).length ? v : null;
+    default: return v;
+  }
+}
+function fselApply(val) {
+  if (!CF || !FSEL.size) return;
+  const v = val != null ? val : document.getElementById('fselIn').value.trim();
+  if (val == null && !v) { toast('넣을 내용을 적으세요.'); document.getElementById('fselIn').focus(); return; }
+  let n = 0; const bad = [];
+  FSEL.forEach(k => {
+    const g = fselField(k); if (!g || g.type === 'sign' || g.type === 'calc' || g.type === 'fixed') return;
+    if (g.type === 'check' && val == null) return;                 // 체크 칸은 ‘✔ 체크’로
+    const x = fselVal(g, v); if (x === null) { bad.push(k); return; }
+    if (g.type === 'date') FV['__today:' + k] = false;
+    setFV(k, x); fieldChanged(k); n++;
+  });
+  saveFVSoon(); fselPaint();
+  toast(`${n}칸에 ${v === '' ? '비웠습니다' : `‘${v}’을(를) 넣었습니다`}.${bad.length ? ` (모양이 맞지 않아 뺀 칸: ${bad.join(', ')})` : ''}`);
+}
+function fselCheck() {
+  let n = 0; FSEL.forEach(k => { const g = fselField(k); if (g && g.type === 'check') { setFV(k, '√'); fieldChanged(k); n++; } });
+  saveFVSoon(); toast(`${n}칸에 체크했습니다.`);
+}
+function fselSign() {
+  const ks = [...FSEL].filter(k => (fselField(k) || {}).type === 'sign'); if (!ks.length) return;
+  const el = document.querySelector(`#myPages .sig[data-f="${CSS.escape(ks[0])}"]`);
+  openSigFor(`서명 (${ks.length}칸에 한 번에)`, v => { ks.forEach(k => setFV(k, v)); saveFVSoon(); }, el);
+}
+function fselLink() {
+  if (!CF || CF.preset || FSEL.size < 2) return;
+  const ks = [...FSEL], n = (prompt(`고른 ${ks.length}칸을 같은 이름으로 묶습니다.\n묶은 칸은 앞으로 한 곳에만 입력해도 모두 채워집니다.\n\n묶을 이름:`, ks.find(k => !/^c[a-z0-9]{8,}$/.test(k)) || '') || '').trim();
+  if (!n) return;
+  const v = ks.map(k => FV[k]).find(x => x != null && String(x).trim() !== '');
+  CF.fields.forEach(g => { if (ks.includes(fkey(g))) { g.name = n; if (g.part) { delete g.part; g.type = 'text'; } } });
+  if (v != null) FV[n] = v;
+  saveForms(); saveFVSoon(); FSEL.clear(); renderFields(); fselPaint();
+  toast(`${ks.length}칸을 ‘${n}’(으)로 묶었습니다. 이제 한 곳에 입력하면 모두 채워집니다.`);
+}
+document.addEventListener('pointerdown', ev => {                 // 칸을 고를 때는 입력 커서가 들어가지 않게
+  fselSkip = false;
+  if (!CF || cfMode !== 'fill') return;
+  const e = ev.target.closest && ev.target.closest('#myPages [data-f]'); if (!e) return;
+  if (!(fillMulti || ev.ctrlKey || ev.metaKey || ev.shiftKey)) { if (FSEL.size && !ev.target.closest('#fselBar')) fselClear(); return; }
+  ev.preventDefault(); fselSkip = true; fselToggle(e.dataset.f);
+}, true);
+document.addEventListener('click', ev => { if (fselSkip) { ev.preventDefault(); ev.stopPropagation(); fselSkip = false; } }, true);
+document.addEventListener('focusin', ev => { if (fillMulti && ev.target.closest && ev.target.closest('#myPages [data-f]')) ev.target.blur(); }, true);
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && FSEL.size) fselClear(); if (ev.key === 'Escape' && CALC_PICK) calcPickStop(); });
+{ const _rf = renderFields; renderFields = function () { const r = _rf.apply(this, arguments); if (cfMode !== 'fill') FSEL.clear(); fselPaint(); return r; }; }
+{ const _of = openForm; openForm = function () { FSEL.clear(); fselPaint(); if (CALC_PICK) calcPickStop(); return _of.apply(this, arguments); }; }
+
 /* ---------- 시작 ---------- */
 /* ---------- 장기요양기관 프리셋 ---------- */
 const INST_KEY = 'ltc-kit-insts';
 let insts = [];
 try { insts = JSON.parse(localStorage.getItem(INST_KEY) || '[]'); } catch (e) {}
-const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const esc = t => String(t ?? '').replace(/[&<>"'`]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;', '`':'&#96;' }[c]));
+/* ---------- 보안: 밖에서 들어온 양식(파일·서버·서식 번호)은 쓰기 전에 모양을 검사 ---------- */
+const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/;
+const SIG_OK = v => typeof v === 'string' && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(v);
+const THUMB_OK = v => typeof v === 'string' && v.length < 400000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v);
+const numIn = (v, lo, hi, d) => { const n = +v; return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+const FIELD_ENUM = { align: ['left', 'center', 'right'], part: ['y', 'm', 'd'], cfmt: ['n', 'money'] };
+function normFields(arr, np) {
+  const ids = new Set();
+  return (Array.isArray(arr) ? arr : []).slice(0, 3000).filter(f => f && typeof f === 'object' && !Array.isArray(f)).map(f0 => {
+    const f = {};
+    Object.entries(f0).forEach(([k, v]) => {
+      if (/^(__proto__|constructor|prototype)$/.test(k)) return;
+      if (v === null || ['string', 'number', 'boolean'].includes(typeof v)) f[k] = typeof v === 'string' ? v.slice(0, 2000) : v;
+      else if (Array.isArray(v) && ['options', 'args', 'pick'].includes(k)) f[k] = v.slice(0, 200).filter(x => ['string', 'number'].includes(typeof x)).map(x => String(x).slice(0, 200));
+    });
+    f.id = SAFE_ID.test(f.id) && !ids.has(f.id) ? f.id : uid('c'); ids.add(f.id);
+    f.page = Math.floor(numIn(f.page, 0, Math.max(0, np - 1), 0));
+    ['x', 'y'].forEach(k => f[k] = numIn(f[k], -50, 5000, 0)); ['w', 'h'].forEach(k => f[k] = numIn(f[k], 1, 5000, 10));
+    f.fs = numIn(f.fs, 4, 72, 11); if ('dec' in f) f.dec = Math.floor(numIn(f.dec, 0, 6, 0));
+    if (!TYPES[f.type]) f.type = 'text';
+    Object.entries(FIELD_ENUM).forEach(([k, ok]) => { if (k in f && !ok.includes(f[k])) delete f[k]; });
+    if ('fmt' in f && !DATE_FMTS[f.fmt]) delete f.fmt; if ('mfmt' in f && !MONEY_FMTS[f.mfmt]) delete f.mfmt;
+    if ('tfmt' in f && !TIME_FMTS[f.tfmt]) delete f.tfmt; if ('bfmt' in f && !BIRTH_FMTS[f.bfmt]) delete f.bfmt;
+    if ('op' in f && !CALC_OPS[f.op]) delete f.op; if ('level' in f && !ADDR_LEVELS[f.level]) delete f.level;
+    if (typeof f.name !== 'string') f.name = f.name == null ? '' : String(f.name); f.name = f.name.slice(0, 80);
+    return f;
+  });
+}
+/* ext: 파일·서버에서 들어온 양식 → 내장 서식 흉내·서버 정보 등은 버림 */
+function normForm(t, ext) {
+  if (!t || typeof t !== 'object' || typeof t.pdf !== 'string' || !/^[A-Za-z0-9+/=]*$/.test(t.pdf.slice(0, 200000))) return null;
+  const pages = (Array.isArray(t.pages) ? t.pages : []).slice(0, 100).map(p => ({ w: numIn(p && p.w, 10, 5000, 595), h: numIn(p && p.h, 10, 5000, 842) }));
+  if (!pages.length) return null;
+  const o = Object.assign({}, t, { pages, fields: normFields(t.fields, pages.length) });
+  ['preset', 'fw', 'pdfUrl', 'groups', 'lc', 'noStamp', 'np'].forEach(k => delete o[k]);
+  if (ext) ['code', 'codeReg', 'codeSig', 'pub', 'source'].forEach(k => delete o[k]);
+  if (!SAFE_ID.test(o.id) || PRESETS.some(p => p.id === o.id) || ['ltc'].includes(o.id)) o.id = uid('f');
+  o.title = String(o.title || '양식').slice(0, 200);
+  if (o.code && !CODE_RE.test(o.code)) delete o.code;
+  if (o.pub && !(o.pub && SAFE_ID.test(o.pub.id))) delete o.pub;
+  if (o.source) { const sp = o.source; o.source = {}; if (SAFE_ID.test(sp.pubId)) o.source.pubId = sp.pubId; if (CODE_RE.test(sp.code || '')) o.source.code = sp.code; }
+  if (o.pubDraft) { const d = o.pubDraft; o.pubDraft = {}; ['category', 'desc', 'org', 'dept', 'tel'].forEach(k => { if (typeof d[k] === 'string') o.pubDraft[k] = d[k].slice(0, 300); }); }
+  return o;
+}
+/* 입력값(작성 내용)에 섞여 들어온 서명 아닌 그림 주소 등은 버림 */
+const cleanVals = o => { const r = {}; Object.entries(o || {}).forEach(([k, v]) => { if (/^(__proto__|constructor|prototype)$/.test(k)) return;
+  if (v == null || ['string', 'number', 'boolean'].includes(typeof v)) r[k] = typeof v === 'string' ? v.slice(0, 5000) : v; }); return r; };
+/* 주민등록번호 등은 이 탭(세션)에만 보관: 브라우저를 닫으면 지워짐 (공용 PC 보호) */
+const SENS_RE = /주민등록번호|외국인등록번호|여권번호|주민번호|^rrn$/;
+const sensOf = id => { const f = id && id !== 'ltc' ? formById(id) : null; return k => SENS_RE.test(k) || !!(f && f.fields && f.fields.some(g => fkey(g) === k && g.type === 'rrn')); };
+function draftPut(key, obj, isSens) {
+  const keep = {}, sens = {};
+  Object.entries(obj || {}).forEach(([k, v]) => { (isSens(k) && v != null && v !== '' ? sens : keep)[k] = v; });
+  localStorage.setItem(key, JSON.stringify(keep));
+  try { Object.keys(sens).length ? sessionStorage.setItem('kit-s:' + key, JSON.stringify(sens)) : sessionStorage.removeItem('kit-s:' + key); } catch (e) {}
+}
+function draftGet(key) {
+  let a = null, b = {}; try { a = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) {} try { b = JSON.parse(sessionStorage.getItem('kit-s:' + key) || '{}'); } catch (e) {}
+  return a || Object.keys(b).length ? cleanVals(Object.assign({}, a || {}, b)) : null;
+}
 function saveInsts() {
   insts = insts.filter(o => (o.name || '').trim() || (o.code || '').trim());
   try { localStorage.setItem(INST_KEY, JSON.stringify(insts)); } catch (e) {}
@@ -2421,7 +2602,7 @@ const b64ToBytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 function bytesToB64(bytes) { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
 async function openPdf(bytes) {
   const lib = await loadPdfJs();
-  return lib.getDocument({ data: bytes, cMapUrl: PDFJS_BASE + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS_BASE + 'standard_fonts/', wasmUrl: PDFJS_BASE + 'wasm/' }).promise;
+  return lib.getDocument({ data: bytes, isEvalSupported: false, cMapUrl: PDFJS_BASE + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS_BASE + 'standard_fonts/', wasmUrl: PDFJS_BASE + 'wasm/' }).promise;
 }
 
 const FORMS_KEY = 'kit-forms', CUR_FORM_KEY = 'kit-cur-form';
@@ -2575,8 +2756,8 @@ function saveForms() {
 let tForms, tFV;
 const saveFormsSoon = () => { clearTimeout(tForms); tForms = setTimeout(saveForms, 400); };
 const draftKey = id => 'kit-fdraft-' + id;
-const flushFV = () => { clearTimeout(tFV); try { CF && localStorage.setItem(draftKey(CF.id), JSON.stringify(noSig(FV))); } catch (e) {} };
-const saveFVSoon = () => { clearTimeout(tFV); tFV = setTimeout(() => { try { CF && localStorage.setItem(draftKey(CF.id), JSON.stringify(noSig(FV))); } catch (e) {} }, 300); };
+const flushFV = () => { clearTimeout(tFV); try { CF && draftPut(draftKey(CF.id), noSig(FV), sensOf(CF.id)); } catch (e) {} };
+const saveFVSoon = () => { clearTimeout(tFV); tFV = setTimeout(() => { try { CF && draftPut(draftKey(CF.id), noSig(FV), sensOf(CF.id)); } catch (e) {} }, 300); };
 
 /* ---------- 목록·패널 ---------- */
 function refreshMyList() {
@@ -2597,6 +2778,7 @@ function renderMyPanel() {
     document.getElementById(PX_ + 'Badge').textContent = '✏️ 작성'; document.getElementById(PX_ + 'Badge').className = 'mbadge fill';
     lp.innerHTML = `
       ${FILE_ROWS()}
+      ${fselPanelHTML()}
       ${false ? `<div class="pt">번역</div><button class="sb" onclick="openTranslate()">🌐 번역 확인 (고용주 ↔ 근로자)</button><div class="hint">적은 내용을 근로자 나라 말로 옮기고, 서명 전에 서로 묻고 답할 수 있습니다.</div>` : ''}
       ${CF.groups ? grpPanelHTML() : ''}
       ${comPanelHTML('cf')}
@@ -2618,10 +2800,11 @@ function renderMyPanel() {
     <div class="seg"><button class="${cfMode === 'fill' ? 'on' : ''}" onclick="setMode('fill')">✏️ 작성</button><button class="${cfMode === 'edit' ? 'on' : ''}" onclick="setMode('edit')">🛠 칸 편집</button></div>
     ${cfMode === 'fill' ? `
       ${FILE_ROWS()}
+      ${fselPanelHTML()}
       ${comPanelHTML('cf')}
       ${codeInfoHTML('cf')}
       <div class="pt">양식 공유</div>
-      <button class="sb" onclick="openPublish()">🌐 공개 목록에 올리기</button>
+      ${pubBtnsHTML()}
       ${pubStatusLine()}
       <button class="sb" onclick="exportForm()" data-tip="양식(원본 PDF + 칸 배치)을 .json 파일로 보관합니다.\n다른 컴퓨터에서 ‘📂 양식·작성 파일 열기’로 가져오면 그대로 쓸 수 있습니다.\n칸을 고친 내용은 이 브라우저에 자동 저장되므로, 백업할 때만 누르면 됩니다.">📤 양식 파일로 내보내기</button>
       <div class="hint keep autosv">💾 양식은 고칠 때마다 자동 저장됩니다 (이 브라우저)</div>`
@@ -2636,7 +2819,7 @@ function renderMyPanel() {
       <div class="pt">양식</div>
       <button class="sb" onclick="redetect()">🔍 자동 인식 다시 하기</button>
       <button class="sb" onclick="renameForm()">✎ 양식 이름 바꾸기</button>
-      <button class="sb" onclick="openPublish()">🌐 공개 목록에 올리기</button>
+      ${pubBtnsHTML()}
       ${pubStatusLine()}
       <button class="sb" onclick="exportForm()" data-tip="양식(원본 PDF + 칸 배치)을 .json 파일로 보관합니다.\n다른 컴퓨터에서 ‘📂 양식·작성 파일 열기’로 가져오면 그대로 쓸 수 있습니다.\n칸을 고친 내용은 이 브라우저에 자동 저장되므로, 백업할 때만 누르면 됩니다.">📤 양식 파일로 내보내기</button>
       <button class="sb" onclick="deleteForm()">🗑 이 양식 삭제</button>`}`;
@@ -2648,6 +2831,7 @@ function setMode(m) {
   if (!CF || (CF.preset && m === 'edit')) return;
   closePickPop();
   if (cfMode === 'edit' && m === 'fill') setTimeout(() => toast('고친 양식은 자동 저장되었습니다. 백업하려면 ‘📤 양식 파일로 내보내기’'), 50);
+  if (CALC_PICK) calcPickStop();
   cfMode = m; cfSel = null; cfSelSet = new Set(); closeDatePop(); hideTip(); saveForms(); renderMyPanel(); renderFields();
 }
 
@@ -2662,8 +2846,8 @@ async function openForm(id, mode = 'fill', doc = null) {
   flushFV();
   if (f.preset) mode = 'fill';
   CF = f; cfMode = mode; cfSel = null; cfSelSet = new Set(); cfDoc = null;
-  try { FV = noSig(JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}')); } catch (e) { FV = {}; }
-  try { localStorage.setItem(draftKey(f.id), JSON.stringify(FV)); } catch (e) {}
+  try { FV = noSig(draftGet(draftKey(f.id)) || {}); } catch (e) { FV = {}; }
+  try { draftPut(draftKey(f.id), FV, sensOf(f.id)); } catch (e) {}
   if (mergeDates(f.fields)) saveForms();                                     // 예전 양식: 년·월·일 칸을 날짜 칸 하나로
   PTXT = [];
   applyDefaults();
@@ -2673,7 +2857,7 @@ async function openForm(id, mode = 'fill', doc = null) {
   try { localStorage.setItem(CUR_FORM_KEY, f.id); if (f.fw) localStorage.setItem(FW_LAST, f.id); } catch (e) {}
   placePages(f.preset || 'my'); showModule(f.preset || 'my');
   const wrap = myPages();
-  wrap.innerHTML = f.pages.map((p, i) => `<div class="page show cpage" data-pg="${i}" style="width:${p.w}pt;height:${p.h}pt;--h:${p.h}pt"><canvas class="bgc"></canvas><div class="flayer"></div></div>`).join('');
+  wrap.innerHTML = f.pages.map((p, i) => `<div class="page show cpage" data-pg="${i}" style="width:${+p.w || 595}pt;height:${+p.h || 842}pt;--h:${+p.h || 842}pt"><canvas class="bgc"></canvas><div class="flayer"></div></div>`).join('');
   document.getElementById('myEmpty').style.display = 'none'; wrap.style.display = '';
   $$('.fwmsg').forEach(e => e.remove());
   refreshMyList(); refreshLabor(); renderMyPanel(); renderFields(); ZM.mode = 'w'; fitPages();
@@ -2812,10 +2996,10 @@ async function fwSwitch(id) {
   if (!CF || CF.id === id) return;
   flushFV();
   const cur = noSig(FV); Object.keys(cur).forEach(k => { if (/ \(번역\)$/.test(k)) delete cur[k]; }); let dst = {};
-  try { dst = JSON.parse(localStorage.getItem(draftKey(id)) || '{}'); } catch (e) {}
+  dst = draftGet(draftKey(id)) || {};
   const filled = Object.keys(dst).some(k => !k.startsWith('__') && String(dst[k] ?? '').trim());
   if (!filled || confirm('새로 고른 나라 서식에 전에 쓰던 내용이 있습니다.\n지금 화면의 내용으로 바꿔 넣을까요? (취소하면 그 서식에 저장된 내용을 엽니다)')) {
-    try { localStorage.setItem(draftKey(id), JSON.stringify(cur)); } catch (e) {}
+    try { draftPut(draftKey(id), cur, sensOf(id)); } catch (e) {}
   }
   try { localStorage.setItem(FW_LAST, id); } catch (e) {}
   await openForm(id, 'fill');
@@ -2850,7 +3034,7 @@ async function copyPresetToMine() {
   if (!src.pdf) { try { src.pdf = bytesToB64(await formBytes(src)); } catch (e) { alert('원본 서식 PDF를 불러오지 못했습니다.'); return; } }
   const n = JSON.parse(JSON.stringify({ title: src.title, pdf: src.pdf, pages: src.pages, fields: src.fields }));
   n.id = uid('f'); n.title = src.title + ' (내 양식)'; n.createdAt = new Date().toISOString();
-  try { localStorage.setItem(draftKey(n.id), JSON.stringify(noSig(FV))); } catch (e) {}
+  try { draftPut(draftKey(n.id), noSig(FV), sensOf(n.id)); } catch (e) {}
   forms.push(n); saveForms(); closeForm(); placePages('my'); myPages().style.display = '';
   openForm(n.id, 'edit'); toast('‘4. 직접 만든 양식’에 복사했습니다. 칸을 자유롭게 고칠 수 있습니다.');
 }
@@ -3150,7 +3334,7 @@ async function detectFields(doc, pages) {
 }
 
 /* ---------- 칸 그리기 ---------- */
-const fStyle = f => `left:${f.x}pt;top:${f.y}pt;width:${f.w}pt;height:${f.h}pt`;
+const fStyle = f => `left:${+f.x || 0}pt;top:${+f.y || 0}pt;width:${+f.w || 0}pt;height:${+f.h || 0}pt`;
 let cfSelSet = new Set(), multiMode = false;
 const selFields = () => CF ? CF.fields.filter(f => cfSelSet.has(f.id)) : [];
 const groupOf = k => CF.fields.filter(f => fkey(f) === k);
@@ -3251,7 +3435,7 @@ function fillHTML(f) {
     case 'addrtitle': return `<input class="in cf${mk}" data-f="${k}" data-at="1" value="${esc(v)}" placeholder="🏛 ${esc(ADDR_LEVELS[f.level || 'sgg'])} · 주소를 넣으면 자동" title="주소 칸을 따라 자동으로 바뀝니다. 직접 고치면 그대로 둡니다(지우면 다시 자동)" style="${st}">`;
     case 'multi':  return `<textarea class="in cf ml${mk}" data-f="${k}" spellcheck="false" style="${st}">${esc(v)}</textarea>`;
     case 'check':  return `<span class="chk cf${mk}${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
-    case 'sign':   return `<div class="sig cf${mk}${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
+    case 'sign':   return `<div class="sig cf${mk}${SIG_OK(v) ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${SIG_OK(v) ? ` src="${v}"` : ''}></div>`;
     case 'rrn': case 'birth': case 'bizno': case 'tel': case 'money': case 'time': case 'calc':
       return `<input class="in cf${mk}${f.type === 'calc' ? ' calc' : ''}" data-f="${k}" data-fid="${esc(f.id)}" data-fmtk="${f.type}" value="${esc(fmtShow(f, v))}"${f.type === 'time' ? ' readonly placeholder="🕒 시간 선택" title="눌러서 시·분을 고릅니다"' : ''}${f.type === 'calc' ? ' readonly tabindex="-1" title="다른 칸을 따라 자동 계산됩니다"' : ''}${/^(rrn|bizno|tel)$/.test(f.type) ? ' inputmode="numeric"' : ''} autocomplete="off" style="${st}">`;
     case 'select': { const ops = f.options || []; return `<select class="in cf${mk}" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
@@ -3450,10 +3634,13 @@ const CODE_PERSONAL = /근로자|생년|주민|본국|외국인|수급|신청인
 const CODE_PERSON_NAME = /근로자|생년|생일|주민|본국|외국인|수급|신청인|대상자|친권자|보호자|이용자|입소자|환자|연소|후견|가족|배우자|자녀|계좌|여권|카드|건강|질병|장애|진단|등급|인정번호|병명|종교|외국인등록/;
 const CODE_PERSON_LTC = /^(name|rrn|appName|appBirth|appRel|appTel|appAddr|addr|tel|certNo|grade|consentName|rcptNo)$/;
 const CODE_ORG_NAME = /대표|사업주|사업체|업체|회사|기관|사용자|담당|단체장|법인/;
+const CODE_ORG_KEYS = () => new Set([...COM_F.flatMap(c => c.a), ...COM_X]);   // 기본으로 체크할 칸: 기관·사업체 정보만
 function codeBlocked(k, label, v, ctx) {
   if (ctx !== 'ltc' && CF && CF.fields && CF.fields.some(g => fkey(g) === k && /^(rrn|birth)$/.test(g.type))) return '개인정보';
   const s = String(v ?? ''), n = String(label || k);
-  if (/\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\s*[-–]?\s*[1-8]\d{6}/.test(s.replace(/\s/g, '').length >= 13 ? s : '')) return '주민·외국인등록번호';
+  const s2 = s.normalize('NFKC').replace(/[\s._/‐‑‒–—−-]/g, '');
+  if (/\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[1-8]\d{6}/.test(s2)) return '주민·외국인등록번호';
+  if (/여권/.test(n) || /^[A-Z]{1,2}\d{7,8}$/.test(s2) && /여권|passport/i.test(k + n)) return '여권번호';
   if (/(?:\d{4}[- ]?){3}\d{4}/.test(s)) return '카드번호 형식';
   if (ctx === 'ltc' && CODE_PERSON_LTC.test(k)) return '개인정보';
   if (CODE_PERSON_NAME.test(n)) return '개인정보';
@@ -3500,12 +3687,22 @@ async function codeAutoReg(f) {                               // 로그인돼 �
   if (f.codeReg && (pub || f.source && f.source.code || f.codeSig === sig)) return;
   try { await FB.init(); } catch (e) { return; }
   if (!FB.user) return;
+  if (!pub) {                                                    // 직접 만든 양식의 PDF를 서버에 올리기 전에 한 번 묻기
+    let ok0 = null; try { ok0 = localStorage.getItem('kit-code-upload-ok'); } catch (e) {}
+    if (ok0 === 'no') return;
+    if (ok0 !== 'yes') {
+      if (codeAutoReg.asked) return; codeAutoReg.asked = true;
+      const y = confirm('직접 만든 양식에 ‘서식 번호’를 붙여 다른 컴퓨터에서도 번호로 열 수 있게 할까요?\n\n빈 서식 PDF와 칸 배치만 서버에 올라가고, 입력한 내용·서명은 올라가지 않습니다.\n(개인정보가 적힌 PDF로 만든 양식이면 ‘취소’를 누르세요)');
+      try { localStorage.setItem('kit-code-upload-ok', y ? 'yes' : 'no'); } catch (e) {}
+      if (!y) return;
+    }
+  }
   codeAutoReg.busy = true;
   try {
     const data = { f: pub ? 'pub:' + pub : 'c', n: String(f.title || '').slice(0, 100), m: '', v: {} }; let pdf = null;
     if (!pub) { data.pages = f.pages; data.fields = f.fields; pdf = f.pdf || bytesToB64(await formBytes(f)); }
     let ok = await FB.saveCode(f.code, data, pdf, !!f.codeReg);
-    if (!ok && !f.codeReg) { const d = await FB.getCode(f.code); if (d && d.u === FB.user.uid) ok = await FB.saveCode(f.code, data, pdf, true); else ok = !!(pub && d); }
+    if (!ok && !f.codeReg) { const d = await FB.getCode(f.code); if (d && d.u === FB.user.uid) ok = await FB.saveCode(f.code, data, pdf, true); else ok = !!(pub && d && d.f === 'pub:' + pub && !d.fields && !d.pages); }
     if (ok) { f.codeReg = true; f.codeSig = sig; saveForms(); if (CF === f) renderMyPanel(); }
   } catch (e) {} finally { codeAutoReg.busy = false; }
 }
@@ -3678,7 +3875,7 @@ function codeFieldRows() {                                    // 지금 채워�
     const k = fkey(g); if (!k || seen.has(k)) return; seen.add(k);
     const v = FV[k]; if (v == null || String(v).trim() === '') return;
     const block = codeBlocked(k, k, v, '');
-    rows.push({ k, v: String(v), block, on: !block && !CODE_PERSONAL.test(k) && g.type !== 'date' });
+    rows.push({ k, v: String(v), block, on: !block && !CODE_PERSONAL.test(k) && g.type !== 'date' && (CODE_ORG_KEYS().has(k) || /기관|사업|업체|회사|대표|상호|소재지|단체|시설/.test(k)) });
   });
   return rows;
 }
@@ -3760,7 +3957,8 @@ async function codeOpen(raw) {
   let d;
   try { d = await FB.getCode(code); } catch (e) { alert('서버에 연결하지 못했습니다.\n' + (e.message || e)); return; }
   if (!d) { alert(`${codeFmt(code)} 번호를 찾을 수 없습니다.\n번호를 다시 확인하세요.`); return; }
-  d.v = Object.fromEntries(Object.entries(d.v || {}).filter(([k, v]) => !(typeof v === 'string' && v.startsWith('data:image'))
+  if (typeof d.f !== 'string') d.f = 'c';
+  d.v = Object.fromEntries(Object.entries(cleanVals(d.v)).filter(([k, v]) => !(typeof v === 'string' && v.startsWith('data:image'))
     && !codeBlocked(k, d.f === 'ltc' ? ltcLabel(k) : k, v, d.f === 'ltc' ? 'ltc' : '')));
   if (d.f === 'ltc') {                                         // 장기요양기관 신청서류
     showModule('ltc'); showPage('p1');
@@ -3776,24 +3974,26 @@ async function codeOpen(raw) {
     if (d.f.startsWith('p:')) { id = d.f.slice(2); if (!formById(id)) throw new Error('이 도구모음에 없는 서식입니다. 최신 버전인지 확인하세요.'); }
     else if (d.f.startsWith('pub:')) {
       const pid = d.f.slice(4); id = 'pub_' + pid;
+      if (!SAFE_ID.test(pid)) throw new Error('잘못된 서식 번호입니다.');
       if (!formById(id)) {
-        const body = await FB.getBody(pid);
-        forms.push({ id, title: d.n || '공개 양식', createdAt: new Date().toISOString(), pdf: body.pdf, pages: body.pages, fields: body.fields, source: { pubId: pid } });
+        const body = await FB.getBody(pid), t = normForm({ id, title: d.n || '공개 양식', createdAt: new Date().toISOString(), pdf: body.pdf, pages: body.pages, fields: body.fields }, false);
+        if (!t) throw new Error('양식 내용이 올바르지 않습니다.'); t.source = { pubId: pid }; forms.push(t);
         saveForms(); refreshMyList();
       }
     } else {
       id = 'code_' + code;
       const pdf = await FB.getCodeBody(code);
-      const t = { id, title: d.n || '서식', createdAt: new Date().toISOString(), pdf, pages: d.pages, fields: d.fields, source: { code } };
+      const t = normForm({ id, title: d.n || '서식', createdAt: new Date().toISOString(), pdf, pages: d.pages, fields: d.fields }, false);
+      if (!t) throw new Error('서식 내용이 올바르지 않습니다.'); t.source = { code };
       const i = forms.findIndex(f => f.id === id); if (i >= 0) forms[i] = t; else forms.push(t);
       saveForms(); refreshMyList();
     }
   } catch (e) { alert('서식을 열지 못했습니다.\n' + (e.message || e)); return; }
-  let cur = {}; try { cur = JSON.parse(localStorage.getItem(draftKey(id)) || '{}'); } catch (e) {}
+  const cur = draftGet(draftKey(id)) || {};
   const busy = Object.keys(cur).some(k => !k.startsWith('__') && String(cur[k] ?? '').trim());
   if (busy && cur['__code'] !== code && !confirm(`‘${d.n}’ 서식에 작성 중인 내용이 있습니다.\n지우고 번호의 기본 내용으로 새로 작성할까요?`)) return;
   if (CF && CF.id === id) { FV = {}; }
-  try { localStorage.setItem(draftKey(id), JSON.stringify(Object.assign({}, d.v, { __code: code }))); } catch (e) {}
+  try { draftPut(draftKey(id), Object.assign({}, d.v, { __code: code }), sensOf(id)); } catch (e) {}
   const ci = document.getElementById('codeIn'); if (ci) ci.value = codeFmt(code);
   await openForm(id, 'fill');
   toast(`서식 번호 ${codeFmt(code)}${d.m ? ` (${d.m})` : ''}의 기본 내용을 불러왔습니다.`);
@@ -4201,6 +4401,8 @@ function markSel() {
     const f = CF.fields.find(x => x.id === e.dataset.id);
     e.classList.toggle('sel', cfSelSet.has(e.dataset.id));
     e.classList.toggle('sib', !!(k && f && fkey(f) === k && !cfSelSet.has(f.id)));
+    const ai = one && one.type === 'calc' && f ? (one.args || []).indexOf(fkey(f)) : -1;
+    e.classList.toggle('carg', ai >= 0); if (ai >= 0) e.dataset.ca = String.fromCharCode(65 + ai); else delete e.dataset.ca;
   });
 }
 
@@ -4248,6 +4450,7 @@ function renderProps() {
     <label class="pl">이름 <small>이름이 같은 칸은 함께 입력됩니다</small></label>
     <input class="sin" id="pName" value="${esc(f.name || '')}" placeholder="예) 성명">
     ${grpInfo}
+    <button class="sb" onclick="linkStart()" data-tip="이 칸과 똑같은 내용이 들어갈 칸을 더 골라 하나로 묶습니다.\n묶은 칸은 작성할 때 한 곳에만 입력하면 모두 채워집니다.">🔗 같은 내용 칸 더 골라 묶기</button>
     <label class="pl">종류</label>
     <select class="ssel" id="pType">${TYPE_MENU.map(([k, v]) => `<option value="${k}"${k === f.type ? ' selected' : ''}>${v}</option>`).join('')}</select>
     <div class="prow">
@@ -4279,7 +4482,9 @@ function renderProps() {
     </div>` : ''}
     ${f.type === 'calc' ? `<label class="pl">계산</label><select class="ssel" id="pOp">${Object.entries(CALC_OPS).map(([k, v]) => `<option value="${k}"${k === (f.op || 'add') ? ' selected' : ''}>${v}</option>`).join('')}</select>
       <label class="pl">계산할 칸 <small>고른 순서가 A, B, C …</small></label>
-      <div class="calcargs" id="pArgs">${calcArgsHTML(f)}</div>
+      <div class="cchips">${(f.args || []).length ? (f.args || []).map((k, i) => `<span class="cchip"><b>${String.fromCharCode(65 + i)}</b>${esc(calcArgName(k))}<button title="빼기" onclick="calcArgDel(${i})">✕</button></span>`).join('') : '<span class="hint keep" style="margin:0">아직 고른 칸이 없습니다.</span>'}</div>
+      <button class="sb${CALC_PICK === f.id ? ' primary' : ''}" onclick="${CALC_PICK === f.id ? 'calcPickStop()' : 'calcPickStart()'}">${CALC_PICK === f.id ? '✔ 다 골랐음 (문서에서 고르기 끝내기)' : '📍 문서에서 칸 눌러 고르기'}</button>
+      <details class="cmore"><summary class="hint" style="cursor:pointer">이름 목록에서 고르기</summary><div class="calcargs" id="pArgs">${calcArgsHTML(f)}</div></details>
       <div class="prow">
         <div><label class="pl">숫자 <small>${f.op === 'pctof' ? '○%' : f.op === 'pct' ? '나눌 수(B 대신)' : '함께 계산할 수'}</small></label><input class="sin" id="pK" value="${esc(f.kconst ?? '')}" placeholder="${f.op === 'pctof' ? '예) 10' : '없으면 비워 두기'}"></div>
         <div><label class="pl">소수점</label><select class="ssel" id="pDec">${[0, 1, 2, 3].map(d => `<option value="${d}"${d === (+f.dec || 0) ? ' selected' : ''}>${d ? d + '자리' : '없음'}</option>`).join('')}</select></div>
@@ -4338,16 +4543,40 @@ function calcArgsHTML(f) {                                   // 함수 칸: 계�
   const args = f.args || [];
   return cand.map(k => { const i = args.indexOf(k); return `<label class="sopt"><input type="checkbox" value="${esc(k)}"${i >= 0 ? ` checked data-ord="${i + 1}"` : ''}> <b class="ca">${i >= 0 ? String.fromCharCode(65 + i) : ''}</b> ${esc(k)}</label>`; }).join('');
 }
+let CALC_PICK = null;
+const calcArgName = k => { const g = CF && CF.fields.find(o => fkey(o) === k); return g ? (g.name || `이름 없는 칸(${g.page + 1}쪽)`) : k; };
+function calcPickStart() {
+  const f = selFields()[0]; if (!f || f.type !== 'calc') return;
+  CALC_PICK = f.id; document.body.classList.add('cpick'); document.getElementById('calcBanner').hidden = false; renderProps(); markSel();
+}
+function calcPickStop() {
+  CALC_PICK = null; document.body.classList.remove('cpick'); const b = document.getElementById('calcBanner'); if (b) b.hidden = true;
+  if (CF) { renderProps(); markSel(); }
+}
+function calcArgToggle(f, g) {
+  if (!/^(text|money|calc|select|multi)$/.test(g.type)) { toast('숫자를 적는 칸(글자·금액·함수·선택 목록)만 고를 수 있습니다.'); return; }
+  const k = fkey(g); if (k === fkey(f)) return;
+  f.args = f.args || [];
+  const i = f.args.indexOf(k); if (i >= 0) f.args.splice(i, 1); else f.args.push(k);
+  saveFormsSoon(); refreshBox(f); renderProps(); markSel();
+  document.getElementById('calcBannerT').textContent = f.args.length ? `고른 칸: ${f.args.map((x, j) => String.fromCharCode(65 + j) + ' ' + calcArgName(x)).join(', ')} · 다시 누르면 빠짐` : '계산할 칸을 문서에서 차례로 누르세요 (A, B, C … 순서)';
+}
+function calcArgDel(i) { const f = selFields()[0]; if (!f || !f.args) return; f.args = f.args.filter((x, j) => j !== +i); saveFormsSoon(); refreshBox(f); renderProps(); markSel(); }
 function calcArgsLabel() {
   const sel = selFields()[0]; if (!sel) return;
   $$('#pArgs label').forEach(l => { const c = l.querySelector('input'), i = (sel.args || []).indexOf(c.value); l.querySelector('.ca').textContent = i >= 0 ? String.fromCharCode(65 + i) : ''; });
+}
+function linkStart() {
+  multiMode = true; renderMyPanel(); renderProps();
+  toast('같은 내용이 들어갈 칸을 더 누르세요(쪽이 달라도 됨). 다 고르면 오른쪽 ‘🔗 같은 이름으로 묶기’를 누릅니다.');
 }
 function linkSel() {
   const n = (document.getElementById('mName').value || '').trim(); if (!n) { alert('묶을 이름을 적어 주세요.'); return; }
   const sel = selFields(), clash = CF.fields.some(f => !cfSelSet.has(f.id) && fkey(f) === n);
   if (clash && !confirm(`‘${n}’ 이름의 칸이 이미 있습니다. 그 칸들과도 함께 묶을까요?`)) return;
-  sel.forEach(f => { f.name = n; delete f.part; if (f.type === 'date') f.type = 'text'; });
-  saveFormsSoon(); renderFields(); toast(`${sel.length}개 칸을 ‘${n}’(으)로 묶었습니다. 한 곳에 입력하면 모두 채워집니다.`);
+  sel.forEach(f => { f.name = n; if (f.part) { delete f.part; f.type = 'text'; } });
+  multiMode = false;
+  saveFormsSoon(); renderFields(); renderMyPanel(); toast(`${sel.length}개 칸을 ‘${n}’(으)로 묶었습니다. 한 곳에 입력하면 모두 채워집니다.`);
 }
 function dateSel() {
   const sel = selFields().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);
@@ -4457,6 +4686,12 @@ function setupEditor() {
     const pageEl = ev.target.closest('.cpage'); if (!pageEl) return;
     ev.preventDefault(); document.activeElement && document.activeElement.blur && document.activeElement.blur();
     const [px, py] = ptOf(pageEl, ev), box = ev.target.closest('.ef'), plus = ev.shiftKey || ev.ctrlKey || ev.metaKey || multiMode;
+    if (CALC_PICK) {
+      const cf = CF.fields.find(x => x.id === CALC_PICK); if (!cf) { calcPickStop(); return; }
+      const g = box && CF.fields.find(x => x.id === box.dataset.id);
+      if (!g || g.id === cf.id) { calcPickStop(); return; }   // 빈 곳이나 자기 칸을 누르면 끝
+      calcArgToggle(cf, g); return;
+    }
     if (box) {
       const id = box.dataset.id, f = CF.fields.find(x => x.id === id);
       if (plus) { cfSelSet.has(id) ? cfSelSet.delete(id) : cfSelSet.add(id); }
@@ -4660,7 +4895,7 @@ function setFV(k, v, from) {
   $$('#myPages [data-f]').forEach(e => {
     if (e.dataset.f !== k) return;
     if (e.classList.contains('chk')) e.classList.toggle('on', !!v);
-    else if (e.classList.contains('sig')) { e.classList.toggle('signed', !!v); const im = e.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); }
+    else if (e.classList.contains('sig')) { const ok = SIG_OK(v); e.classList.toggle('signed', ok); const im = e.querySelector('img'); if (ok) im.src = v; else im.removeAttribute('src'); }
     else if (e.classList.contains('dpart')) { const p = isoParts(v); e.value = p ? p[e.dataset.part] : ''; fit(e); }
     else if (e.classList.contains('dsingle')) { e.value = dateText(v, e.dataset.fmt); fit(e); }
     else if (e.dataset.fid && e !== from) { const g = CF && CF.fields.find(o => o.id === e.dataset.fid); e.value = g ? (e === document.activeElement ? fmtEdit(g, v) : fmtShow(g, v)) : (v ?? ''); fit(e); }
@@ -4720,9 +4955,11 @@ function clearFormData(keepCom) {
 async function loadFormData(o, fname) {
   const f = formById(o.formId) || allForms().find(x => x.title === o.formTitle);
   if (!f) { alert(`이 작성 파일의 양식(‘${o.formTitle || '알 수 없음'}’)이 목록에 없습니다.\n먼저 양식 파일을 가져온 다음 다시 여세요.`); return; }
-  let cur = {}; try { cur = JSON.parse(localStorage.getItem(draftKey(f.id)) || '{}'); } catch (e) {}
+  const cur = draftGet(draftKey(f.id)) || {};
   if (Object.values(cur).some(v => v) && !confirm(`‘${f.title}’에 작성 중인 내용이 ‘${fname}’ 내용으로 바뀝니다. 계속할까요?`)) return;
-  try { localStorage.setItem(draftKey(f.id), JSON.stringify(noSig(o.values || {}))); } catch (e) {}
+  const nv = noSig(cleanVals(o.values));
+  try { draftPut(draftKey(f.id), nv, sensOf(f.id)); } catch (e) {}
+  if (CF && CF.id === f.id) FV = Object.assign({}, nv);           // 같은 서식이 열려 있으면 화면 내용이 파일 내용을 덮어쓰지 않게
   await openForm(f.id, 'fill'); toast(`불러왔습니다: ${fname}`);
 }
 
@@ -4733,8 +4970,8 @@ function exportForm() {
   saveJsonAs(`양식_${safeName(title)}.json`, { _type: 'form-template', _version: 1, form: { id, title, createdAt, pdf, pages, fields } }, '양식 파일');
 }
 function importTemplate(o) {
-  const t = o.form;
-  if (!t || !t.pdf || !Array.isArray(t.pages) || !Array.isArray(t.fields)) { alert('양식 파일이 올바르지 않습니다.'); return; }
+  const t = normForm(o.form, true);
+  if (!t) { alert('양식 파일이 올바르지 않습니다.'); return; }
   const i = forms.findIndex(x => x.id === t.id);
   if (i >= 0) {
     if (confirm(`‘${forms[i].title}’ 양식이 이미 있습니다. 새 파일 내용으로 바꿀까요?\n(취소하면 사본으로 추가합니다)`)) forms[i] = t;
@@ -4744,7 +4981,7 @@ function importTemplate(o) {
 }
 /* 양식 묶음 파일: 여러 양식을 한 번에 '직접 만든 양식'으로 */
 function importBundle(o) {
-  const L = (o.forms || []).filter(t => t && t.pdf && Array.isArray(t.pages) && Array.isArray(t.fields));
+  const L = (Array.isArray(o.forms) ? o.forms : []).slice(0, 100).map(t => normForm(t, true)).filter(Boolean);
   if (!L.length) { alert('양식 묶음 파일에 양식이 없습니다.'); return; }
   let add = 0, upd = 0;
   L.forEach(t => {
@@ -4802,7 +5039,7 @@ async function bulkSubmit() {
       if (f.pdf.length > 5.5e6) throw new Error('PDF가 너무 큽니다');
       const desc = (f.pub && f.pub.desc) || (f.pubDraft && f.pubDraft.desc) || '';
       const thumb = await makeThumb(f);
-      const id = await FB.publish({ title: f.title, desc, category, org, dept, tel, pages: f.pages.length, fields: f.fields.length, thumb }, f, f.pub && f.pub.id);
+      const id = await FB.publish({ title: String(f.title).slice(0, 100), desc: String(desc).slice(0, 300), category, org, dept, tel, pages: f.pages.length, fields: f.fields.length, thumb }, f, f.pub && f.pub.id);
       f.pub = { id, status: 'pending', desc, category, org, dept, tel, at: new Date().toISOString() };
       if (FB.admin) { await FB.setStatus(id, 'approved', ''); f.pub.status = 'approved'; }
       ok++; if (st) { st.className = 'st ok'; st.textContent = FB.admin ? '✔ 공개됨' : '✔ 신청됨 (승인 대기)'; }
@@ -4820,7 +5057,7 @@ function renameForm() {
 }
 function deleteForm() {
   if (!CF || !confirm(`‘${CF.title}’ 양식을 삭제할까요?\n이 양식에 작성 중이던 내용도 함께 지워집니다.`)) return;
-  try { localStorage.removeItem(draftKey(CF.id)); } catch (e) {}
+  try { localStorage.removeItem(draftKey(CF.id)); sessionStorage.removeItem('kit-s:' + draftKey(CF.id)); } catch (e) {}
   forms = forms.filter(f => f.id !== CF.id); saveForms(); closeForm();
 }
 
@@ -4909,7 +5146,7 @@ function grpPrint(n) {
   st.textContent = `@media print { @page { size:${p.w}pt ${p.h}pt; margin:0; } }`;
   GRP_PRINT = { n, idx, title: `${CF.title} ${n}번 – ${g.title}` };
   $$('#myPages .cpage').forEach(pg => pg.classList.toggle('show', idx.includes(+pg.dataset.pg)));
-  grpTitle(`${n}. ${g.title}${grpWho()}`);
+  grpTitle(`${n}. ${g.title}`);                                // 대상자 이름은 PDF 속성(제목)에 남기지 않음
   document.body.dataset.print = 'current'; window.print();
 }
 window.addEventListener('afterprint', () => {
@@ -4941,7 +5178,7 @@ const PDFLIB_URL = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min
 let pdfLibP = null, kfontP = null;
 function pdfLibLoad() {
   if (window.PDFLib) return Promise.resolve(window.PDFLib);
-  if (!pdfLibP) pdfLibP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = PDFLIB_URL;
+  if (!pdfLibP) pdfLibP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = PDFLIB_URL; s.integrity = 'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI'; s.crossOrigin = 'anonymous';
     s.onload = () => window.PDFLib ? res(window.PDFLib) : rej(new Error('PDF 도구를 불러오지 못했습니다')); s.onerror = () => { pdfLibP = null; rej(new Error('PDF 도구를 불러오지 못했습니다. 인터넷 연결을 확인하세요.')); };
     document.head.appendChild(s); });
   return pdfLibP;
@@ -5182,28 +5419,33 @@ const realFB = {
   listPending() { return this.listWhere('status', 'pending'); },
   listHidden() { return this.listWhere('status', 'hidden'); },
   listMine() { return this.listWhere('ownerUid', this.user.uid); },
+  async getMeta(id) { const { doc, getDoc } = this.m; const d = await getDoc(doc(this.db, 'forms', id)); return d.exists() ? Object.assign({ id }, d.data()) : null; },
   async getBody(id) {
     const { doc, getDoc, collection, getDocs } = this.m;
     const b = await getDoc(doc(this.db, 'formBodies', id)); if (!b.exists()) throw new Error('양식 내용을 찾을 수 없습니다.');
     const body = b.data(), arr = [];
-    (await getDocs(collection(this.db, 'formBodies', id, 'parts'))).forEach(p => { const d = p.data(); arr[d.i] = d.d; });
+    (await getDocs(collection(this.db, 'formBodies', id, 'parts'))).forEach(p => { const d = p.data(); if (Number.isInteger(d.i) && d.i >= 0 && d.i < 40 && typeof d.d === 'string') arr[d.i] = d.d; });
     body.pdf = arr.join(''); return body;
   },
   async publish(meta, f, pubId) {
     const { doc, collection, writeBatch, getDoc, serverTimestamp } = this.m, uid = this.user.uid;
     const ref = pubId ? doc(this.db, 'forms', pubId) : doc(collection(this.db, 'forms'));
     const CH = 800000, chunks = []; for (let i = 0; i < f.pdf.length; i += CH) chunks.push(f.pdf.slice(i, i + CH));
-    let oldParts = 0;
-    if (pubId) { try { const b = await getDoc(doc(this.db, 'formBodies', pubId)); if (b.exists()) oldParts = b.data().parts || 0; } catch (e) {} }
-    const base = Object.assign({}, meta, { ownerUid: uid, ownerName: this.user.displayName || '익명', ownerDomain: (this.orgEmail() || this.user.email || '').split('@')[1] || '',
-                                         status: 'pending', reason: '', updatedAt: serverTimestamp() });
+    let oldParts = 0, old = null;
+    if (pubId) { try { const b = await getDoc(doc(this.db, 'formBodies', pubId)); if (b.exists()) oldParts = b.data().parts || 0; } catch (e) {}
+                 try { const m = await getDoc(ref); if (m.exists()) old = m.data(); } catch (e) {} }
+    const adminEdit = !!(old && this.admin);                     // 관리자 수정: 작성자·공개 상태 유지
+    const owner = adminEdit ? old.ownerUid : uid;
+    const base = Object.assign({}, meta, adminEdit
+      ? { ownerUid: old.ownerUid, ownerName: old.ownerName || '', ownerDomain: old.ownerDomain || '', status: old.status || 'pending', reason: old.reason || '', updatedAt: serverTimestamp(), editedBy: String(this.user.displayName || '관리자').slice(0, 60) }
+      : { ownerUid: uid, ownerName: String(this.user.displayName || '익명').slice(0, 60), ownerDomain: (this.orgEmail() || this.user.email || '').split('@')[1] || '', status: 'pending', reason: '', updatedAt: serverTimestamp() });
     if (!pubId) base.orgVerified = false;
     if (!pubId) base.createdAt = serverTimestamp();
     const batch = writeBatch(this.db);
     batch.set(ref, base, { merge: true });
-    batch.set(doc(this.db, 'formOwners', ref.id), { uid, email: this.orgEmail() || this.user.email || '' });   // 인증 메일(비공개)
-    batch.set(doc(this.db, 'formBodies', ref.id), { ownerUid: uid, pages: f.pages, fields: f.fields, parts: chunks.length });
-    chunks.forEach((d, i) => batch.set(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i), { ownerUid: uid, i, d }));
+    if (!adminEdit || owner === uid) batch.set(doc(this.db, 'formOwners', ref.id), { uid, email: this.orgEmail() || this.user.email || '' });   // 인증 메일(비공개)
+    batch.set(doc(this.db, 'formBodies', ref.id), { ownerUid: owner, pages: f.pages, fields: f.fields, parts: chunks.length });
+    chunks.forEach((d, i) => batch.set(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i), { ownerUid: owner, i, d }));
     for (let i = chunks.length; i < oldParts; i++) batch.delete(doc(this.db, 'formBodies', ref.id, 'parts', 'p' + i));
     await batch.commit();
     return ref.id;
@@ -5238,8 +5480,8 @@ const realFB = {
     await batch.commit();
   },
   report(id, title, reason) {
-    const { addDoc, collection, serverTimestamp } = this.m;
-    return addDoc(collection(this.db, 'reports'), { formId: id, formTitle: title, reason, uid: this.user.uid, at: serverTimestamp() });
+    const { setDoc, doc, serverTimestamp } = this.m;
+    return setDoc(doc(this.db, 'reports', id + '_' + this.user.uid), { formId: id, formTitle: String(title || '').slice(0, 100), reason: String(reason || '').slice(0, 500), uid: this.user.uid, at: serverTimestamp() });
   },
   async listReports() {
     const { collection, getDocs } = this.m;
@@ -5253,7 +5495,7 @@ const realFB = {
   async getCode(code) { await this.init(); const { doc, getDoc } = this.m; const d = await getDoc(doc(this.db, 'codes', code)); return d.exists() ? d.data() : null; },
   async getCodeBody(code) {
     const { collection, getDocs } = this.m, arr = [];
-    (await getDocs(collection(this.db, 'codes', code, 'parts'))).forEach(p => { const d = p.data(); arr[d.i] = d.d; });
+    (await getDocs(collection(this.db, 'codes', code, 'parts'))).forEach(p => { const d = p.data(); if (Number.isInteger(d.i) && d.i >= 0 && d.i < 40 && typeof d.d === 'string') arr[d.i] = d.d; });
     return arr.join('');
   },
   async saveCode(code, data, pdf, isUpdate) {
@@ -5281,6 +5523,9 @@ const realFB = {
   },
 };
 const FB = window.FB_OVERRIDE || realFB;
+['listApproved', 'listPending', 'listHidden', 'listMine'].forEach(m => { const o = FB[m]; if (o) FB[m] = async function () { const r = await o.apply(this, arguments); return (r || []).filter(f => f && SAFE_ID.test(f.id)); }; });
+{ const o = FB.listReports; if (o) FB.listReports = async function () { return ((await o.apply(this, arguments)) || []).filter(r => r && SAFE_ID.test(r.id) && SAFE_ID.test(r.formId)); }; }
+{ const o = FB.listCodes; if (o) FB.listCodes = async function () { return ((await o.apply(this, arguments)) || []).filter(x => x && CODE_RE.test(x.id)); }; }
 
 /* ---------- 상태 ---------- */
 let pubTabNow = 'list', pubCache = null, pubQuery = '', pubCat = '', pubOrg = '';
@@ -5292,8 +5537,7 @@ const isGovDomain = d => /(^|\.)go\.kr$|^korea\.kr$/i.test(d || '');
 const FREE_MAIL = /^(gmail\.com|googlemail\.com|naver\.com|daum\.net|hanmail\.net|kakao\.com|nate\.com|hotmail\.com|outlook\.com|live\.com|msn\.com|yahoo\.com|yahoo\.co\.kr|icloud\.com|me\.com|korea\.com|empas\.com|paran\.com|dreamwiz\.com|chol\.com|hanmir\.com|lycos\.co\.kr|proton\.me|protonmail\.com)$/i;
 const isOrgDomain = d => !!d && !FREE_MAIL.test(d);
 const orgLine = f => !f.org ? '' : `<div class="porg">🏛 <b>${esc(f.org)}</b>${f.dept ? ' · ' + esc(f.dept) : ''}${f.tel ? ` <span class="ptel">☎ ${esc(f.tel)}</span>` : ''}
-  ${f.orgVerified ? '<span class="vbadge ok" title="관리자가 기관을 확인했습니다">✔ 기관 확인</span>' : ''}${isGovDomain(f.ownerDomain) ? `<span class="vbadge gov" title="공공기관 메일(${esc(f.ownerDomain)})로 인증한 사람이 올린 양식입니다">✔ 공공기관 메일 인증</span>`
-    : isOrgDomain(f.ownerDomain) ? `<span class="vbadge org" title="기관 메일(@${esc(f.ownerDomain)})로 인증한 사람이 올린 양식입니다">✔ @${esc(f.ownerDomain)} 인증</span>` : ''}</div>`;
+  ${f.orgVerified ? '<span class="vbadge ok" title="관리자가 기관을 확인했습니다">✔ 기관 확인</span>' : ''}${isOrgDomain(f.ownerDomain) ? `<span class="vbadge org" title="올린 사람이 등록한 기관 메일의 도메인입니다(본인 확인 수준). 관리자가 직접 확인한 양식에는 ‘✔ 기관 확인’이 붙습니다.">📧 @${esc(f.ownerDomain)}</span>` : ''}</div>`;
 const linkFor = q => location.origin + location.pathname + '?' + q;
 function copyLink(url, what) {
   const done = () => toast(`${what} 링크를 복사했습니다. 홈페이지·안내문에 붙여 넣으세요.`);
@@ -5364,12 +5608,12 @@ async function pubRender() {
 }
 function cardHTML(f, actions) {
   const st = STATUS_TXT[f.status] || ['', ''];
-  return `<div class="pcard" data-id="${f.id}">
-    <div class="pthumb">${f.thumb ? `<img src="${f.thumb}" alt="">` : '<span>📄</span>'}</div>
+  return `<div class="pcard" data-id="${esc(f.id)}">
+    <div class="pthumb">${THUMB_OK(f.thumb) ? `<img src="${f.thumb}" alt="">` : '<span>📄</span>'}</div>
     <div class="pinfo">
       <div class="ptitle">${esc(f.title)}</div>
       ${orgLine(f)}
-      <div class="pmeta"><span class="pcat">${esc(f.category || '기타')}</span> ${f.pages || 1}쪽 · 칸 ${f.fields || 0}개${f.status !== 'approved' ? ` · <span class="pst ${st[1]}">${st[0]}</span>` : ''}</div>
+      <div class="pmeta"><span class="pcat">${esc(f.category || '기타')}</span> ${Math.floor(+f.pages) || 1}쪽 · 칸 ${Math.floor(+f.fields) || 0}개${f.status !== 'approved' ? ` · <span class="pst ${st[1]}">${st[0]}</span>` : ''}</div>
       ${f.desc ? `<div class="pdesc">${esc(f.desc)}</div>` : ''}
       <div class="pby">${esc(f.ownerName || '')} · ${tsText(f.updatedAt || f.createdAt)}</div>
       ${f.status === 'rejected' && f.reason ? `<div class="preason">반려 사유: ${esc(f.reason)}</div>` : ''}
@@ -5393,7 +5637,7 @@ async function pubRenderList() {
     </div>
     ${pubOrg && pubOrg !== '기관 미등록' ? `<div class="orghead">🏛 <b>${esc(pubOrg)}</b> 신청서 ${list.length}건 <button class="b" onclick="copyLink(linkFor('org='+encodeURIComponent(pubOrg)), '이 기관 신청서 모음')">🔗 이 기관 신청서 모음 링크</button></div>` : ''}
     <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 바로 입력할 수 있고, 입력한 내용은 내 기기에만 남습니다.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="이 양식을 바로 여는 주소" onclick="copyLink(linkFor('form=${f.id}'), '양식')">🔗 링크</button><button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="이 양식을 바로 여는 주소" onclick="copyLink(linkFor('form=${f.id}'), '양식')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
       : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
   const qi = document.getElementById('pubQ');
   qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
@@ -5405,8 +5649,8 @@ async function pubRenderMine() {
   pubSetBody('<div class="pubmsg">불러오는 중…</div>');
   const list = (await FB.listMine()).sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
   list.forEach(p => { const lf = forms.find(f => f.pub && f.pub.id === p.id); if (lf) { lf.pub.status = p.status; lf.pub.reason = p.reason || ''; } }); saveForms();
-  pubSetBody(`<div class="pnote">내가 공개 신청한 양식입니다. 관리자가 승인하면 ‘공개 양식 목록’에 올라갑니다. 양식을 고쳐서 다시 신청하려면 ‘직접 만든 양식’에서 수정한 뒤 <b>공개 목록에 올리기</b>를 다시 누르세요.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b ghost" onclick="pubDelete('${f.id}')">공개 취소·삭제</button>`)).join('')
+  pubSetBody(`<div class="pnote">내가 공개 신청한 양식입니다. 관리자가 승인하면 ‘공개 양식 목록’에 올라갑니다. <b>✏ 수정</b>을 누르면 칸을 고쳐 다시 반영할 수 있습니다(관리자 승인을 다시 받음). <b>🗑 삭제</b>하면 공개 목록에서 바로 사라집니다.</div>
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" onclick="pubEdit('${f.id}')">✏ 수정</button><button class="b ghost" onclick="pubDelete('${f.id}')">🗑 공개 취소·삭제</button>`)).join('')
       : '<div class="pubmsg">아직 공개 신청한 양식이 없습니다.</div>'}</div>`);
 }
 async function pubRenderAdmin() {
@@ -5415,7 +5659,7 @@ async function pubRenderAdmin() {
   const title = id => (pubCache || []).concat(pend, hid).find(f => f.id === id)?.title;
   pubSetBody(`
     <h3 class="psec">승인 대기 <span>${pend.length}</span></h3>
-    <div class="pgrid">${pend.length ? pend.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b primary" onclick="pubDecide('${f.id}','approved')">승인</button><button class="b" onclick="pubDecide('${f.id}','rejected')">반려</button>${f.org ? `<button class="b" onclick="pubVerify('${f.id}', ${!f.orgVerified})">${f.orgVerified ? '기관 확인 취소' : '✔ 기관 확인'}</button>` : ''}<button class="b ghost" onclick="pubDelete('${f.id}')">삭제</button>`)).join('') : '<div class="pubmsg small">대기 중인 신청이 없습니다.</div>'}</div>
+    <div class="pgrid">${pend.length ? pend.map(f => cardHTML(f, `<button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b primary" onclick="pubDecide('${f.id}','approved')">승인</button><button class="b" onclick="pubDecide('${f.id}','rejected')">반려</button><button class="b" onclick="pubEdit('${f.id}')">✏ 수정</button><button class="b ghost" onclick="pubDelete('${f.id}')">🗑 삭제</button>${f.org ? `<button class="b" onclick="pubVerify('${f.id}', ${!f.orgVerified})">${f.orgVerified ? '기관 확인 취소' : '✔ 기관 확인'}</button>` : ''}<button class="b ghost" onclick="pubDelete('${f.id}')">삭제</button>`)).join('') : '<div class="pubmsg small">대기 중인 신청이 없습니다.</div>'}</div>
     <h3 class="psec">신고 <span>${reps.length}</span></h3>
     <div class="plist">${reps.length ? reps.map(r => `<div class="prow"><div><b>${esc(r.formTitle || title(r.formId) || r.formId)}</b><br><small>${esc(r.reason)} · ${tsText(r.at)}</small></div>
         <div class="pacts"><button class="b" onclick="pubPreview('${r.formId}')">미리보기</button><button class="b" onclick="pubDecide('${r.formId}','hidden')">양식 숨기기</button><button class="b ghost" onclick="pubDelReport('${r.id}')">신고 처리 완료</button></div></div>`).join('') : '<div class="pubmsg small">신고가 없습니다.</div>'}</div>
@@ -5429,18 +5673,46 @@ async function pubUse(id) {
   try {
     toast('양식을 내려받는 중…');
     const meta = (pubCache || []).find(f => f.id === id) || {}, body = await FB.getBody(id), lid = 'pub_' + id;
-    const t = { id: lid, title: meta.title || '공개 양식', createdAt: new Date().toISOString(), pdf: body.pdf, pages: body.pages, fields: body.fields, source: { pubId: id } };
+    if (!SAFE_ID.test(id)) return;
+    const t = normForm({ id: lid, title: meta.title || '공개 양식', createdAt: new Date().toISOString(), pdf: body.pdf, pages: body.pages, fields: body.fields }, false);
+    if (!t) throw new Error('양식 내용이 올바르지 않습니다.'); t.source = { pubId: id };
     const i = forms.findIndex(f => f.id === lid);
     if (i >= 0) { if (!confirm(`‘${forms[i].title}’ 양식이 이미 내 양식에 있습니다. 최신 공개본으로 바꿀까요?\n(입력해 둔 내용은 그대로 남습니다)`)) { openForm(lid, 'fill'); return; } forms[i] = t; }
     else forms.push(t);
     saveForms(); refreshMyList(); await openForm(lid, 'fill'); toast(`‘${t.title}’ 양식을 내 양식에 담았습니다.`);
   } catch (e) { alert('양식을 가져오지 못했습니다.\n' + (e.message || e)); }
 }
+async function pubEdit(id) {
+  if (!FB.user) { if (confirm('수정하려면 로그인이 필요합니다. 로그인할까요?')) pubSignIn(); return; }
+  try {
+    toast('양식을 내려받는 중…');
+    const meta = await FB.getMeta(id); if (!meta) throw new Error('양식을 찾을 수 없습니다.');
+    if (!FB.admin && meta.ownerUid !== FB.user.uid) { alert('양식을 올린 사람과 관리자만 고칠 수 있습니다.'); return; }
+    if (!SAFE_ID.test(id)) return;
+    const body0 = await FB.getBody(id), nb = normForm({ id: 'x', pdf: body0.pdf, pages: body0.pages, fields: body0.fields }, true);
+    if (!nb) throw new Error('양식 내용이 올바르지 않습니다.');
+    const body = { pdf: nb.pdf, pages: nb.pages, fields: nb.fields };
+    let f = forms.find(x => x.pub && x.pub.id === id) || forms.find(x => x.id === 'pub_' + id);
+    if (f && f.pdf && (f.fields.length !== body.fields.length || JSON.stringify(f.fields) !== JSON.stringify(body.fields))
+        && !confirm(`‘${f.title}’이(가) 내 양식에 이미 있습니다.\n서버에 올라가 있는 최신 공개본으로 바꿔서 고칠까요?\n(취소하면 내 컴퓨터에 있는 것으로 고칩니다)`)) body.keep = true;
+    if (!f) { f = { id: 'pub_' + id, createdAt: new Date().toISOString() }; forms.push(f); }
+    if (!body.keep) Object.assign(f, { pdf: body.pdf, pages: body.pages, fields: body.fields });
+    f.title = meta.title || f.title || '공개 양식';
+    f.pub = { id, status: meta.status, desc: meta.desc || '', category: meta.category || '기타', org: meta.org || '', dept: meta.dept || '', tel: meta.tel || '', reason: meta.reason || '', at: new Date().toISOString() };
+    delete f.source;
+    saveForms(); refreshMyList(); placePages('my'); showModule('my'); myPages().style.display = '';
+    const dp = document.getElementById('pubPrev'); if (dp && dp.open) dp.close();
+    await openForm(f.id, 'edit');
+    toast('칸을 고친 뒤 오른쪽의 ‘🌐 공개 양식에 수정 반영’을 누르세요.');
+  } catch (e) { alert('양식을 불러오지 못했습니다.\n' + (e.message || e)); }
+}
+const pubCanEdit = f => !!(FB.user && (FB.admin || f.ownerUid === FB.user.uid));
+const pubEditBtns = f => pubCanEdit(f) ? `<button class="b" onclick="pubEdit('${f.id}')">✏ 수정</button><button class="b ghost" onclick="pubDelete('${f.id}')">🗑 삭제</button>` : '';
 async function pubPreview(id) {
   const dlg = document.getElementById('pubPrev'), box = document.getElementById('pubPrevBody');
   const meta = [].concat(pubCache || []).find(f => f.id === id);
   document.getElementById('pubPrevTitle').textContent = meta ? meta.title : '미리보기';
-  document.getElementById('pubPrevActs').innerHTML = FB.admin ? `${meta && meta.org ? `<button class="b" onclick="pubVerify('${id}', ${!(meta && meta.orgVerified)}); document.getElementById('pubPrev').close()">${meta.orgVerified ? '기관 확인 취소' : '✔ 기관 확인'}</button>` : ''}<button class="b" onclick="pubDecide('${id}','hidden'); document.getElementById('pubPrev').close()">숨기기</button>` : '';
+  document.getElementById('pubPrevActs').innerHTML = FB.admin ? `${meta && meta.org ? `<button class="b" onclick="pubVerify('${id}', ${!(meta && meta.orgVerified)}); document.getElementById('pubPrev').close()">${meta.orgVerified ? '기관 확인 취소' : '✔ 기관 확인'}</button>` : ''}<button class="b" onclick="pubDecide('${id}','hidden'); document.getElementById('pubPrev').close()">숨기기</button><button class="b" onclick="pubEdit('${id}')">✏ 수정</button><button class="b ghost" onclick="document.getElementById('pubPrev').close(); pubDelete('${id}')">🗑 삭제</button>` : '';
   box.innerHTML = '<div class="pubmsg">불러오는 중…</div>'; dlg.showModal();
   try {
     const body = await FB.getBody(id), doc = await openPdf(b64ToBytes(body.pdf)); box.innerHTML = '';
@@ -5468,7 +5740,7 @@ async function pubVerify(id, v) {
   catch (e) { alert('처리하지 못했습니다.\n' + (e.message || e)); }
 }
 async function pubDelete(id) {
-  if (!confirm('이 양식을 서버에서 삭제할까요?\n(내 컴퓨터의 ‘직접 만든 양식’에 있는 양식은 그대로 남습니다)')) return;
+  if (!confirm('이 양식을 공개 양식 모음(서버)에서 삭제할까요?\n삭제하면 공개 목록에서 바로 사라지고 되돌릴 수 없습니다.\n(이미 내려받아 쓰는 사람들의 양식과 내 컴퓨터의 ‘직접 만든 양식’은 그대로 남습니다)')) return;
   try { await FB.remove(id); forms.forEach(f => { if (f.pub && f.pub.id === id) delete f.pub; }); saveForms(); pubCache = null; toast('삭제했습니다.'); pubRender(); if (CF) renderMyPanel(); }
   catch (e) { alert('삭제하지 못했습니다.\n' + (e.message || e)); }
 }
@@ -5476,7 +5748,7 @@ async function pubReport(id) {
   if (!FB.user) { if (confirm('신고하려면 로그인이 필요합니다. 로그인할까요?')) pubSignIn(); return; }
   const r = prompt('신고 사유를 적어 주세요.\n(예: 개인정보 포함, 광고, 저작권 문제, 내용 오류)'); if (!r || !r.trim()) return;
   try { await FB.report(id, ((pubCache || []).find(f => f.id === id) || {}).title || '', r.trim()); toast('신고했습니다. 관리자가 확인합니다.'); }
-  catch (e) { alert('신고하지 못했습니다.\n' + (e.message || e)); }
+  catch (e) { if (/permission/i.test(e.code || e.message || '')) toast('이미 신고한 양식입니다. 관리자가 확인합니다.'); else alert('신고하지 못했습니다.\n' + (e.message || e)); }
 }
 function pubDelReport(id) { FB.delReport(id).then(() => { toast('처리 완료로 표시했습니다.'); pubRender(); }).catch(e => alert(e.message || e)); }
 
@@ -5592,7 +5864,10 @@ async function openPublish() {
   document.getElementById('pubDp').value = (CF.pub && CF.pub.dept) || myOrg.dept || '';
   document.getElementById('pubTel').value = (CF.pub && CF.pub.tel) || myOrg.tel || '';
   document.getElementById('pubOk').checked = false;
-  document.getElementById('pubDlgNote').textContent = CF.pub && CF.pub.id ? '이미 공개 신청한 양식입니다. 다시 신청하면 고친 내용으로 바뀌고, 관리자 승인을 다시 받습니다.' : '';
+  document.getElementById('pubDlgNote').textContent = !(CF.pub && CF.pub.id) ? ''
+    : FB.admin ? '🛡 관리자: 이미 공개된 양식입니다. 고친 내용이 바로 공개 양식에 반영되고 지금 상태(공개 중 등)는 그대로 유지됩니다.'
+    : '이미 공개 신청한 양식입니다. 고친 내용으로 바뀌고, 관리자 승인을 다시 받는 동안 공개 목록에서 잠시 빠집니다.';
+  document.getElementById('pubGo').textContent = CF.pub && CF.pub.id ? '수정 반영' : '공개 신청';
   d.showModal();
 }
 async function submitPublish() {
@@ -5606,12 +5881,18 @@ async function submitPublish() {
   try {
     const thumb = await makeThumb(CF);
     const id = await FB.publish({ title, desc, category, org, dept, tel, pages: CF.pages.length, fields: CF.fields.length, thumb }, CF, CF.pub && CF.pub.id);
-    CF.pub = { id, status: 'pending', desc, category, org, dept, tel, at: new Date().toISOString() }; CF.title = title;
+    const keep = CF.pub && CF.pub.id && FB.admin ? CF.pub.status : 'pending';
+    CF.pub = { id, status: keep || 'pending', desc, category, org, dept, tel, at: new Date().toISOString() }; CF.title = title;
     if (org && !myOrg.org) { myOrg = { org, dept, tel }; keepOrgLocal(); FB.saveProfile(myOrg).catch(() => {}); pubAuthChanged(); }
     saveForms(); refreshMyList(); renderMyPanel(); document.getElementById('pubDlg').close(); pubCache = null;
-    toast('공개 신청했습니다. 관리자 승인 후 공개 목록에 올라갑니다.');
+    toast(keep !== 'pending' ? '공개 양식에 수정 내용을 반영했습니다.' : '공개 신청했습니다. 관리자 승인 후 공개 목록에 올라갑니다.');
   } catch (e) { alert('공개 신청하지 못했습니다.\n' + (e.message || e)); }
-  btn.disabled = false; btn.textContent = '공개 신청';
+  btn.disabled = false; btn.textContent = CF && CF.pub && CF.pub.id ? '수정 반영' : '공개 신청';
+}
+function pubBtnsHTML() {
+  if (!(CF && CF.pub && CF.pub.id)) return '<button class="sb" onclick="openPublish()">🌐 공개 목록에 올리기</button>';
+  return `<button class="sb primary" onclick="openPublish()" data-tip="이 화면에서 고친 칸·이름을 공개 양식에 반영합니다.\n관리자는 바로 반영되고, 작성자는 관리자 승인을 다시 받습니다.">🌐 공개 양식에 수정 반영</button>
+    <button class="sb" onclick="pubDelete('${CF.pub.id}')">🗑 공개 양식 삭제</button>`;
 }
 function pubStatusLine() {
   if (!CF || !CF.pub || !CF.pub.id) return '';
@@ -5726,27 +6007,31 @@ const normV = v => String(v ?? '').replace(/\s+/g, '');
 const tsWhen = t => { const d = t && (t.toDate ? t.toDate() : t.seconds ? new Date(t.seconds * 1000) : new Date(t)); return d && !isNaN(d) ? `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}. ${pad2(d.getHours())}:${pad2(d.getMinutes())}` : ''; };
 /* 지금 인쇄되는 쪽의 화면 값 (칸 이름 → 보이는 글자) */
 function printedValues() {
-  const out = {}, add = (k, v) => { v = normV(v); if (v && !out[k]) out[k] = v; };
+  const out = {}, all = new Set(), add = (k, v) => { all.add(k); v = normV(v); if (v && !out[k]) out[k] = v; };
   const val = e => e.classList.contains('chk') ? (e.classList.contains('on') ? '√' : '') : e.classList.contains('sig') ? (e.classList.contains('signed') ? 'Y' : '') : e.value;
   if (document.querySelector('.module[data-mod="ltc"].on')) {
     const pages = $$('.module[data-mod="ltc"] .page').filter(p => document.body.dataset.print === 'all' || p.classList.contains('show'));
     pages.forEach(p => { p.querySelectorAll('[data-k]').forEach(e => add(e.dataset.k, val(e))); p.querySelectorAll('.sig[data-sig]').forEach(e => add(e.dataset.sig, val(e))); });
-    return { form: 'ltc', title: '장기요양기관 입소·이용신청서', pages };
+    return { form: 'ltc', title: '장기요양기관 입소·이용신청서', pages, all };
   }
   if (CF && cfMode === 'fill' && GRP_PRINT) {                 // 묶음 서식: 지금 인쇄하는 번호의 쪽만
     const pages = $$('#myPages .cpage').filter(p => GRP_PRINT.idx.includes(+p.dataset.pg));
     pages.forEach(p => p.querySelectorAll('[data-f]').forEach(e => add(e.dataset.f, val(e))));
-    return { form: 'f:' + CF.id + '@' + GRP_PRINT.idx.join('.'), title: GRP_PRINT.title, pages, vals: out };
+    return { form: 'f:' + CF.id + '@' + GRP_PRINT.idx.join('.'), title: GRP_PRINT.title, pages, vals: out, all };
   }
   if (CF && cfMode === 'fill') {
     myPages().querySelectorAll('[data-f]').forEach(e => add(e.dataset.f, val(e)));
-    return { form: 'f:' + CF.id, title: CF.title, pages: $$('#myPages .cpage'), vals: out };
+    return { form: 'f:' + CF.id, title: CF.title, pages: $$('#myPages .cpage'), vals: out, all };
   }
   return null;
 }
-async function stampHashes(id, vals) {
-  const keys = Object.keys(vals).sort(), h = await sha256(id + '\n' + keys.map(k => k + '=' + vals[k]).join('\n')), fh = {};
-  for (const k of keys) fh[k] = (await sha256(id + '|' + k + '|' + vals[k])).slice(0, 16);
+/* 전체 지문(h)으로 위·변조를 확인하고, 칸별 지문(fh)은 ‘어느 칸이 바뀌었는지’ 알려 주는 데만 씀.
+   칸별 지문은 4자리(16비트)로 짧게 잘라 이름·주민번호 등을 거꾸로 맞혀 보는 것을 막고, 주민번호 같은 칸은 아예 넣지 않음. */
+const FH_SKIP = k => SENS_RE.test(k) || /생년월일|^appBirth$/.test(k);
+async function stampHashes(id, vals, allKeys) {
+  const keys = Object.keys(vals).sort(), h = await sha256(id + '\n' + keys.map(k => k + '=' + vals[k]).join('\n')), fh = { _v: '2' };
+  let ks = [...new Set([...(allKeys || []), ...keys])]; if (ks.length > 480) ks = (keys.length > 480 ? keys : ks).slice(0, 480);     // 서버 한도(500칸) 안에서
+  for (const k of ks) if (!FH_SKIP(k) && k !== '_v') fh[k] = (await sha256(id + '|' + k + '|' + (vals[k] ?? ''))).slice(0, 4);
   return { h, fh };
 }
 function stampPages() {
@@ -5769,7 +6054,7 @@ function stampOn(pv, quiet) {
 }
 async function registerStamp(id, pv, quiet) {
   try {
-    const { h, fh } = await stampHashes(id, pv.vals);
+    const { h, fh } = await stampHashes(id, pv.vals, pv.all ? [...pv.all] : null);
     await FB.registerDoc(id, { h, fh, f: pv.form, n: String(pv.title || '').slice(0, 100) });
     if (!quiet) setTimeout(() => toast(`발급번호 ${id}를 등록했습니다. 이 인쇄본·PDF는 진위 확인이 됩니다.`), 600);
     return true;
@@ -5830,10 +6115,18 @@ async function verifyPages(pages) {
   if (!info) return { id, status: 'bad', text: `등록되지 않은 발급번호입니다 (${id}) – 위조이거나 인쇄 때 등록이 안 된 문서` };
   const ex = await extractVals(pages, info.f), vals = {};
   Object.keys(ex.pos).forEach(k => { const v = normV(ex.pos[k]); if (v) vals[k] = v; });
-  const { h, fh } = await stampHashes(id, vals);
+  const { h } = await stampHashes(id, vals);
   const head = `${info.n || ''} · ${tsWhen(info.t)} 발급`;
   if (h === info.h) return { id, status: 'ok', text: `✅ 원본과 일치합니다 (${id} · ${head})` };
-  const diff = [...new Set([...Object.keys(info.fh || {}), ...Object.keys(fh)])].filter(k => (info.fh || {})[k] !== fh[k]);
+  const sfh = info.fh || {}, v2 = sfh._v === '2', diff = [];
+  for (const k of [...new Set([...Object.keys(sfh), ...Object.keys(vals)])]) {
+    if (k === '_v') continue; const st = sfh[k];
+    if (st == null) { if (!(v2 && FH_SKIP(k))) diff.push(k); continue; }
+    if (!v2 && vals[k] == null) { diff.push(k); continue; }
+    const mine = await sha256(id + '|' + k + '|' + (vals[k] ?? ''));
+    if (mine.slice(0, String(st).length) !== st) diff.push(k);
+  }
+  if (!diff.length) diff.push('(주민번호 등 칸별 확인을 하지 않는 칸)');
   const label = k => info.f === 'ltc' ? colLabel('ltc', k) : k;
   return { id, status: 'bad', text: `❌ 발급 후 내용이 바뀌었습니다 (${id} · ${head}) – 바뀐 칸: ${diff.slice(0, 10).map(label).join(', ')}${diff.length > 10 ? ` 외 ${diff.length - 10}칸` : ''}` };
 }
@@ -6141,11 +6434,13 @@ fetch('minwage.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).t
 }).catch(() => {});
 
 (function init() {
+  forms = (Array.isArray(forms) ? forms : []).map(f => normForm(f, false)).filter(Boolean);   // 예전에 저장된 양식도 한 번 검사
   document.querySelector('#p1 [data-k="iName"]').setAttribute('list', 'instNames');
   document.querySelector('#p1 [data-k="iName"]').setAttribute('autocomplete', 'off');
   $$('#p1 [data-k]').forEach(e => { if (LINKED.includes(e.dataset.k)) { e.classList.add('linked'); e.title = '두 양식에 함께 입력됩니다'; } });
   let draft = null, keep = {};
-  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) {}
+  try { draft = draftGet(DRAFT_KEY); } catch (e) {}
+  try { Object.keys(localStorage).filter(k => k.startsWith('kit-fdraft-')).forEach(k => { const v = draftGet(k); if (v) draftPut(k, v, sensOf(k.slice(11))); }); } catch (e) {}   // 예전에 저장된 주민번호는 세션 보관으로 옮김
   try { keep = JSON.parse(localStorage.getItem(KEEP_KEY) || '{}'); } catch (e) {}
   apply(Object.assign({}, keep, noSig(draft || {}))); saveDraft();          // 예전에 남아 있던 서명도 지움
   if (!draft) S.today_apply = true;                       // 처음 열면 신청일은 오늘로
