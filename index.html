@@ -262,7 +262,7 @@
   .sig.signed img { display:block; }
   body.clean .sig:not(.signed) { background:transparent; }
   /* 확대 서명판 */
-  #signOv { position:fixed; inset:0; z-index:100; background:#0f1628; display:none; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing:border-box; }
+  #signOv { position:fixed; inset:0; z-index:2147483646; background:#0f1628; display:none; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing:border-box; }
   #signOv.on { display:flex; }
   body.signing { overflow:hidden; }
   #signOv .stage { flex:1; display:flex; flex-direction:column; background:#fff; overflow:hidden; width:100%; }
@@ -542,10 +542,113 @@
   .prevbox { display:flex; flex-direction:column; align-items:center; gap:10px; background:#eef0f4; max-height:75vh; }
   .prevbox canvas { max-width:100%; height:auto; box-shadow:0 1px 6px rgba(0,0,0,.15); background:#fff; }
   .soon code { background:#eef0f5; padding:1px 5px; border-radius:4px; font-size:12.5px; }
+
+  /* ---------- 처음 화면 (자료취합 시스템과 같은 좌우 2단) ---------- */
+  #home { position:fixed; inset:0; z-index:40; overflow:auto; background:#f1f4f9; font-family:"Pretendard Variable","Pretendard","Malgun Gothic","맑은 고딕",sans-serif; color:#1e293b; -webkit-overflow-scrolling:touch; word-break:keep-all; overflow-wrap:anywhere; }
+  #home[hidden] { display:none; }
+  body.homeon { overflow:hidden; }
+  .hwrap { max-width:1240px; margin:24px auto; background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(15,23,42,.06); padding:24px; }
+  .hsplit { display:flex; gap:20px; align-items:stretch; }
+  .hleft { flex:1 1 55%; min-width:320px; display:flex; flex-direction:column; gap:20px; }
+  .hright { flex:1 1 45%; min-width:260px; display:flex; }
+  .hhead { text-align:center; padding:18px 12px; background:linear-gradient(160deg,#fff7ed 0%,#ffedd5 100%); border:1px solid #fed7aa; border-radius:12px; box-shadow:0 1px 3px rgba(194,65,12,.06); transition:border-color .2s, box-shadow .2s, transform .15s; }
+  .hhead:hover { border-color:#fdba74; box-shadow:0 6px 16px rgba(194,65,12,.12); transform:translateY(-1px); }
+  .hhead h1 { margin:0 0 6px; font-size:1.98rem; font-weight:400; color:#9a3412; font-family:"Jua","Pretendard Variable",sans-serif; display:flex; align-items:center; justify-content:center; gap:9px; letter-spacing:-.1px; }
+  .hhead p { margin:0; color:#b45309; font-weight:600; font-size:14.3px; }
+  .hbox { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:22px 24px; box-shadow:0 1px 3px rgba(0,0,0,.03); transition:border-color .2s, box-shadow .2s; }
+  .hbox:hover { border-color:#cbd5e1; box-shadow:0 6px 16px rgba(15,23,42,.08); }
+  .hbox h3 { margin:0 0 4px; font-size:16px; color:#0f172a; }
+  .hbox .hsub { margin:0 0 14px; font-size:13.5px; color:#64748b; line-height:1.55; }
+  .hbtn { width:100%; padding:11px; border:none; border-radius:8px; font:inherit; font-size:15.4px; font-weight:700; cursor:pointer; background:#2563eb; color:#fff; }
+  .hbtn:hover { background:#1d4ed8; }
+  .hbtn.google { background:#fff; color:#334155; border:1px solid #cbd5e1; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .hbtn.google:hover { background:#f8fafc; }
+  .hbtn.go { margin-top:10px; background:#16a34a; } .hbtn.go:hover { background:#15803d; }
+  .hme { display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; }
+  .hme .av { width:34px; height:34px; border-radius:50%; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; flex:none; }
+  .hme .nm { flex:1; min-width:0; font-size:14px; line-height:1.45; } .hme .nm small { color:#64748b; }
+  .hme .nm .ok { color:#16834a; } .hme .nm .no { color:#c76b00; }
+  .hme button { font:inherit; font-size:12.5px; padding:5px 10px; border:1px solid #cbd5e1; background:#fff; border-radius:6px; cursor:pointer; color:#475569; }
+  .hnote { font-size:12.5px; color:#64748b; text-align:center; margin:10px 0 0; line-height:1.6; }
+  .hdd { border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; background:#fff; overflow:hidden; }
+  .hdd[open] { border-color:#93c5fd; box-shadow:0 2px 10px rgba(37,99,235,.08); }
+  .hdd > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:12px 14px; font-weight:700; font-size:15px; color:#1e293b; user-select:none; }
+  .hdd > summary::-webkit-details-marker { display:none; }
+  .hdd > summary:hover { background:#f8fafc; }
+  .hdd > summary .hn { width:24px; height:24px; flex:none; border-radius:7px; background:#2563eb; color:#fff; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  .hdd > summary .hc:empty { visibility:hidden; }
+  .hdd > summary .hc { white-space:nowrap; margin-left:auto; font-size:12px; font-weight:600; color:#2563eb; background:#eff6ff; border-radius:10px; padding:1px 8px; }
+  .hdd > summary::after { content:""; width:8px; height:8px; border-right:2px solid #94a3b8; border-bottom:2px solid #94a3b8; transform:rotate(45deg); margin:-4px 4px 0 6px; transition:transform .15s; }
+  .hdd[open] > summary::after { transform:rotate(-135deg); margin-top:4px; }
+  .hdd .hl { border-top:1px solid #eef2f7; padding:6px; display:flex; flex-direction:column; gap:2px; background:#fbfcfe; }
+  .hdd .hl button { text-align:left; font:inherit; border:0; background:none; border-radius:7px; padding:8px 10px 8px 12px; cursor:pointer; display:flex; flex-direction:column; gap:1px; }
+  .hdd .hl button:hover { background:#eff6ff; }
+  .hdd .hl button b { font-size:14px; font-weight:600; color:#1e3a8a; } .hdd .hl button b::after { content:"  ›"; color:#93a3c0; }
+  .hdd .hl button span { font-size:12.5px; color:#64748b; line-height:1.45; }
+  .hdd .hl .hg { font-size:12px; font-weight:700; color:#475569; padding:6px 10px 2px; }
+  .hsum { width:100%; background:linear-gradient(180deg,#f0fdf4 0%,#ecfdf5 100%); border:1px solid #bbf7d0; border-radius:14px; padding:22px 24px; color:#166534; display:flex; flex-direction:column; box-shadow:0 1px 3px rgba(16,24,40,.04); transition:border-color .2s, box-shadow .2s, transform .15s; }
+  .hsum:hover { border-color:#86efac; box-shadow:0 6px 16px rgba(22,163,74,.12); transform:translateY(-1px); }
+  .hsum-t { font-size:1.1rem; font-weight:800; color:#15803d; margin-bottom:12px; display:flex; align-items:center; gap:8px; } .hsum-t span { font-size:1.43rem; }
+  .hsafe { background:#eff6ff; border:2px solid #93c5fd; border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+  .hsafe span { font-size:22px; line-height:1; } .hsafe strong { color:#1e40af; font-size:15px; line-height:1.45; }
+  .hhi { display:flex; align-items:flex-start; gap:12px; background:#fff; border:1.5px solid #16a34a; border-radius:12px; padding:14px 16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(22,163,74,.12); }
+  .hhi > span { flex:none; font-size:1.54rem; line-height:1.2; }
+  .hhi strong { display:block; font-size:1.1rem; font-weight:800; color:#14532d; margin-bottom:2px; }
+  .hhi em { display:block; font-style:normal; font-size:.935rem; color:#166534; font-weight:600; line-height:1.5; }
+  .hfeat { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .hfeat li { display:flex; align-items:flex-start; gap:9px; background:rgba(255,255,255,.55); border:1px solid rgba(187,247,208,.7); border-radius:9px; padding:8px 11px; font-size:.913rem; line-height:1.5; }
+  .hfeat i { flex:none; width:22px; height:22px; margin-top:1px; border-radius:50%; background:#16a34a; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-style:normal; box-shadow:0 2px 4px rgba(22,163,74,.25); }
+  .hfeat strong { font-weight:700; color:#14532d; } .hfeat .d { color:#166534; }
+  .hfoot { text-align:center; font-size:12px; color:#94a3b8; margin-top:16px; }
+  .apptitle.homelink { cursor:pointer; } .apptitle.homelink:hover { color:#ffd88a; }
+  @media (max-width:760px) { .hsplit { flex-direction:column; } .hleft, .hright { flex:1 1 auto; min-width:0; } .hwrap { margin:8px; padding:14px; } .hhead h1 { font-size:1.5rem; } .hdd > summary { font-size:14.5px; padding:11px 12px; } .hbox, .hsum { padding:16px; } }
+  @media print { #home { display:none !important; } }
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" media="print" onload="this.media='all'">
 </head>
 <body data-print="current">
 
+<div id="home" hidden>
+ <div class="hwrap">
+  <div class="hsplit">
+   <div class="hleft">
+    <div class="hhead">
+     <h1>📝 계약과 신청서류 도구모음</h1>
+     <p>원본 서식 그대로 입력하고, 서명하고, 인쇄·PDF 저장까지 한 화면에서</p>
+    </div>
+    <div class="hbox" id="homeAuthBox">
+     <h3>로그인</h3>
+     <p class="hsub" id="homeAuthSub">양식 작성·인쇄는 로그인 없이 바로 쓸 수 있습니다. 로그인하면 서식 번호 저장, 공개 양식 신청, 기관 메일 인증을 쓸 수 있습니다.</p>
+     <div id="homeAuth"></div>
+     <button type="button" class="hbtn go" id="homeGo" onclick="homeHide()">로그인 없이 바로 시작하기 →</button>
+    </div>
+    <div class="hbox">
+     <h3>📚 들어 있는 계약서·신청서류</h3>
+     <p class="hsub">분류를 눌러 펼친 뒤, 쓸 서류를 고르면 바로 열립니다.</p>
+     <div id="homeList"></div>
+    </div>
+   </div>
+   <div class="hright">
+    <div class="hsum">
+     <div class="hsum-t"><span>📋</span>계약과 신청서류 도구모음이란?</div>
+     <div class="hsafe"><span>🔒</span><strong>서명은 어디에도 저장되지 않고, 주민등록번호 등 민감정보는 서버·서식 번호에 올라가지 않습니다</strong></div>
+     <div class="hhi"><span>⚡</span><div><strong>한 번 입력, 바로 제출</strong><em>법정·표준 서식 PDF 위에 그대로 입력·서명하고 인쇄하거나 PDF로 저장</em></div></div>
+     <ul class="hfeat">
+      <li><i>✓</i><span><strong>원본 서식 그대로</strong> — <span class="d">고용노동부 표준근로계약서, 범죄경력 조회 서류 등 원래 양식 모양 그대로 작성</span></span></li>
+      <li><i>✓</i><span><strong>같은 항목은 한 번만</strong> — <span class="d">여러 서류에 반복되는 기관명·대표자·주소 등은 한 곳에만 쓰면 모두 채워짐</span></span></li>
+      <li><i>✓</i><span><strong>범죄경력 조회 7종 묶음</strong> — <span class="d">필요한 번호만 골라 한 번에 작성하고, 번호별 PDF로 한꺼번에 저장</span></span></li>
+      <li><i>✓</i><span><strong>손글씨 같은 전자 서명</strong> — <span class="d">마우스·손가락 서명을 흘림체·싸인 등 6가지 필체와 4가지 펜으로 자연스럽게</span></span></li>
+      <li><i>✓</i><span><strong>외국인근로자 계약서</strong> — <span class="d">18개 나라 말 표준근로계약서와 번역 확인 기능</span></span></li>
+      <li><i>✓</i><span><strong>내 양식 직접 만들기</strong> — <span class="d">가진 PDF를 올리면 입력칸을 자동으로 찾고, 금액·날짜·계산 칸도 지정</span></span></li>
+      <li><i>✓</i><span><strong>제출 PDF를 엑셀로</strong> — <span class="d">제출받은 PDF를 모아 한 사람당 한 줄씩 엑셀로 정리, 진위 확인</span></span></li>
+      <li><i>✓</i><span><strong>자동 저장</strong> — <span class="d">작성 중인 내용은 이 기기 브라우저에 저장되어 다시 열어도 이어서 작성</span></span></li>
+     </ul>
+    </div>
+   </div>
+  </div>
+  <div class="hfoot">양식은 계속 추가됩니다.</div>
+ </div>
+</div>
 <div class="app">
 <div class="main">
 <section class="module on" data-mod="ltc">
@@ -675,7 +778,7 @@
 
 <aside class="side">
   <div class="sidehead">
-    <div class="apptitle">계약과 신청서류<br>도구모음</div>
+    <div class="apptitle homelink" onclick="homeShow()" data-tip="처음 화면(서류 목록·로그인)으로 갑니다">계약과 신청서류<br>도구모음</div>
     <div id="topAuth" class="topauth"></div>
     <div class="codecap">🔢 서식 번호로 불러오기</div>
     <div class="codebox"><input id="codeIn" placeholder="ABCD-1234-5678" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter')codeOpen(this.value)"><button onclick="codeOpen(document.getElementById('codeIn').value)">열기</button></div>
@@ -1250,7 +1353,7 @@ function openSignPad({ title, who, target, showSame, onApply }) {
   document.getElementById('sigWho').textContent = (who ? who + ' 님, ' : '') + '점선 칸 안에 크게 서명하세요.';
   document.getElementById('sigSameWrap').style.display = showSame ? '' : 'none';
   const ov = document.getElementById('signOv');
-  ov.classList.add('on'); document.body.classList.add('signing'); sigFitView();
+  ov.classList.add('on'); document.body.classList.add('signing'); sigFitView(); sigHideFloaters(true);
   /* 휴대폰·태블릿: 브라우저 주소창까지 숨기고 화면 전체로 (지원하는 기기만) */
   try { if (matchMedia('(pointer:coarse)').matches && ov.requestFullscreen && !document.fullscreenElement) ov.requestFullscreen({ navigationUI: 'hide' }).then(() => setTimeout(layoutPad, 60)).catch(() => {}); } catch (e) {}
   layoutPad();
@@ -1258,6 +1361,18 @@ function openSignPad({ title, who, target, showSame, onApply }) {
   if (ov.animate) { const an = document.querySelector('#signOv .stage').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' }); an.onfinish = () => { if (SP.target) layoutPad(); }; }
 }
 /* 휴대폰에서 손가락으로 확대한 상태여도 서명판은 확대 전 화면(좌우 꽉 채움)처럼 보이게: 보이는 영역에 맞춰 되돌려 줄임 */
+/* 서명판을 여는 동안 다른 프로그램(브라우저 확장 등)이 화면에 띄운 떠 있는 단추는 잠시 숨김 */
+const OWN_EL = new Set([...document.body.children]);
+function sigHideFloaters(on) {
+  if (on) {
+    SP.hid = [];
+    [...document.documentElement.children, ...document.body.children].forEach(el => {
+      if (OWN_EL.has(el) || /^(HEAD|BODY|SCRIPT|STYLE|LINK)$/.test(el.tagName) || /^(mmPrint|grpQ)$/.test(el.id) || el.classList.contains('sigfly')) return;
+      const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden') return;
+      SP.hid.push([el, el.style.getPropertyValue('visibility'), el.style.getPropertyPriority('visibility')]); el.style.setProperty('visibility', 'hidden', 'important');
+    });
+  } else { (SP.hid || []).forEach(([el, v, p]) => { if (v) el.style.setProperty('visibility', v, p); else el.style.removeProperty('visibility'); }); SP.hid = []; }
+}
 function sigFitView() {
   const ov = document.getElementById('signOv'), vv = window.visualViewport, z = vv ? vv.scale : 1;
   /* transform(축소)은 글자가 흐려지므로 zoom으로: 다시 그려서 선명함 */
@@ -1269,7 +1384,7 @@ if (window.visualViewport) ['resize', 'scroll'].forEach(ev => visualViewport.add
 function closeSig() {
   try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
   ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin', 'zoom'].forEach(k => document.getElementById('signOv').style[k] = '');
-  document.getElementById('signOv').classList.remove('on'); document.body.classList.remove('signing');
+  document.getElementById('signOv').classList.remove('on'); sigHideFloaters(false); document.body.classList.remove('signing');
   sigKey = null; sigCb = null; SP.target = null;
 }
 /* 화면 크기에 맞춰 확대 비율 계산 */
@@ -2099,6 +2214,74 @@ function showPage(id) {                                       // 입소·이용�
   $$('.sub[data-p]').forEach(t => t.classList.add('on'));
   if (id === 'p2') { const p = document.querySelector('.module[data-mod="ltc"] .page[data-tab="p2"]'); if (p) setTimeout(() => p.scrollIntoView({ block: 'start' }), 50); }
   ZM.mode = 'w'; fitPages();
+}
+
+
+/* ---------- 처음 화면 ---------- */
+const HOME_GSVG = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 6 29.6 4 24 4 16 4 9.1 8.6 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.3-1.9 14-5.1l-6.5-5.5C29.5 35.3 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9 39.4 15.9 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.5 5.5C40.9 36 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>';
+const MOD_NAME = { labor: '1. 표준근로계약서', crim: '2. 범죄경력 등 조회 신청서류', ltc: '3. 장기요양기관 신청서류', my: '4. 직접 만든 양식', pub: '5. 공개 양식 모음', collect: '6. 제출 PDF 모아 엑셀로', gov: '7. 행정 신고서류' };
+function homeItem(act, title, desc) { return `<button type="button" onclick="${act}"><b>${esc(title)}</b>${desc ? `<span>${esc(desc)}</span>` : ''}</button>`; }
+function homeDD(n, icon, title, count, inner, open) {
+  return `<details class="hdd"${open ? ' open' : ''}><summary><span class="hn">${n}</span>${icon} ${esc(title)}<span class="hc">${count || ''}</span></summary><div class="hl">${inner}</div></details>`;
+}
+function homeRender() {
+  const el = document.getElementById('homeList'); if (!el) return;
+  const lab = PRESETS.filter(f => f.preset === 'labor' && !f.fw);
+  const crim = GOV_FORMS.find(f => f.groups), gov = GOV_FORMS.filter(f => !f.groups);
+  const opened = [...el.querySelectorAll('details')].map(d => d.open);
+  let h = homeDD(1, '📄', '표준근로계약서', (lab.length + 1) + '종',
+      lab.map(f => homeItem(`homeGo(()=>openForm('${f.id}'))`, f.title, LABOR_DESC[f.id])).join('')
+      + homeItem(`homeGo(()=>openForm(fwLast()))`, '외국인근로자 표준근로계약서', LABOR_DESC.fw));
+  if (crim) h += homeDD(2, '🔎', '범죄경력 등 조회 신청서류', crim.groups.length + '종',
+      homeItem('homeCrim(0)', '전체 묶음 열기', '필요한 번호를 골라 한 번에 작성 · 기본 1·3·4번 선택')
+      + crim.groups.map(g => homeItem(`homeCrim(${g.n})`, g.n + '. ' + g.title, g.law || '')).join(''));
+  h += homeDD(3, '🏥', '장기요양기관 신청서류', '1종',
+      homeItem(`homeGo(()=>{showModule('ltc'); showPage('p1');})`, '입소·이용신청서', '재가서비스 이용내역서 포함 2쪽'));
+  if (gov.length) h += homeDD(7, '🗂', '행정 신고서류', gov.length + '종',
+      gov.map(f => homeItem(`homeGo(()=>openForm('${f.id}'))`, f.title, GOV_DESC[f.id])).join(''));
+  h += homeDD('＋', '🧰', '그 밖의 기능', '',
+      `<div class="hg">4. 직접 만든 양식</div>` + homeItem('homeGo(myOpen)', 'PDF 올려서 내 양식 만들기', '가진 서식 PDF를 입력할 수 있는 양식으로')
+      + forms.map(f => homeItem(`homeGo(()=>{placePages('my'); showModule('my'); openForm('${f.id}')})`, '🧩 ' + f.title, '내 양식')).join('')
+      + `<div class="hg">5·6. 공유와 취합</div>` + homeItem('homeGo(pubOpen)', '공개 양식 모음', '다른 기관이 공개한 양식 찾아 쓰기')
+      + homeItem('homeGo(colOpen)', '제출 PDF 모아 엑셀로', '제출받은 PDF를 엑셀로 정리 · 진위 확인'));
+  el.innerHTML = h;
+  el.querySelectorAll('details').forEach((d, i) => { if (opened[i]) d.open = true; });
+  homeAuth();
+}
+function homeAuth() {
+  const a = document.getElementById('homeAuth'), go = document.getElementById('homeGo'); if (!a) return;
+  const u = FB.enabled() ? FB.user : null;
+  let last = '';
+  if (CF && CF.title) last = CF.title; else { try { last = MOD_NAME[localStorage.getItem('kit-module')] || ''; } catch (e) {} }
+  if (!FB.enabled()) {
+    a.innerHTML = '<p class="hnote" style="margin:0 0 4px">이 화면에서는 로그인을 쓸 수 없습니다. 양식 작성은 그대로 쓸 수 있습니다.</p>';
+  } else if (!u) {
+    a.innerHTML = `<button type="button" class="hbtn google" onclick="pubSignIn()">${HOME_GSVG} Google 계정으로 로그인</button>`;
+  } else {
+    const ok = FB.orgEmail();
+    a.innerHTML = `<div class="hme"><span class="av">${esc((u.displayName || u.email || '?').slice(0, 1))}</span>
+      <span class="nm"><b>${esc(u.displayName || u.email)}</b>${FB.admin ? ' · 관리자' : ''}<br><small>${esc(u.email || '')}</small>
+      <small class="${ok ? 'ok' : 'no'}"> · ${ok ? '✔ 기관 메일 인증됨' : '⚠ 기관 메일 미인증'}</small></span>
+      <button type="button" onclick="pubSignOut()">로그아웃</button></div>`;
+  }
+  if (go) go.textContent = u ? (last ? `이어서 작성하기 — ${last} →` : '시작하기 →') : (last ? `로그인 없이 이어서 작성하기 — ${last} →` : '로그인 없이 바로 시작하기 →');
+}
+function homeShow() {
+  const h = document.getElementById('home'); if (!h) return;
+  homeRender(); h.hidden = false; document.body.classList.add('homeon'); h.scrollTop = 0; hideTip && hideTip();
+}
+function homeHide() {
+  const h = document.getElementById('home'); if (!h || h.hidden) return;
+  h.hidden = true; document.body.classList.remove('homeon'); fitPages();
+}
+async function homeGo(fn) { homeHide(); try { await fn(); } catch (e) { console.error(e); } }
+async function homeCrim(n) {
+  homeHide();
+  const f = GOV_FORMS.find(x => x.groups); if (!f) return;
+  if (CF && CF.id === f.id) crimOpen(); else openForm(f.id, 'fill');   // 칸·쪽 배치는 바로 끝나고 배경만 나중에 그려짐
+  if (!n || !CF || CF.id !== f.id || !CF.groups) return;
+  if (!grpSel().nums.includes(n)) grpToggle(n, true);
+  setTimeout(() => grpGo(n), 200);
 }
 
 /* ---------- 시작 ---------- */
@@ -4951,6 +5134,7 @@ const tsText = t => { const d = t && (t.toDate ? t.toDate() : (t.seconds ? new D
 const STATUS_TXT = { pending: ['승인 대기', 'st-wait'], approved: ['공개 중', 'st-ok'], rejected: ['반려', 'st-no'], hidden: ['숨김', 'st-no'] };
 
 function renderTopAuth() {
+  homeAuth();
   const t = document.getElementById('topAuth'); if (!t) return;
   const u = FB.user;
   if (!FB.enabled()) { t.innerHTML = ''; return; }
@@ -5828,6 +6012,7 @@ fetch('minwage.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).t
       else pubRender();
     }).catch(e => pubSetBody(`<div class="pubmsg err">서버에 연결하지 못했습니다.<br><small>${esc(e.message || e)}</small></div>`));
   } else if (m === 'pub') pubOpen(); else if (FB.enabled()) FB.init().catch(() => {});
+  if (!['verify', 'code', 'oobCode', 'orgverify', 'form', 'org', 'q'].some(k => qp.get(k))) homeShow();
 })();
 </script>
 </body>
