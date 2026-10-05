@@ -2313,6 +2313,7 @@ function homeRender() {
   el.innerHTML = h;
   el.querySelectorAll('details').forEach((d, i) => { if (opened[i]) d.open = true; });
   homeAuth();
+  if (FB.enabled()) setTimeout(() => homePubLoad(), 0);          // 4번 공개 양식 수를 미리 불러와 표시
 }
 let homePubBusy = false;
 async function homePubLoad(force) {
@@ -5562,6 +5563,18 @@ const isOrgDomain = d => !!d && !FREE_MAIL.test(d);
 const orgLine = f => !f.org ? '' : `<div class="porg">🏛 <b>${esc(f.org)}</b>${f.dept ? ' · ' + esc(f.dept) : ''}${f.tel ? ` <span class="ptel">☎ ${esc(f.tel)}</span>` : ''}
   ${f.orgVerified ? '<span class="vbadge ok" title="관리자가 기관을 확인했습니다">✔ 기관 확인</span>' : ''}${isOrgDomain(f.ownerDomain) ? `<span class="vbadge org" title="올린 사람이 등록한 기관 메일의 도메인입니다(본인 확인 수준). 관리자가 직접 확인한 양식에는 ‘✔ 기관 확인’이 붙습니다.">📧 @${esc(f.ownerDomain)}</span>` : ''}</div>`;
 const linkFor = q => location.origin + location.pathname + '?' + q;
+/* 공개 양식 바로가기: 서버 문서 번호 대신 ‘가상 주소’(문서 번호에서 만든 짧은 별칭)를 씀 → ?p=별칭 */
+const PUB_ALIAS_ABC = 'abcdefghjkmnpqrstuvwxyz23456789';
+async function pubAlias(id) {
+  const b = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('kit-pub-link|' + id)));
+  let a = ''; for (let i = 0; i < 10; i++) a += PUB_ALIAS_ABC[b[i] % PUB_ALIAS_ABC.length]; return a;
+}
+async function copyPubLink(id) { if (!SAFE_ID.test(id)) return; copyLink(linkFor('p=' + await pubAlias(id)), '양식'); }
+async function pubFindAlias(a) {
+  if (!/^[a-z2-9]{10}$/.test(a || '')) return null;
+  for (const f of pubCache || []) if (await pubAlias(f.id) === a) return f.id;
+  return null;
+}
 function copyLink(url, what) {
   const done = () => toast(`${what} 링크를 복사했습니다. 홈페이지·안내문에 붙여 넣으세요.`);
   if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => prompt('아래 링크를 복사하세요.', url)); else prompt('아래 링크를 복사하세요.', url);
@@ -5660,7 +5673,7 @@ async function pubRenderList() {
     </div>
     ${pubOrg && pubOrg !== '기관 미등록' ? `<div class="orghead">🏛 <b>${esc(pubOrg)}</b> 신청서 ${list.length}건 <button class="b" onclick="copyLink(linkFor('org='+encodeURIComponent(pubOrg)), '이 기관 신청서 모음')">🔗 이 기관 신청서 모음 링크</button></div>` : ''}
     <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 바로 입력할 수 있고, 입력한 내용은 내 기기에만 남습니다.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="이 양식을 바로 여는 주소" onclick="copyLink(linkFor('form=${f.id}'), '양식')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
       : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
   const qi = document.getElementById('pubQ');
   qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
@@ -6498,16 +6511,17 @@ fetch('minwage.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).t
   if (FB.enabled() && (qp.get('oobCode') || qp.get('orgverify'))) {               // 기관 메일 인증 링크
     showModule('pub'); FB.init().then(() => handleOrgLink(location.href).then(() => pubOpen())).catch(e => alert('서버에 연결하지 못했습니다.\n' + (e.message || e)));
   } else
-  if (FB.enabled() && (qp.get('form') || qp.get('org') || qp.get('q'))) {           // 바로가기 링크: ?form=ID · ?org=기관명 · ?q=검색어
+  if (FB.enabled() && (qp.get('p') || qp.get('form') || qp.get('org') || qp.get('q'))) {   // 바로가기 링크: ?p=가상주소 (예전 ?form=ID 도 열림) · ?org=기관명 · ?q=검색어
     pubOrg = qp.get('org') || ''; pubQuery = qp.get('q') || ''; pubTabNow = 'list';
     showModule('pub'); pubSetBody('<div class="pubmsg">양식을 불러오는 중…</div>');
     FB.init().then(async () => {
       pubCache = await FB.listApproved();
-      if (qp.get('form')) { if (pubCache.some(f => f.id === qp.get('form'))) pubUse(qp.get('form')); else { toast('찾는 양식이 없거나 아직 공개되지 않았습니다.'); pubRender(); } }
+      const want = qp.get('p') ? await pubFindAlias(qp.get('p')) : qp.get('form');
+      if (qp.get('p') || qp.get('form')) { if (want && pubCache.some(f => f.id === want)) pubUse(want); else { toast('찾는 양식이 없거나 아직 공개되지 않았습니다.'); pubRender(); } }
       else pubRender();
     }).catch(e => pubSetBody(`<div class="pubmsg err">서버에 연결하지 못했습니다.<br><small>${esc(e.message || e)}</small></div>`));
   } else if (m === 'pub') pubOpen(); else if (FB.enabled()) FB.init().catch(() => {});
-  if (!['verify', 'code', 'oobCode', 'orgverify', 'form', 'org', 'q'].some(k => qp.get(k))) homeShow();
+  if (!['verify', 'code', 'oobCode', 'orgverify', 'form', 'p', 'org', 'q'].some(k => qp.get(k))) homeShow();
 })();
 </script>
 </body>
