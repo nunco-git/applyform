@@ -305,6 +305,11 @@
   .grph .gb { font-weight:500; color:#8a5a00; }
   .grph label { font-weight:500; color:#223; display:inline-flex; align-items:center; gap:2pt; cursor:pointer; }
   .grph button { margin-left:auto; font:inherit; font-weight:600; font-size:8.5pt; padding:2pt 7pt; border:1px solid #2f5bd3; background:#2f5bd3; color:#fff; border-radius:4pt; cursor:pointer; }
+  .calcargs { max-height:150px; overflow:auto; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:4px 6px; margin:2px 0 4px; }
+  .calcargs .sopt { margin:2px 0; font-size:12.5px; }
+  .calcargs .ca { display:inline-block; min-width:12px; color:#ffd166; }
+  .in.cf.calc { background:rgba(255,214,0,.12); }
+  @media print { .in.cf.calc { background:transparent !important; } }
   .gsel .sopt { display:flex; gap:6px; align-items:flex-start; margin:3px 0; line-height:1.35; font-size:13px; }
   .gsel .sopt input { margin-top:2px; cursor:pointer; flex:none; }
   .gsel .gnm { cursor:pointer; border-radius:4px; padding:0 3px; }
@@ -523,6 +528,7 @@
   .psec { font-size:15px; margin:18px 0 8px; } .psec span { background:#2f5bd3; color:#fff; border-radius:10px; padding:1px 8px; font-size:12px; margin-left:4px; }
   .plist { display:flex; flex-direction:column; gap:6px; }
   .prow { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; align-items:center; background:#fff; border:1px solid #e1e5ee; border-radius:8px; padding:9px 12px; font-size:13.5px; }
+  .side .prow { display:flex; flex-wrap:nowrap; justify-content:flex-start; align-items:flex-end; gap:6px; background:none; border:0; border-radius:0; padding:0; font-size:inherit; }   /* 오른쪽 메뉴 칸 속성: 흰 상자 없이 */
   .who2 { font-size:13px; color:#dfe5f3; margin:2px 4px 8px; line-height:1.5; } .who2 em { font-style:normal; font-size:11px; background:#ffb300; color:#3a2a00; border-radius:8px; padding:0 6px; } .who2 small { color:#8f9bbd; }
   .ptab[hidden] { display:none !important; }
   .ptab.on { color:#fff; border-left-color:#7fa0ff; font-weight:600; }
@@ -2207,7 +2213,107 @@ async function openPdf(bytes) {
 }
 
 const FORMS_KEY = 'kit-forms', CUR_FORM_KEY = 'kit-cur-form';
-const TYPES = { text:'글자', multi:'여러 줄', check:'체크(√)', date:'날짜', sign:'서명', select:'선택 목록', addrtitle:'주소 연계 명칭', cover:'가림 상자(입력 없음)' };
+const TYPES = { text:'글자', multi:'여러 줄', check:'체크(√)', date:'날짜', sign:'서명', select:'선택 목록', addrtitle:'주소 연계 명칭',
+  rrn:'주민등록번호', birth:'생년월일', bizno:'사업자등록번호', tel:'전화번호', money:'금액', time:'시간', calc:'함수(자동 계산)', cover:'가림 상자(입력 없음)' };
+/* ---------- 모양이 정해진 칸 (주민번호·생년월일·사업자번호·전화·금액·시간·함수) ---------- */
+const FMT_TYPES = /^(rrn|birth|bizno|tel|money|time|calc)$/;
+const MONEY_FMTS = { n: '35,000', won: '35,000원', geum: '금 35,000원', both: '35,000원(금삼만오천원정)', kor: '금삼만오천원정(₩35,000)', kor2: '일금 삼만오천원정', kor3: '금삼만오천원정' };
+const TIME_FMTS = { hm: '14:30', ko: '14시 30분', ampm: '오후 2시 30분', ampm2: '오후 2:30' };
+const BIRTH_FMTS = { dot: '1980. 1. 2.', ko: '1980년 1월 2일', dash: '1980-01-02', short: '80. 1. 2.' };
+const CALC_OPS = { add: '더하기 (A + B + …)', sub: '빼기 (A − B − …)', mul: '곱하기 (A × B × …)', div: '나누기 (A ÷ B)', sum: '합계 (고른 칸 모두)', avg: '평균',
+  pct: '퍼센트 (A ÷ B × 100)', pctof: '○% 값 (A × 숫자%)', max: '가장 큰 값', min: '가장 작은 값' };
+const digits = v => String(v ?? '').replace(/\D/g, '');
+const numOf = v => { const s = String(v ?? '').replace(/[^\d.\-]/g, ''); const n = parseFloat(s); return isFinite(n) ? n : NaN; };
+function korNum(n) {                                          // 35000 → 삼만오천 (금액 한글 표기)
+  n = Math.floor(Math.abs(n)); if (!n) return '영';
+  const D = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'], U = ['', '십', '백', '천'], B = ['', '만', '억', '조', '경'];
+  let out = '', b = 0;
+  while (n > 0) { const c = n % 10000; n = Math.floor(n / 10000);
+    if (c) { let s = ''; String(c).padStart(4, '0').split('').forEach((d, i) => { if (+d) s += D[+d] + U[3 - i]; }); out = s + B[b] + out; }
+    b++; }
+  return out;
+}
+function moneyText(v, fm) {
+  const n = numOf(v); if (!isFinite(n)) return String(v ?? '');
+  const c = Math.round(n).toLocaleString('ko-KR'), k = korNum(n);
+  return ({ n: c, won: c + '원', geum: '금 ' + c + '원', both: `${c}원(금${k}원정)`, kor: `금${k}원정(₩${c})`, kor2: `일금 ${k}원정`, kor3: `금${k}원정` })[fm || 'won'] || c;
+}
+const rrnFmt = v => { const d = digits(v).slice(0, 13); return d.length > 6 ? d.slice(0, 6) + '-' + d.slice(6) : d; };
+const bizFmt = v => { const d = digits(v).slice(0, 10); return d.length > 5 ? `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d; };
+function telFmt(v) {
+  const d = digits(v).slice(0, 12); if (d.length < 4) return d;
+  if (/^1[5-9]\d{2}/.test(d) && d.length <= 8) return d.slice(0, 4) + '-' + d.slice(4);
+  const a = d.startsWith('02') ? 2 : 3, rest = d.slice(a), m = rest.length > 7 ? 4 : rest.length > 3 ? rest.length - 4 : rest.length;
+  return rest.length <= 3 ? d.slice(0, a) + '-' + rest : `${d.slice(0, a)}-${rest.slice(0, m)}-${rest.slice(m)}`;
+}
+function birthIso(v) {                                        // 19800102 · 800102 · 1980.1.2 · 1980-01-02 → 1980-01-02
+  const s = String(v ?? '').trim(); if (!s) return '';
+  let m = s.match(/^(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); if (m) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
+  const d = digits(s);
+  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
+  if (d.length === 6) { const yy = +d.slice(0, 2), cy = new Date().getFullYear() % 100; return `${yy > cy ? 1900 + yy : 2000 + yy}-${d.slice(2, 4)}-${d.slice(4, 6)}`; }
+  return '';
+}
+function birthText(v, fm) {
+  const iso = birthIso(v); if (!iso) return String(v ?? ''); const [y, m, d] = iso.split('-').map(Number);
+  return ({ dot: `${y}. ${m}. ${d}.`, ko: `${y}년 ${m}월 ${d}일`, dash: iso, short: `${String(y).slice(2)}. ${m}. ${d}.` })[fm || 'dot'];
+}
+function timeNorm(v) {
+  const s = String(v ?? '').trim(); if (!s) return '';
+  let m = s.match(/^(오전|오후)?\s*(\d{1,2})\s*[:시]\s*(\d{1,2})?/); let h, mi;
+  if (m) { h = +m[2]; mi = +(m[3] || 0); if (m[1] === '오후' && h < 12) h += 12; if (m[1] === '오전' && h === 12) h = 0; }
+  else { const d = digits(s); if (!d) return s; if (d.length <= 2) { h = +d; mi = 0; } else { h = +d.slice(0, d.length - 2); mi = +d.slice(-2); } }
+  if (h > 24 || mi > 59) return s; return `${pad2(h)}:${pad2(mi)}`;
+}
+function timeText(v, fm) {
+  const n = timeNorm(v); if (!/^\d\d:\d\d$/.test(n)) return String(v ?? ''); const h = +n.slice(0, 2), mi = +n.slice(3), ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;
+  return ({ hm: n, ko: `${h}시${mi ? ' ' + mi + '분' : ''}`, ampm: `${ap} ${h12}시${mi ? ' ' + mi + '분' : ''}`, ampm2: `${ap} ${h12}:${pad2(mi)}` })[fm || 'hm'];
+}
+function calcVal(f) {                                         // 함수 칸 계산 (값이 없는 칸은 빼고)
+  const a = (f.args || []).map(k => numOf(FV[k])), ok = a.filter(isFinite), c = f.kconst !== '' && f.kconst != null ? numOf(f.kconst) : NaN;
+  const all = isFinite(c) && !/^(pctof|pct)$/.test(f.op) ? ok.concat([c]) : ok;
+  if (!ok.length) return '';
+  let r;
+  switch (f.op) {
+    case 'add': case 'sum': r = all.reduce((p, q) => p + q, 0); break;
+    case 'sub': r = all.slice(1).reduce((p, q) => p - q, all[0]); break;
+    case 'mul': r = all.reduce((p, q) => p * q, 1); break;
+    case 'div': r = all.slice(1).reduce((p, q) => q ? p / q : NaN, all[0]); break;
+    case 'avg': r = ok.reduce((p, q) => p + q, 0) / ok.length; break;
+    case 'pct': r = ok.length > 1 && ok[1] ? ok[0] / ok[1] * 100 : (isFinite(c) && c ? ok[0] / c * 100 : NaN); break;
+    case 'pctof': r = isFinite(c) ? ok[0] * c / 100 : NaN; break;
+    case 'max': r = Math.max(...all); break;
+    case 'min': r = Math.min(...all); break;
+    default: r = all.reduce((p, q) => p + q, 0);
+  }
+  if (!isFinite(r)) return '';
+  const dec = Math.max(0, Math.min(4, +f.dec || 0)), p = Math.pow(10, dec); r = Math.round(r * p) / p;
+  return String(r);
+}
+/* 칸에 보이는 글자 (작성 화면·인쇄·PDF 모두 같은 값) */
+function fmtShow(f, v) {
+  switch (f.type) {
+    case 'rrn': return rrnFmt(v);
+    case 'bizno': return bizFmt(v);
+    case 'tel': return telFmt(v);
+    case 'birth': return birthText(v, f.bfmt);
+    case 'time': return timeText(v, f.tfmt);
+    case 'money': return String(v ?? '').trim() ? moneyText(v, f.mfmt) : '';
+    case 'calc': { if (v === '' || v == null) return ''; if (f.cfmt === 'money') return moneyText(v, f.mfmt);
+      const n = numOf(v), dec = Math.max(0, Math.min(4, +f.dec || 0)); return (isFinite(n) ? n.toLocaleString('ko-KR', { minimumFractionDigits: dec, maximumFractionDigits: dec }) : v) + (f.unit || ''); }
+  }
+  return String(v ?? '');
+}
+const fmtEdit = (f, v) => f.type === 'money' ? moneyFmt(v) : f.type === 'birth' ? (birthIso(v) || String(v ?? '')) : f.type === 'time' ? timeNorm(v) : fmtShow(f, v);
+function refreshCalcs() {                                     // 함수 칸 다시 계산 (함수끼리 이어져도 3번까지)
+  if (!CF || !CF.fields.some(g => g.type === 'calc')) return;
+  for (let pass = 0; pass < 3; pass++) {
+    let changed = false;
+    CF.fields.forEach(g => { if (g.type !== 'calc') return; const k = fkey(g), v = calcVal(g); if (String(FV[k] ?? '') !== v) { FV[k] = v; changed = true; } });
+    if (!changed) break;
+  }
+  $$('#myPages input[data-fid]').forEach(e => { const g = CF.fields.find(x => x.id === e.dataset.fid); if (g && g.type === 'calc') { e.value = fmtShow(g, FV[fkey(g)]); fit(e); } });
+}
 const ADDR_LEVELS = { sido:'시도의 장', sgg:'시군구의 장', emd:'읍면동의 장' };
 const DATE_FMTS = { ko:'2026년 10월 2일', dot:'2026. 10. 2.', dash:'2026-10-02' };
 let forms = [];
@@ -2923,6 +3029,8 @@ function fillHTML(f) {
     case 'multi':  return `<textarea class="in cf ml${mk}" data-f="${k}" spellcheck="false" style="${st}">${esc(v)}</textarea>`;
     case 'check':  return `<span class="chk cf${mk}${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
     case 'sign':   return `<div class="sig cf${mk}${v ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${v ? ` src="${v}"` : ''}></div>`;
+    case 'rrn': case 'birth': case 'bizno': case 'tel': case 'money': case 'time': case 'calc':
+      return `<input class="in cf${mk}${f.type === 'calc' ? ' calc' : ''}" data-f="${k}" data-fid="${esc(f.id)}" data-fmtk="${f.type}" value="${esc(fmtShow(f, v))}"${f.type === 'calc' ? ' readonly tabindex="-1" title="다른 칸을 따라 자동 계산됩니다"' : ''}${/^(rrn|bizno|tel)$/.test(f.type) ? ' inputmode="numeric"' : ''} autocomplete="off" style="${st}">`;
     case 'select': { const ops = f.options || []; return `<select class="in cf${mk}" data-f="${k}" style="${st};text-align-last:${f.align === 'center' ? 'center' : 'auto'}">` +
                       ['', ...ops, ...(v && !ops.includes(v) ? [v] : [])].map(o => `<option${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('') + '</select>'; }
     case 'date': {
@@ -3057,7 +3165,7 @@ function derivedFill(changed) {
   if (!CF) return;
   CF.fields.forEach(g => {
     const k = fkey(g), src = g.birthOf || g.chiefOf || g.policeOf; if (!src || (changed && changed !== src) || FV['__man:' + k]) return;
-    const s = String(FV[src] ?? '').trim(), v = g.birthOf ? rrnBirth(s) : g.policeOf ? policeName(s) : (s ? (g.chiefFmt || '{}의 장').replace('{}', s) : (g.def || ''));
+    const s = String(FV[src] ?? '').trim(), v = g.birthOf ? (g.type === 'birth' ? birthIso(rrnBirth(s)) : rrnBirth(s)) : g.policeOf ? policeName(s) : (s ? (g.chiefFmt || '{}의 장').replace('{}', s) : (g.def || ''));
     if (!changed && !v) return;                                // 처음 열 때: 계산할 값이 없으면 적어 둔 값을 그대로 둠
     if (v !== String(FV[k] ?? '')) { if (changed) setFV(k, v); else FV[k] = v; }
   });
@@ -3120,6 +3228,7 @@ const CODE_PERSON_NAME = /근로자|생년|생일|주민|본국|외국인|수급
 const CODE_PERSON_LTC = /^(name|rrn|appName|appBirth|appRel|appTel|appAddr|addr|tel|certNo|grade|consentName|rcptNo)$/;
 const CODE_ORG_NAME = /대표|사업주|사업체|업체|회사|기관|사용자|담당|단체장|법인/;
 function codeBlocked(k, label, v, ctx) {
+  if (ctx !== 'ltc' && CF && CF.fields && CF.fields.some(g => fkey(g) === k && /^(rrn|birth)$/.test(g.type))) return '개인정보';
   const s = String(v ?? ''), n = String(label || k);
   if (/\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\s*[-–]?\s*[1-8]\d{6}/.test(s.replace(/\s/g, '').length >= 13 ? s : '')) return '주민·외국인등록번호';
   if (/(?:\d{4}[- ]?){3}\d{4}/.test(s)) return '카드번호 형식';
@@ -3551,9 +3660,9 @@ function mmFields() {
   const seen = new Set(), out = [];
   const gp = CF.groups ? grpOnPages() : null;
   CF.fields.slice().sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x).forEach(g => {
-    if (g.type === 'sign' || g.type === 'cover' || g.tpl || g.trOf) return; const k = fkey(g); if (!k || seen.has(k)) return;
+    if (g.type === 'sign' || g.type === 'cover' || g.type === 'calc' || g.tpl || g.trOf) return; const k = fkey(g); if (!k || seen.has(k)) return;
     if (gp && (g.bulk || g.maskIf || !gp.has(g.page))) return; seen.add(k);
-    out.push({ k, label: k, type: g.type, money: !!g.money });
+    out.push({ k, label: k, type: g.type, money: !!g.money || g.type === 'money' });
   });
   return out;
 }
@@ -3812,7 +3921,7 @@ function renderFields() {
   CF.fields.forEach(f => { const L = layers[f.page]; if (L) L.insertAdjacentHTML('beforeend', cfMode === 'edit' ? editHTML(f) : withTip(f, fillHTML(f))); });
   if (cfMode === 'fill') {
     if (CF.id === 'lab4') { const L = layers[0]; if (L) L.insertAdjacentHTML('beforeend', lab4Bar()); }
-    $$('#myPages input.cf').forEach(fit); syncAddrTitles();
+    refreshCalcs(); $$('#myPages input.cf').forEach(fit); syncAddrTitles();
   }
   if (cfMode === 'edit') { markSel(); renderProps(); }
   if (CF.groups) grpApply();
@@ -3894,6 +4003,27 @@ function renderProps() {
       <div><label class="pl">기본값</label><input class="sin" id="pDef" value="${esc(f.def ?? '')}" placeholder="예) 5"></div>
       <div><label class="pl">눌러서 고를 값 <small>쉼표로</small></label><input class="sin" id="pPick" value="${esc(Array.isArray(f.pick) ? f.pick.join(', ') : ({ hour: '0~23시', min: '00~55분', week: '월~일', days: '1~7' }[f.pick] || f.pick || ''))}" placeholder="예) 월, 화, 수"></div>
     </div><label class="sopt"><input type="checkbox" id="pMoney"${f.money ? ' checked' : ''}> 금액 (세 자리마다 쉼표)</label>` : ''}
+    ${f.type === 'money' ? `<label class="pl">금액 모양</label><select class="ssel" id="pMfmt">${Object.entries(MONEY_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.mfmt || 'won') ? ' selected' : ''}>${v}</option>`).join('')}</select>
+      <div class="hint keep">숫자만 적으면 칸을 벗어날 때 고른 모양으로 바뀝니다.</div>` : ''}
+    ${f.type === 'time' ? `<label class="pl">시간 모양</label><select class="ssel" id="pTfmt">${Object.entries(TIME_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.tfmt || 'hm') ? ' selected' : ''}>${v}</option>`).join('')}</select>
+      <div class="hint keep">1430, 9:30, 오후 2시처럼 적어도 됩니다.</div>` : ''}
+    ${f.type === 'birth' ? `<div class="prow">
+      <div><label class="pl">날짜 모양</label><select class="ssel" id="pBfmt">${Object.entries(BIRTH_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.bfmt || 'dot') ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div><label class="pl">주민번호에서 자동</label><select class="ssel" id="pBirthOf"><option value="">직접 입력</option>${[...new Set(CF.fields.filter(o => o !== f && (o.type === 'rrn' || /주민/.test(o.name || ''))).map(fkey))].map(k => `<option value="${esc(k)}"${k === f.birthOf ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select></div>
+    </div>` : ''}
+    ${f.type === 'calc' ? `<label class="pl">계산</label><select class="ssel" id="pOp">${Object.entries(CALC_OPS).map(([k, v]) => `<option value="${k}"${k === (f.op || 'add') ? ' selected' : ''}>${v}</option>`).join('')}</select>
+      <label class="pl">계산할 칸 <small>고른 순서가 A, B, C …</small></label>
+      <div class="calcargs" id="pArgs">${calcArgsHTML(f)}</div>
+      <div class="prow">
+        <div><label class="pl">숫자 <small>${f.op === 'pctof' ? '○%' : f.op === 'pct' ? '나눌 수(B 대신)' : '함께 계산할 수'}</small></label><input class="sin" id="pK" value="${esc(f.kconst ?? '')}" placeholder="${f.op === 'pctof' ? '예) 10' : '없으면 비워 두기'}"></div>
+        <div><label class="pl">소수점</label><select class="ssel" id="pDec">${[0, 1, 2, 3].map(d => `<option value="${d}"${d === (+f.dec || 0) ? ' selected' : ''}>${d ? d + '자리' : '없음'}</option>`).join('')}</select></div>
+      </div>
+      <div class="prow">
+        <div><label class="pl">결과 모양</label><select class="ssel" id="pCfmt"><option value="n"${f.cfmt !== 'money' ? ' selected' : ''}>숫자</option><option value="money"${f.cfmt === 'money' ? ' selected' : ''}>금액</option></select></div>
+        <div>${f.cfmt === 'money' ? `<label class="pl">금액 모양</label><select class="ssel" id="pMfmt">${Object.entries(MONEY_FMTS).map(([k, v]) => `<option value="${k}"${k === (f.mfmt || 'won') ? ' selected' : ''}>${v}</option>`).join('')}</select>`
+          : `<label class="pl">단위 <small>뒤에 붙일 글자</small></label><input class="sin" id="pUnit" value="${esc(f.unit ?? (f.op === 'pct' ? '%' : ''))}" placeholder="예) %, 원, 명">`}</div>
+      </div>
+      <div class="hint keep">🧮 작성할 때 고른 칸의 숫자로 자동 계산됩니다 (직접 입력 안 됨).</div>` : ''}
     ${f.type === 'cover' ? '' : `<label class="pl">💬 입력 도움말 <small>작성할 때 칸 위에 풍선으로 뜸 · 인쇄 안 됨</small></label>
     <textarea class="sin" id="pTip" rows="2" placeholder="예) 주민등록상 주소를 적으세요">${esc(f.tip || '')}</textarea>`}
     ${f.type === 'cover' ? '<div class="hint">▭ 가림 상자: 입력 없이 이 자리의 원래 내용을 흰색으로 가립니다(인쇄·PDF에도 적용).</div>'
@@ -3915,14 +4045,35 @@ function renderProps() {
     if (g('pDef')) { const v = g('pDef').value; if (v !== '') f.def = v; else delete f.def; }
     if (g('pPick') && ev && ev.target.id === 'pPick') { const v = g('pPick').value.trim(); if (v) f.pick = v.split(',').map(x => x.trim()).filter(Boolean); else delete f.pick; }
     if (g('pSrc')) { if (g('pSrc').value) f.src = g('pSrc').value; else delete f.src; }
+    if (g('pMfmt')) f.mfmt = g('pMfmt').value;
+    if (g('pTfmt')) f.tfmt = g('pTfmt').value;
+    if (g('pBfmt')) f.bfmt = g('pBfmt').value;
+    if (g('pBirthOf')) { if (g('pBirthOf').value) f.birthOf = g('pBirthOf').value; else delete f.birthOf; }
+    if (g('pOp')) { f.op = g('pOp').value; f.kconst = g('pK').value.trim(); f.dec = +g('pDec').value || 0; f.cfmt = g('pCfmt').value; if (g('pUnit')) f.unit = g('pUnit').value;
+      f.args = $$('#pArgs input:checked').map(c => c.value).sort((a, b) => (+document.querySelector(`#pArgs input[value="${CSS.escape(a)}"]`).dataset.ord || 0) - (+document.querySelector(`#pArgs input[value="${CSS.escape(b)}"]`).dataset.ord || 0)); }
     if (f.type === 'addrtitle' && !f.level) f.level = 'sgg';
     const nk = fkey(f); if (nk !== curKey) { CF.fields.forEach(o => { if (o.periodOf === curKey) o.periodOf = nk; if (o.src === curKey) o.src = nk; }); curKey = nk; }
     g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
     CF.fields.forEach(refreshBox); markSel(); saveFormsSoon();
   };
-  ['pName', 'pType', 'pFs', 'pAlign', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney'].forEach(id => g(id) && g(id).addEventListener(id === 'pMask' ? 'change' : 'input', upd));
+  ['pName', 'pType', 'pFs', 'pAlign', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit'].forEach(id => g(id) && g(id).addEventListener(/^(pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
+  if (g('pArgs')) g('pArgs').addEventListener('change', e => {     // 고른 순서 기억 (A, B, C …)
+    const c = e.target; if (c.type !== 'checkbox') return;
+    if (c.checked) c.dataset.ord = String(Date.now()); upd(); calcArgsLabel();
+  });
+  ['pOp', 'pCfmt'].forEach(id => g(id) && g(id).addEventListener('change', () => renderProps()));
   g('pName').addEventListener('change', () => renderProps());
   g('pType').addEventListener('change', () => renderProps());
+}
+function calcArgsHTML(f) {                                   // 함수 칸: 계산할 칸 고르기 (체크 순서 = A, B, C)
+  const cand = [...new Set(CF.fields.filter(o => o !== f && fkey(o) !== fkey(f) && /^(text|money|calc|select)$/.test(o.type) && o.name).map(fkey))];
+  if (!cand.length) return '<div class="hint keep">먼저 숫자를 적을 칸(금액·글자)에 이름을 붙이세요.</div>';
+  const args = f.args || [];
+  return cand.map(k => { const i = args.indexOf(k); return `<label class="sopt"><input type="checkbox" value="${esc(k)}"${i >= 0 ? ` checked data-ord="${i + 1}"` : ''}> <b class="ca">${i >= 0 ? String.fromCharCode(65 + i) : ''}</b> ${esc(k)}</label>`; }).join('');
+}
+function calcArgsLabel() {
+  const sel = selFields()[0]; if (!sel) return;
+  $$('#pArgs label').forEach(l => { const c = l.querySelector('input'), i = (sel.args || []).indexOf(c.value); l.querySelector('.ca').textContent = i >= 0 ? String.fromCharCode(65 + i) : ''; });
 }
 function linkSel() {
   const n = (document.getElementById('mName').value || '').trim(); if (!n) { alert('묶을 이름을 적어 주세요.'); return; }
@@ -4094,7 +4245,15 @@ function setupEditor() {
 
   /* 입력 도움말 풍선: 칸에 들어가거나(포커스) 마우스를 올리거나 누르면 위에 뜸 */
   const tipOf = t => cfMode === 'fill' && t && t.closest ? t.closest('#myPages [data-tip]') : null;
-  wrap.addEventListener('focusin', ev => { const e = tipOf(ev.target); e ? showTip(e) : hideTip(); });
+  wrap.addEventListener('focusin', ev => { const e = tipOf(ev.target); e ? showTip(e) : hideTip();
+    const x = ev.target; if (x.dataset && /^(money|time|birth)$/.test(x.dataset.fmtk || '') && cfMode === 'fill') { const g = CF.fields.find(o => o.id === x.dataset.fid); if (g) x.value = fmtEdit(g, FV[fkey(g)]); } });
+  wrap.addEventListener('focusout', ev => {                  // 칸을 벗어나면 정한 모양으로 (금액 → 35,000원(금삼만오천원정) 등)
+    const x = ev.target; if (!x.dataset || !/^(money|time|birth)$/.test(x.dataset.fmtk || '') || cfMode !== 'fill') return;
+    const g = CF.fields.find(o => o.id === x.dataset.fid); if (!g) return; const k = fkey(g);
+    if (g.type === 'time' && FV[k]) setFV(k, timeNorm(FV[k]));
+    if (g.type === 'birth' && FV[k] && birthIso(FV[k])) setFV(k, birthIso(FV[k]));
+    $$('#myPages input[data-fid]').forEach(e => { const o = CF.fields.find(q => q.id === e.dataset.fid); if (o && fkey(o) === k) e.value = fmtShow(o, FV[k]); });
+  });
   wrap.addEventListener('focusout', ev => { if (tipEl === ev.target && !tipEl.matches(':hover')) hideTip(); });
   wrap.addEventListener('mouseover', ev => { const e = tipOf(ev.target); if (e && e !== tipEl) showTip(e); });
   wrap.addEventListener('mouseout', ev => {
@@ -4116,6 +4275,12 @@ function setupEditor() {
       return;
     }
     const k = e.dataset.f;
+    if (e.dataset.fmtk) {                                    // 주민번호·사업자번호·전화: 쓰는 대로 ‘-’ / 금액: 쉼표
+      const ty = e.dataset.fmtk, raw = e.value;
+      const nv = ty === 'rrn' ? rrnFmt(raw) : ty === 'bizno' ? bizFmt(raw) : ty === 'tel' ? telFmt(raw) : ty === 'money' ? moneyFmt(raw.replace(/[^\d,]/g, '')) : raw;
+      if (nv !== raw) { e.value = nv; try { e.setSelectionRange(nv.length, nv.length); } catch (er) {} }
+      setFV(k, nv, e); fieldChanged(k); return;
+    }
     if (FV['__same:' + k]) { FV['__same:' + k] = false; $$(`#myPages [data-samef="${CSS.escape(k)}"]`).forEach(c => c.checked = false); }   // 직접 고치면 '동일' 해제
     if (/^근로시간 \d$/.test(k)) FV['__man:' + k] = !!e.value.trim();
     if (CF.fields.some(g => (g.birthOf || g.chiefOf || g.policeOf) && fkey(g) === k)) FV['__man:' + k] = !!e.value.trim();   // 지운 채로 칸을 벗어나면 다시 자동
@@ -4230,8 +4395,10 @@ function setFV(k, v, from) {
     else if (e.classList.contains('sig')) { e.classList.toggle('signed', !!v); const im = e.querySelector('img'); if (v) im.src = v; else im.removeAttribute('src'); }
     else if (e.classList.contains('dpart')) { const p = isoParts(v); e.value = p ? p[e.dataset.part] : ''; fit(e); }
     else if (e.classList.contains('dsingle')) { e.value = dateText(v, e.dataset.fmt); fit(e); }
+    else if (e.dataset.fid && e !== from) { const g = CF && CF.fields.find(o => o.id === e.dataset.fid); e.value = g ? (e === document.activeElement ? fmtEdit(g, v) : fmtShow(g, v)) : (v ?? ''); fit(e); }
     else { if (e !== from) e.value = v ?? ''; if (e.tagName === 'INPUT') fit(e); }
   });
+  if (CF && !refreshCalcs.busy) { refreshCalcs.busy = true; try { refreshCalcs(); } finally { refreshCalcs.busy = false; } }
   if (CF && CF.fields.some(g => g.tpl)) refreshTpls();
   if (CF && CF.fields.some(g => g.maskIf || g.coverIf)) {        // 값이 있을 때만 원래 글자(○○기관 등)를 가림
     $$('#myPages [data-maskif]').forEach(e => e.classList.toggle('cmask', !!String(e.value).trim()));
@@ -4492,6 +4659,7 @@ function shownVal(f) {
   if (f.type === 'check') return v ? '√' : '';
   if (f.type === 'sign') return v || '';
   if (f.type === 'date') return dateText(v, f.fmt || 'dot');
+  if (FMT_TYPES.test(f.type)) return fmtShow(f, v);
   if (f.trOf) return String(v ?? '') || String(FV[f.trOf] ?? '');
   return String(v ?? '');
 }
