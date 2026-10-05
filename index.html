@@ -278,10 +278,24 @@
   .big2 { font-size:15px !important; padding:9px 22px !important; }
   .ink { width:24px; height:24px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #bbb; cursor:pointer; }
   .ink.on { box-shadow:0 0 0 2.5px #2f5bd3; }
-  .sprev { display:inline-flex; flex-direction:column; align-items:center; gap:1px; border:1px solid #d3d9e6; border-radius:6px; background:#fff; padding:2px 4px; }
-  .sprev canvas { width:150px; height:46px; display:block; }
-  .sprev i { font-style:normal; font-size:10.5px; color:#778; }
-  @media (max-width:600px) { .sprev canvas { width:110px; height:34px; } }
+  .sgal { border-top:1px solid #e3e6ee; padding:8px 14px 2px; display:flex; flex-direction:column; gap:7px; background:#f7f9fd; }
+  .srow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px; }
+  .sseg { display:inline-flex; border:1px solid #c9d2e6; border-radius:8px; overflow:hidden; }
+  .sseg button { font:inherit; font-size:13px; border:0; background:#fff; padding:6px 11px; cursor:pointer; color:#334; }
+  .sseg button.on { background:#2f5bd3; color:#fff; font-weight:600; }
+  .sfontbox { display:inline-flex; gap:6px; align-items:center; }
+  .sfontbox[hidden] { display:none; }
+  .sfontbox input { width:96px; padding:5px 7px; border:1px solid #c9d2e6; border-radius:6px; font:inherit; }
+  .sfontbox select, .swl select { padding:5px 4px; border:1px solid #c9d2e6; border-radius:6px; font:inherit; max-width:170px; }
+  .swl { display:inline-flex; gap:5px; align-items:center; color:#445; }
+  .sthumbs { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; }
+  .sth { flex:none; display:flex; flex-direction:column; align-items:center; gap:2px; border:2px solid #d9dfec; border-radius:8px; background:#fff; padding:3px 4px 2px; cursor:pointer; }
+  .sth:hover { border-color:#9db0e8; }
+  .sth.on { border-color:#2f5bd3; box-shadow:0 0 0 2px rgba(47,91,211,.18); }
+  .sth canvas { width:132px; height:44px; display:block; }
+  .sth i { font-style:normal; font-size:11px; color:#556; }
+  .sth.on i { color:#2f5bd3; font-weight:700; }
+  @media (max-width:600px) { .sth canvas { width:96px; height:32px; } .srow { gap:5px; } }
   @media screen { .page { zoom:var(--pz, 1); } }
   .grph { position:absolute; left:6pt; right:6pt; top:4pt; z-index:6; display:flex; align-items:center; gap:5pt; flex-wrap:wrap; padding:3pt 6pt;
           font:600 8.5pt/1.35 inherit; color:#1d3a8a; background:rgba(236,242,253,.96); border:1px solid #c9d6f2; border-radius:5pt; }
@@ -785,11 +799,18 @@
       <button class="b" onclick="closeSig()">✕ 닫기</button>
     </div>
     <div class="spadwrap"><canvas id="sigPad"></canvas><div class="stip" id="sigTip">📱 휴대폰을 가로로 돌리면 더 크게 쓸 수 있어요</div></div>
+    <div class="sgal">
+      <div class="srow">
+        <span class="sseg"><button id="smPen" class="on" onclick="sigMode('pen')">✍ 마우스로 쓰기</button><button id="smFont" onclick="sigMode('font')">🔤 글꼴로 쓰기</button></span>
+        <span id="sFontBox" class="sfontbox" hidden><input id="sText" placeholder="이름" maxlength="20" oninput="SP.text=this.value; sigRefresh()"><select id="sFont" onchange="SP.font=this.value; sigFontSave(); sigRefresh()"></select><button class="b" onclick="sigMoreFonts()" title="이 컴퓨터에 설치된 글꼴을 모두 불러옵니다 (크롬·엣지, 허용 필요)">글꼴 더 찾기</button></span>
+        <label class="swl">굵기 <select id="sW" onchange="sigWeight(this.value)"><option value="r">무작위</option><option value="0.65">가늘게</option><option value="1">보통</option><option value="1.4">굵게</option><option value="1.85">아주 굵게</option></select></label>
+        <button class="b" onclick="sigReroll()" title="여섯 가지 모양의 기울기·장평·자간·굵기를 새로 정합니다">🎲 다른 느낌</button>
+        <label class="same2" title="효과 없이 마우스로 쓴 그대로 넣기"><input type="checkbox" id="sRaw" onchange="sigRefresh()"> 쓴 그대로</label>
+      </div>
+      <div class="sthumbs" id="sThumbs"></div>
+    </div>
     <div class="sfoot">
       <div class="sopts">
-        <button class="b" id="fxBtn" onclick="sigFxToggle()" title="마우스로 쓴 획을 손으로 쓴 것처럼 다듬습니다 (기울기·장평·자간·이어쓰기·필압)">✒ 손글씨 효과 켜짐</button>
-        <button class="b" onclick="sigReroll()" title="굵기·기울기·자간을 무작위로 다시 정합니다">🎲 다른 느낌</button>
-        <span class="sprev" title="서식에 들어갈 모양"><canvas id="sigPrev"></canvas><i>넣을 모양</i></span>
         <button class="b" onclick="undoPad()">↶ 한 획 지우기</button>
         <button class="b" onclick="clearPad()">다시 쓰기</button>
         <button class="b" onclick="document.getElementById('stampPick').click()">🔴 도장 이미지</button>
@@ -1181,7 +1202,10 @@ const SIG_NAME = { sigApp:'신청인 서명', sigCon1:'수급자(또는 보호�
 const SIG_PAD = 0.04;                                     // 서명 칸 바깥 여유(사방 4%) – 서명란만 화면 가득
 let sigKey = null, sigCb = null;
 const SP = { target: null, page: null, box: null, R: null, s: 1, strokes: [], stamp: null, ink: '#111', onApply: null, dpr: 1, wk: 1, seed: 1 };   // 서명은 늘 검정
-let SIGFX = true; try { SIGFX = localStorage.getItem('kit-sigfx') !== '0'; } catch (e) {}
+const SIG_LOOKS = ['자연스럽게', '오른쪽 흘림', '왼쪽 흘림', '무작위', '완전 흘려쓰기', '싸인'];
+Object.assign(SP, { mode: 'pen', text: '', font: '', look: 0, wsel: 'r' });
+try { const o = JSON.parse(localStorage.getItem('kit-sigopt') || '{}'); if (o.mode) SP.mode = o.mode; if (o.look != null) SP.look = o.look; if (o.wsel) SP.wsel = o.wsel; if (o.font) SP.font = o.font; } catch (e) {}
+const sigOptSave = () => { try { localStorage.setItem('kit-sigopt', JSON.stringify({ mode: SP.mode, look: SP.look, wsel: SP.wsel, font: SP.font })); } catch (e) {} };
 const spc = () => document.getElementById('sigPad');
 
 function refreshSigs() {
@@ -1207,13 +1231,13 @@ function bgSource(page) {
 }
 function openSignPad({ title, who, target, showSame, onApply }) {
   if (!target) return;
-  Object.assign(SP, { target, page: target.closest('.page'), box: boxOf(target), strokes: [], stamp: null, onApply, ink: '#111' });
-  sigNewLook(); sigFxBtn();
+  Object.assign(SP, { target, page: target.closest('.page'), box: boxOf(target), strokes: [], stamp: null, onApply, ink: '#111', text: who || sigWhoOf(target) || '' });
+  sigNewLook(); sigUI();
   document.getElementById('sigTitle').textContent = title;
   document.getElementById('sigWho').textContent = (who ? who + ' 님, ' : '') + '점선 칸 안에 크게 서명하세요.';
   document.getElementById('sigSameWrap').style.display = showSame ? '' : 'none';
   const ov = document.getElementById('signOv');
-  ov.classList.add('on'); document.body.classList.add('signing');
+  ov.classList.add('on'); document.body.classList.add('signing'); sigFitView();
   /* 휴대폰·태블릿: 브라우저 주소창까지 숨기고 화면 전체로 (지원하는 기기만) */
   try { if (matchMedia('(pointer:coarse)').matches && ov.requestFullscreen && !document.fullscreenElement) ov.requestFullscreen({ navigationUI: 'hide' }).then(() => setTimeout(layoutPad, 60)).catch(() => {}); } catch (e) {}
   layoutPad();
@@ -1225,15 +1249,24 @@ function openSignPad({ title, who, target, showSame, onApply }) {
       { transform: 'none', opacity: 1, transformOrigin: '0 0' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
   }
 }
+/* 휴대폰에서 손가락으로 확대한 상태여도 서명판은 확대 전 화면(좌우 꽉 채움)처럼 보이게: 보이는 영역에 맞춰 되돌려 줄임 */
+function sigFitView() {
+  const ov = document.getElementById('signOv'), vv = window.visualViewport, z = vv ? vv.scale : 1;
+  if (vv && z > 1.01) Object.assign(ov.style, { inset: 'auto', left: vv.offsetLeft + 'px', top: vv.offsetTop + 'px', width: vv.width * z + 'px', height: vv.height * z + 'px', transform: `scale(${1 / z})`, transformOrigin: '0 0' });
+  else ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin'].forEach(k => ov.style[k] = '');
+  SP.vz = vv && z > 1.01 ? z : 1;
+}
+if (window.visualViewport) ['resize', 'scroll'].forEach(ev => visualViewport.addEventListener(ev, () => { if (SP.target) { const z0 = SP.vz; sigFitView(); if (Math.abs((SP.vz || 1) - (z0 || 1)) > 0.01 || ev === 'resize') layoutPad(); } }));
 function closeSig() {
   try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
+  ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin'].forEach(k => document.getElementById('signOv').style[k] = '');
   document.getElementById('signOv').classList.remove('on'); document.body.classList.remove('signing');
   sigKey = null; sigCb = null; SP.target = null;
 }
 /* 화면 크기에 맞춰 확대 비율 계산 */
 function layoutPad() {
   if (!SP.target) return;
-  const c = spc(), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, b = SP.box;
+  const c = spc(), r = c.getBoundingClientRect(), dpr = (window.devicePixelRatio || 1) * (SP.vz || 1), b = SP.box;   // 확대 상태면 그만큼 더 선명하게
   SP.dpr = dpr; c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
   const k = 1 + 2 * SIG_PAD;                                                // 서명 칸(+여유)만 화면 가득
   const s = Math.min(r.width * 0.97 / (b.w * k), r.height * 0.94 / (b.h * k), 40);
@@ -1260,19 +1293,97 @@ function padBoxScreen() {
   return { left: c.left + (b.x - SP.R.x) * SP.s, top: c.top + (b.y - SP.R.y) * SP.s, width: b.w * SP.s, height: b.h * SP.s };
 }
 const penW = () => clamp(SP.box.h * 0.055, 0.9, 1.9) * (SP.wk || 1);    // 펜 굵기(pt) – 서명 칸 크기에 맞춤 × 무작위(서명마다)
-function sigNewLook() { const a = new Uint32Array(1); crypto.getRandomValues(a); SP.seed = a[0] || 1; SP.wk = 0.62 + (a[0] % 1000) / 1000 * 0.6; }   // 굵기 0.62~1.22배
-function sigReroll() { sigNewLook(); if (!SIGFX) { SIGFX = true; sigFxBtn(); } drawPad(); }
-function sigFxToggle() { SIGFX = !SIGFX; try { localStorage.setItem('kit-sigfx', SIGFX ? '1' : '0'); } catch (e) {} sigFxBtn(); drawPad(); }
-function sigFxBtn() { const b = document.getElementById('fxBtn'); if (b) { b.textContent = SIGFX ? '✒ 손글씨 효과 켜짐' : '✒ 손글씨 효과 꺼짐'; b.classList.toggle('primary', SIGFX); } }
+function sigNewLook() {                                      // 서명마다 새 무작위 값 (굵기 무작위면 굵기도)
+  const a = new Uint32Array(1); crypto.getRandomValues(a); SP.seed = a[0] || 1;
+  SP.wk = SP.wsel === 'r' ? 0.62 + (a[0] % 1000) / 1000 * 0.75 : +SP.wsel;
+}
+function sigReroll() { sigNewLook(); const r = document.getElementById('sRaw'); if (r) r.checked = false; sigRefresh(); }
+function sigWeight(v) { SP.wsel = v; SP.wk = v === 'r' ? 0.62 + ((SP.seed >>> 3) % 1000) / 1000 * 0.75 : +v; sigOptSave(); sigRefresh(); }
+function sigMode(m) {
+  SP.mode = m; sigOptSave(); sigUI();
+  if (m === 'font' && !SP.text) setTimeout(() => document.getElementById('sText').focus(), 50);
+}
+function sigLook(i) { SP.look = i; sigOptSave(); $$('#sThumbs .sth').forEach((e, j) => e.classList.toggle('on', j === i)); drawPad(); }
+function sigWhoOf(el) {                                       // 서명 칸 → 같은 사람의 성명 칸 값 (글꼴로 쓰기 기본 글자)
+  if (!CF || !el || !el.dataset || !el.dataset.f) return '';
+  const k = el.dataset.f, cand = [k.replace(/서명$/, '성명'), k.replace(/\s*서명$/, ' 성명'), k.replace(/서명/, '성명')];
+  if (/^요청인|^신청인/.test(k)) cand.unshift('요청인(기관장) 성명');
+  for (const c of cand) { const v = String(FV[c] ?? '').trim(); if (v) return v; }
+  const pre = k.replace(/\s*서명.*$/, ''); const f = CF.fields.find(g => g.type === 'text' && /성명|이름/.test(g.name || '') && (g.name || '').startsWith(pre) && String(FV[fkey(g)] ?? '').trim());
+  return f ? String(FV[fkey(f)]).trim() : '';
+}
+/* 이 컴퓨터의 글꼴 찾기: 흔한 한글·손글씨 글꼴을 확인하고, ‘글꼴 더 찾기’는 설치된 글꼴 전체 (크롬·엣지) */
+const SIG_FONTS = ['나눔손글씨 펜', 'Nanum Pen Script', '나눔손글씨 붓', 'Nanum Brush Script', '나눔바른펜', 'NanumBarunpen', '휴먼편지체', '휴먼매직체', '휴먼옛체', 'HY엽서L', 'HY엽서M',
+  '궁서', 'Gungsuh', '궁서체', 'GungsuhChe', '바탕', 'Batang', '맑은 고딕', 'Malgun Gothic', '굴림', 'Gulim', '돋움', 'Dotum', '나눔고딕', 'NanumGothic', '나눔명조', 'NanumMyeongjo',
+  'HY견고딕', 'HY헤드라인M', 'HY그래픽M', 'Segoe Script', 'Segoe Print', 'Brush Script MT', 'Lucida Handwriting', 'Comic Sans MS', 'Ink Free', 'Apple SD Gothic Neo', 'AppleMyungjo', 'Noto Sans KR', 'Noto Serif KR'];
+let sigFontList = null;
+function fontHas(name) {
+  const c = document.createElement('canvas').getContext('2d'), s = '가나다라홍길동AaGg', w = f => { c.font = `40px ${f}`; return c.measureText(s).width; };
+  return ['monospace', 'serif', 'sans-serif'].some(b => w(`"${name}", ${b}`) !== w(b));
+}
+function sigFonts() {
+  if (!sigFontList) { sigFontList = []; const seen = new Set();
+    SIG_FONTS.forEach(n => { if (!fontHas(n)) return; const c = document.createElement('canvas').getContext('2d'); c.font = `40px "${n}", serif`; const key = Math.round(c.measureText('가나다홍길동Aa').width * 10);
+      if (seen.has(key)) return; seen.add(key); sigFontList.push(n); }); }
+  return sigFontList;
+}
+async function sigMoreFonts() {
+  if (!window.queryLocalFonts) { alert('이 브라우저는 설치된 글꼴 목록을 알려 주지 않습니다.\n크롬이나 엣지에서 누르면 컴퓨터에 설치된 글꼴을 모두 고를 수 있습니다.'); return; }
+  try {
+    const fs = await window.queryLocalFonts(), fam = [...new Set(fs.map(f => f.family))].sort((a, b) => a.localeCompare(b, 'ko'));
+    const cur = sigFonts(); fam.forEach(f => { if (!cur.includes(f)) cur.push(f); }); sigFontSel(); toast(`글꼴 ${fam.length}개를 찾았습니다.`);
+  } catch (e) { alert('글꼴 목록을 불러오지 못했습니다. 브라우저에서 ‘글꼴 사용’을 허용해 주세요.'); }
+}
+const sigFontSave = () => sigOptSave();
+function sigFontSel() {
+  const sel = document.getElementById('sFont'), L = sigFonts(); if (!sel) return;
+  if (!SP.font || !L.includes(SP.font)) SP.font = L.find(n => /펜|붓|편지|Script|Brush|Pen|엽서|궁서|Gungsuh/i.test(n)) || L[0] || 'serif';
+  sel.innerHTML = L.map(n => `<option value="${esc(n)}"${n === SP.font ? ' selected' : ''} style="font-family:'${esc(n)}'">${esc(n)}</option>`).join('') || '<option>기본 글꼴</option>';
+}
+function sigUI() {
+  const pen = SP.mode !== 'font';
+  document.getElementById('smPen').classList.toggle('on', pen); document.getElementById('smFont').classList.toggle('on', !pen);
+  document.getElementById('sFontBox').hidden = pen;
+  document.getElementById('sRaw').parentElement.style.display = pen ? '' : 'none';
+  document.getElementById('sText').value = SP.text || '';
+  document.getElementById('sW').value = SP.wsel;
+  if (!pen) sigFontSel();
+  const box = document.getElementById('sThumbs');
+  box.innerHTML = SIG_LOOKS.map((n, i) => `<div class="sth${i === SP.look ? ' on' : ''}" onclick="sigLook(${i})" title="${n}"><canvas></canvas><i>${i + 1}. ${n}</i></div>`).join('');
+  sigRefresh();
+}
+function sigRefresh() { if (SP.target && SP.R) drawPad(); }
+const sigRaw = () => SP.mode !== 'font' && document.getElementById('sRaw') && document.getElementById('sRaw').checked;
+const sigHas = () => SP.mode === 'font' ? !!String(SP.text || '').trim() : SP.strokes.length > 0;
+function sigParams(i, r) {                                    // 여섯 가지 모양의 무작위 범위
+  const sg = r(0, 1) < 0.5 ? -1 : 1;
+  return [
+    { slant: r(-0.14, 0.14), sx: r(0.9, 1.1), gap: r(-0.06, 0.06), rot: r(-0.035, 0.035), link: 0.3, reach: 1.0, smooth: 2, base: 0.03 },
+    { slant: r(0.24, 0.45), sx: r(0.86, 1.12), gap: r(-0.12, 0.04), rot: r(-0.08, 0), link: 0.65, reach: 1.3, smooth: 2, base: 0.05 },
+    { slant: -r(0.2, 0.4), sx: r(0.86, 1.12), gap: r(-0.12, 0.04), rot: r(0, 0.07), link: 0.65, reach: 1.3, smooth: 2, base: 0.05 },
+    { slant: r(-0.45, 0.45), sx: r(0.78, 1.26), gap: r(-0.16, 0.15), rot: r(-0.09, 0.09), link: r(0.2, 0.8), reach: 1.3, smooth: 2, base: 0.08 },
+    { slant: sg * r(0.3, 0.48), sx: r(0.76, 0.9), gap: r(-0.1, -0.03), rot: r(-0.06, 0.04), link: 1, reach: 3.2, smooth: 3, base: 0.09, loose: true },
+    { slant: sg * r(0.15, 0.4), sx: r(0.78, 0.98), gap: r(-0.22, -0.1), rot: r(-0.13, -0.03), link: 0.85, reach: 2.2, smooth: 3, base: 0.04, sign: true },
+  ][i];
+}
+const sigRng = seed => { let s = seed >>> 0 || 1; const R = () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; return { R, r: (a, b) => a + (b - a) * R() }; };
+/* 싸인 밑줄: 왼쪽 아래에서 오른쪽으로 휙 그은 선 */
+function sigSwoosh(x0, x1, yb, H, r) {
+  const a = [x0 - r(0.0, 0.2) * H, yb + r(0.0, 0.12) * H], d = [x1 + r(0.15, 0.4) * H, yb - r(0.1, 0.4) * H],
+        b = [a[0] + (d[0] - a[0]) * 0.3, yb + r(0.15, 0.32) * H], c = [a[0] + (d[0] - a[0]) * 0.7, yb + r(-0.02, 0.14) * H], P = [];
+  for (let k = 0; k <= 24; k++) { const u = k / 24, v = 1 - u;
+    P.push([v * v * v * a[0] + 3 * v * v * u * b[0] + 3 * v * u * u * c[0] + u * u * u * d[0], v * v * v * a[1] + 3 * v * v * u * b[1] + 3 * v * u * u * c[1] + u * u * u * d[1], (0.35 + 0.75 * Math.sin(Math.PI * Math.min(1, u * 1.15))) * (u > 0.85 ? (1 - u) / 0.15 * 0.8 + 0.2 : 1)]); }
+  return P;
+}
 /* 손글씨 효과: 마우스로 쓴 획을 다듬고(부드럽게), 오른쪽으로 기울이고(흘림), 장평·자간을 무작위로 바꾸고,
    가까운 획끼리 가늘게 이어 쓰고, 빠르게 그은 곳은 가늘게(필압), 끝은 살짝 삐쳐 나가게 */
-function sigStyled() {
-  let s = SP.seed >>> 0 || 1; const R = () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296, r = (a, b) => a + (b - a) * R();
+function sigStyled(look) {
+  const { R, r } = sigRng((SP.seed ^ Math.imul(look + 1, 0x9e3779b1)) >>> 0), Q = sigParams(look, r);
   const smooth = pts => {
     let P = pts.filter((p, i) => i === 0 || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 0.03);
-    for (let k = 0; k < 2 && P.length > 2; k++) { const Q = [P[0]];
-      for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1]; Q.push([a[0] * .75 + b[0] * .25, a[1] * .75 + b[1] * .25], [a[0] * .25 + b[0] * .75, a[1] * .25 + b[1] * .75]); }
-      Q.push(P[P.length - 1]); P = Q; }
+    for (let k = 0; k < Q.smooth && P.length > 2; k++) { const N = [P[0]];
+      for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1]; N.push([a[0] * .75 + b[0] * .25, a[1] * .75 + b[1] * .25], [a[0] * .25 + b[0] * .75, a[1] * .25 + b[1] * .75]); }
+      N.push(P[P.length - 1]); P = N; }
     return P;
   };
   const st = SP.strokes.filter(x => x.length).map(smooth); if (!st.length) return [];
@@ -1281,9 +1392,16 @@ function sigStyled() {
   /* 글자 묶음(겹치는 획) → 자간 */
   const order = st.map((p, i) => ({ i, a: Math.min(...p.map(q => q[0])), b: Math.max(...p.map(q => q[0])) })).sort((p, q) => p.a - q.a);
   const cl = new Array(st.length); let ci = -1, cmax = -Infinity;
-  order.forEach(o => { if (o.a > cmax + H * 0.12) ci++; cl[o.i] = ci; cmax = Math.max(cmax, o.b); });
-  const gap = r(-0.16, 0.1) * H, sx = r(0.82, 1.22), slant = r(0.2, 0.45), rot = r(-0.09, 0.02), base = [...Array(ci + 1)].map(() => r(-0.05, 0.05) * H);
+  order.forEach(o => { if (o.a > cmax + H * 0.22) ci++; cl[o.i] = ci; cmax = Math.max(cmax, o.b); });
+  const gap = Q.gap * H, sx = Q.sx, slant = Q.slant, rot = Q.rot, base = [...Array(ci + 1)].map(() => r(-Q.base, Q.base) * H);
   const cs = Math.cos(rot), sn = Math.sin(rot);
+  if (Q.sign) {                                               // 싸인: 첫 글자는 크게, 나머지는 작고 촘촘하게 (아래 기준)
+    const cb = [...Array(ci + 1)].map((_, c) => { const pp = st.filter((x, i) => cl[i] === c).flat(); return pp.length ? { a: Math.min(...pp.map(p => p[0])), b: Math.max(...pp.map(p => p[0])), y: Math.max(...pp.map(p => p[1])) } : null; });
+    const ks = cb.map((B, c) => c === 0 ? r(1.25, 1.4) : r(0.7, 0.82)), nx = []; let right = null;
+    cb.forEach((B, c) => { if (!B) { nx.push(0); return; } const w = (B.b - B.a) * ks[c]; const left = right == null ? B.a - (B.b - B.a) * (ks[c] - 1) / 2 : right + r(0.06, 0.16) * H; nx.push(left); right = left + w; });
+    for (let si = 0; si < st.length; si++) { const c = cl[si], B = cb[c]; if (!B) continue; const k = ks[c];
+      st[si] = st[si].map(p => [nx[c] + (p[0] - B.a) * k, B.y - (B.y - p[1]) * k]); }
+  }
   let out = st.map((pts, si) => pts.map(p => { let x = cx + (p[0] - cx) * sx + (cy - p[1]) * slant + cl[si] * gap - ci * gap / 2, y = p[1] + base[cl[si]];
     const dx = x - cx, dy = y - cy; return [cx + dx * cs - dy * sn, cy + dx * sn + dy * cs]; }));
   /* 필압: 빠른 곳 가늘게, 시작·끝은 가늘게 */
@@ -1299,10 +1417,11 @@ function sigStyled() {
   /* 이어 쓰기: 다음 획이 가까우면 가는 선으로 연결 */
   const links = [];
   for (let i = 0; i < out.length - 1; i++) { const a = out[i][out[i].length - 1], b = out[i + 1][0], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (d < H * 1.1 && b[0] > a[0] - H * 0.3 && R() < 0.7) { const mx = (a[0] + b[0]) / 2 + r(-0.08, 0.08) * H, my = (a[1] + b[1]) / 2 + r(0.02, 0.14) * H, L = [];
+    if (d < H * (Q.reach || 1.1) && b[0] > a[0] - H * (Q.loose ? 0.8 : 0.3) && R() < Q.link) { const mx = (a[0] + b[0]) / 2 + r(-0.08, 0.08) * H, my = (a[1] + b[1]) / 2 + r(0.02, 0.14) * H, L = [];
       for (let k = 0; k <= 8; k++) { const u = k / 8, x = (1 - u) * (1 - u) * a[0] + 2 * u * (1 - u) * mx + u * u * b[0], y = (1 - u) * (1 - u) * a[1] + 2 * u * (1 - u) * my + u * u * b[1]; L.push([x, y, 0.28 + 0.14 * Math.sin(Math.PI * u)]); }
       links.push(L); } }
   out = out.concat(links);
+  if (Q.sign) { const ap = out.flat(); out.push(sigSwoosh(Math.min(...ap.map(p => p[0])), Math.max(...ap.map(p => p[0])), Math.max(...ap.map(p => p[1])), H, r)); }
   /* 서명 칸(+여유) 안에 들어오게 */
   const b = SP.box, E = { x: b.x - b.w * SIG_PAD, y: b.y - b.h * SIG_PAD, w: b.w * (1 + 2 * SIG_PAD), h: b.h * (1 + 2 * SIG_PAD) }, ap = out.flat();
   const X0 = Math.min(...ap.map(p => p[0])), X1 = Math.max(...ap.map(p => p[0])), Y0 = Math.min(...ap.map(p => p[1])), Y1 = Math.max(...ap.map(p => p[1]));
@@ -1311,10 +1430,13 @@ function sigStyled() {
   tx = clamp(tx, E.x + hw, E.x + E.w - hw); ty = clamp(ty, E.y + hh, E.y + E.h - hh);
   return out.map(pts => pts.map(p => [tx + (p[0] - mx) * k, ty + (p[1] - my) * k, p[2]]));
 }
-function paintStyled(ctx, map, scale) {
+function paintStyled(ctx, map, scale, look) {
   ctx.strokeStyle = ctx.fillStyle = '#111'; ctx.lineCap = ctx.lineJoin = 'round';
   const W = penW() * scale;
-  sigStyled().forEach(pts => {
+  paintPts(ctx, map, W, scale, sigStyled(look));
+}
+function paintPts(ctx, map, W, scale, list) {
+  list.forEach(pts => {
     const P = pts.map(p => { const q = map(p[0], p[1]); return [q[0], q[1], p[2]]; });
     if (P.length === 1) { ctx.beginPath(); ctx.arc(P[0][0], P[0][1], W * 0.5, 0, 7); ctx.fill(); return; }
     for (let i = 1; i < P.length; i++) {                     // 굵기가 달라지는 선: 짧은 곡선 조각마다 굵기
@@ -1324,6 +1446,46 @@ function paintStyled(ctx, map, scale) {
       if (i === P.length - 1) ctx.lineTo(b[0], b[1]);
       ctx.stroke();
     }
+  });
+}
+function paintFont(ctx, map, scale, look) {                   // 글꼴로 쓴 이름 + 같은 여섯 가지 모양
+  const text = String(SP.text || '').trim(); if (!text) return;
+  const { r } = sigRng((SP.seed ^ Math.imul(look + 7, 0x85ebca6b)) >>> 0), Q = sigParams(look, r), b = SP.box;
+  const E = { x: b.x - b.w * SIG_PAD, y: b.y - b.h * SIG_PAD, w: b.w * (1 + 2 * SIG_PAD), h: b.h * (1 + 2 * SIG_PAD) };
+  const chars = [...text], fam = `"${(SP.font || 'serif').replace(/"/g, '')}", "Malgun Gothic", serif`;
+  let fs = b.h * 0.72 * scale;                                 // 글자 크기(화면 픽셀)
+  const size = i => fs * (Q.sign ? (i === 0 ? 1.32 : 0.74) : 1);
+  const lay = () => { let x = 0; return chars.map((ch, i) => { ctx.font = `${size(i)}px ${fam}`; const w = ctx.measureText(ch).width * Q.sx, o = { ch, x, w, s: size(i), dy: r(-Q.base, Q.base) * fs, rt: r(-0.06, 0.06) }; x += w + Q.gap * fs * (Q.loose ? 0.8 : 0.6); return o; }); };
+  let L = lay(), tw = L[L.length - 1].x + L[L.length - 1].w + Math.abs(Q.slant) * fs;
+  const maxW = E.w * scale * 0.92; if (tw > maxW) { fs *= maxW / tw; L = lay(); tw = L[L.length - 1].x + L[L.length - 1].w + Math.abs(Q.slant) * fs; }
+  const [ex, ey] = map(E.x, E.y), cx = ex + E.w * scale / 2, by = ey + E.h * scale / 2 + fs * 0.32, x0 = cx - tw / 2 + (Q.slant > 0 ? 0 : Math.abs(Q.slant) * fs * 0.5);
+  const extra = Math.max(0, (SP.wk - 0.8)) * fs * 0.035;      // 굵기: 글자 테두리를 더 그려 두껍게
+  ctx.save(); ctx.fillStyle = ctx.strokeStyle = '#111'; ctx.lineJoin = 'round'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  ctx.translate(cx, by); ctx.rotate(Q.rot); ctx.translate(-cx, -by);
+  L.forEach(o => {
+    ctx.save(); ctx.translate(x0 + o.x, by + o.dy); ctx.rotate(o.rt); ctx.transform(Q.sx, 0, -Q.slant, 1, 0, 0);
+    ctx.font = `${o.s}px ${fam}`; ctx.fillText(o.ch, 0, 0);
+    if (extra > 0.2) { ctx.lineWidth = extra; ctx.strokeText(o.ch, 0, 0); }
+    if (SP.wk < 0.8) { ctx.globalCompositeOperation = 'destination-out'; ctx.lineWidth = (0.8 - SP.wk) * fs * 0.03; ctx.strokeText(o.ch, 0, 0); ctx.globalCompositeOperation = 'source-over'; }
+    ctx.restore();
+  });
+  ctx.restore();
+  if (Q.sign) {                                                // 싸인 밑줄
+    const H = fs, pts = sigSwoosh(x0, x0 + tw, by + fs * 0.12, H, r).map(p => [p[0], p[1], p[2]]);
+    ctx.strokeStyle = ctx.fillStyle = '#111'; ctx.lineCap = ctx.lineJoin = 'round';
+    paintPts(ctx, (x, y) => [x, y], penW() * scale, scale, [pts]);
+  }
+}
+function drawThumbs() {                                       // 여섯 가지 모양 미리보기
+  const box = document.getElementById('sThumbs'); if (!box || !SP.box) return;
+  const b = SP.box, E = { x: b.x - b.w * SIG_PAD, y: b.y - b.h * SIG_PAD, w: b.w * (1 + 2 * SIG_PAD), h: b.h * (1 + 2 * SIG_PAD) }, dpr = window.devicePixelRatio || 1, vz = SP.vz || 1;
+  box.querySelectorAll('canvas').forEach((c, i) => {
+    const rc = c.getBoundingClientRect(); c.width = Math.max(1, Math.round(rc.width * vz * dpr)); c.height = Math.max(1, Math.round(rc.height * vz * dpr));   // 확대 상태에서도 선명하게
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    if (!sigHas()) { ctx.fillStyle = '#b5bccb'; ctx.font = `${12 * dpr}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(SP.mode === 'font' ? '이름을 적으세요' : '서명하면 보여요', c.width / 2, c.height / 2); return; }
+    const sc = Math.min(c.width / E.w, c.height / E.h), ox = (c.width - E.w * sc) / 2, oy = (c.height - E.h * sc) / 2;
+    const map = (x, y) => [ox + (x - E.x) * sc, oy + (y - E.y) * sc];
+    if (SP.mode === 'font') paintFont(ctx, map, sc, i); else paintStyled(ctx, map, sc, i);
   });
 }
 function drawSigPrev() {
@@ -1337,7 +1499,8 @@ function drawSigPrev() {
 }
 function paintInk(ctx, map, scale, final) {
   if (SP.stamp) { const t = SP.stamp, [x, y] = map(t.x, t.y); ctx.drawImage(t.img, x, y, t.w * scale, t.h * scale); }
-  if (final && SIGFX && SP.strokes.length) return paintStyled(ctx, map, scale);   // 넣을 모양: 손글씨 효과
+  if (SP.mode === 'font') return paintFont(ctx, map, scale, SP.look);                // 글꼴로 쓰기
+  if (final && !sigRaw() && SP.strokes.length) return paintStyled(ctx, map, scale, SP.look);   // 넣을 모양: 고른 손글씨 효과
   ctx.strokeStyle = ctx.fillStyle = '#111'; ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = penW() * scale;
   SP.strokes.forEach(pts => {
     const P = pts.map(p => map(p[0], p[1]));
@@ -1363,29 +1526,29 @@ function drawPad() {
   }
   const [bx, by] = toPx(b.x, b.y);                          // 서명 칸 표시
   ctx.fillStyle = 'rgba(47,91,211,.06)'; ctx.fillRect(bx, by, b.w * k, b.h * k);
-  ctx.setLineDash([8 * SP.dpr, 6 * SP.dpr]); ctx.lineWidth = 1.5 * SP.dpr; ctx.strokeStyle = '#5b7be0'; ctx.strokeRect(bx, by, b.w * k, b.h * k); ctx.setLineDash([]);
-  if (!SP.strokes.length && !SP.stamp) {
-    ctx.fillStyle = 'rgba(47,91,211,.45)'; ctx.font = `${Math.min(b.h * k * 0.32, 34 * SP.dpr)}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const ui = SP.dpr / (SP.vz || 1); ctx.setLineDash([8 * ui, 6 * ui]); ctx.lineWidth = 1.5 * ui; ctx.strokeStyle = '#5b7be0'; ctx.strokeRect(bx, by, b.w * k, b.h * k); ctx.setLineDash([]);
+  if (!sigHas() && !SP.stamp) {
+    ctx.fillStyle = 'rgba(47,91,211,.45)'; ctx.font = `${Math.min(b.h * k * 0.32, 34 * SP.dpr / (SP.vz || 1))}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('여기에 서명', bx + b.w * k / 2, by + b.h * k / 2);
   }
-  paintInk(ctx, toPx, k);
-  if (!drawPad.busy) drawSigPrev();
+  paintInk(ctx, toPx, k, SP.mode === 'font');
+  if (!drawPad.busy) drawThumbs();
 }
 (function setupPad() {
   const c = spc(); let drawing = false;
   const pt = e => { const r = c.getBoundingClientRect(); return [SP.R.x + (e.clientX - r.left) / SP.s, SP.R.y + (e.clientY - r.top) / SP.s]; };
-  c.addEventListener('pointerdown', e => { e.preventDefault(); drawing = true; c.setPointerCapture(e.pointerId); SP.strokes.push([pt(e)]); drawPad(); });
+  c.addEventListener('pointerdown', e => { if (SP.mode === 'font') { sigMode('pen'); } e.preventDefault(); drawing = true; c.setPointerCapture(e.pointerId); SP.strokes.push([pt(e)]); drawPad(); });
   c.addEventListener('pointermove', e => {
     if (!drawing) return; e.preventDefault();
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; const s = SP.strokes[SP.strokes.length - 1];
     (evs.length ? evs : [e]).forEach(ev => s.push(pt(ev))); drawPad.busy = true; drawPad(); drawPad.busy = false;   // 쓰는 동안은 미리보기 쉬기
   });
-  const end = () => { if (drawing) { drawing = false; drawSigPrev(); } };
+  const end = () => { if (drawing) { drawing = false; drawThumbs(); } };
   c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
   window.addEventListener('resize', () => { if (SP.target) layoutPad(); });
   document.addEventListener('fullscreenchange', () => { if (SP.target) setTimeout(layoutPad, 60); });
 })();
-function clearPad() { SP.strokes = []; SP.stamp = null; drawPad(); }
+function clearPad() { SP.strokes = []; SP.stamp = null; if (SP.mode === 'font') { SP.text = ''; document.getElementById('sText').value = ''; } drawPad(); }
 function undoPad() { SP.strokes.pop(); drawPad(); }
 function setInk() { SP.ink = '#111'; drawPad(); }               // 서명 색은 검정으로 고정
 /* 도장 이미지: 흰 배경을 지워 서명 칸에 찍기 */
@@ -1407,7 +1570,7 @@ function loadStamp(input) {
 }
 /* 서명 칸(+여유) 영역만 깨끗한 그림으로 */
 function signImage() {
-  if (!SP.strokes.length && !SP.stamp) return '';
+  if (!sigHas() && !SP.stamp) return '';
   const b = SP.box, E = { x: b.x - b.w * SIG_PAD, y: b.y - b.h * SIG_PAD, w: b.w * (1 + 2 * SIG_PAD), h: b.h * (1 + 2 * SIG_PAD) };
   const sc = Math.min(8, 900 / E.w), o = document.createElement('canvas');
   o.width = Math.round(E.w * sc); o.height = Math.round(E.h * sc);
