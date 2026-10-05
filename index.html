@@ -3178,8 +3178,14 @@ function editHTML(f) {
 function todayHTML(f, k, on) {
   if (CF && CF.fw) return '';                                 // 외국인근로자 계약서: '오늘' 체크 없음 (계약일은 처음부터 오늘, 달력으로 바꿈)
   const nextEnd = CF && CF.fields.some(g => g.type === 'date' && g.periodOf === fkey(f) && g !== f);   // 바로 옆에 끝 날짜가 있으면 칸 위에
-  const pos = nextEnd ? `left:${r1(f.x + f.w - 30)}pt;top:${r1(f.y - 12.5)}pt`
-            : `left:${r1(f.part ? f.x + f.w + (f.fs || 11) * 1.3 + 3 : f.x + f.w + 3)}pt;top:${r1(f.y + f.h / 2 - 6)}pt`;
+  const rx = f.part ? f.x + f.w + (f.fs || 11) * 1.3 + 3 : f.x + f.w + 3;      // 오른쪽에 붙일 자리
+  const others = CF ? CF.fields.filter(g => g !== f && g.page === f.page && g.type !== 'cover' && !(f.part && g.part && fkey(g) === fkey(f))) : [];
+  const hit = (x0, y0, x1, y1) => others.some(g => g.x < x1 && g.x + g.w > x0 && g.y < y1 && g.y + g.h > y0);
+  const rightBusy = hit(rx, f.y + 1, rx + 32, f.y + f.h - 1);              // 오른쪽에 다른 입력 칸이 있으면 → 칸 위(위도 막혔으면 아래)
+  const upY = f.y - 12.5, ax = f.x + f.w - 30;
+  const pos = nextEnd || rightBusy
+    ? `left:${r1(ax)}pt;top:${r1(hit(ax, upY, ax + 30, f.y - 0.5) && !hit(ax, f.y + f.h + 0.5, ax + 30, f.y + f.h + 12) ? f.y + f.h + 0.5 : upY)}pt`
+    : `left:${r1(rx)}pt;top:${r1(f.y + f.h / 2 - 6)}pt`;
   return `<label class="today cft" style="${pos}" title="체크하면 오늘 날짜가 들어갑니다 (인쇄·PDF에는 안 나옴)"><input type="checkbox" data-todayf="${k}"${on ? ' checked' : ''}>오늘</label>`;
 }
 function tplVal(f) {
