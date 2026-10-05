@@ -1253,14 +1253,15 @@ function openSignPad({ title, who, target, showSame, onApply }) {
 /* 휴대폰에서 손가락으로 확대한 상태여도 서명판은 확대 전 화면(좌우 꽉 채움)처럼 보이게: 보이는 영역에 맞춰 되돌려 줄임 */
 function sigFitView() {
   const ov = document.getElementById('signOv'), vv = window.visualViewport, z = vv ? vv.scale : 1;
-  if (vv && z > 1.01) Object.assign(ov.style, { inset: 'auto', left: vv.offsetLeft + 'px', top: vv.offsetTop + 'px', width: vv.width * z + 'px', height: vv.height * z + 'px', transform: `scale(${1 / z})`, transformOrigin: '0 0' });
-  else ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin'].forEach(k => ov.style[k] = '');
+  /* transform(축소)은 글자가 흐려지므로 zoom으로: 다시 그려서 선명함 */
+  if (vv && z > 1.01) Object.assign(ov.style, { inset: 'auto', left: vv.offsetLeft * z + 'px', top: vv.offsetTop * z + 'px', width: vv.width * z + 'px', height: vv.height * z + 'px', zoom: String(1 / z), transform: '', transformOrigin: '' });
+  else ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin', 'zoom'].forEach(k => ov.style[k] = '');
   SP.vz = vv && z > 1.01 ? z : 1;
 }
 if (window.visualViewport) ['resize', 'scroll'].forEach(ev => visualViewport.addEventListener(ev, () => { if (SP.target) { const z0 = SP.vz; sigFitView(); if (Math.abs((SP.vz || 1) - (z0 || 1)) > 0.01 || ev === 'resize') layoutPad(); } }));
 function closeSig() {
   try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
-  ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin'].forEach(k => document.getElementById('signOv').style[k] = '');
+  ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin', 'zoom'].forEach(k => document.getElementById('signOv').style[k] = '');
   document.getElementById('signOv').classList.remove('on'); document.body.classList.remove('signing');
   sigKey = null; sigCb = null; SP.target = null;
 }
