@@ -1278,9 +1278,22 @@ function layoutPad() {
   SP.hi = null; drawPad(); sharpBg();
 }
 /* 직접 만든 양식: 확대한 부분만 원본 PDF에서 선명하게 다시 그림 */
-async function sharpBg() {
-  const page = SP.page, R = Object.assign({}, SP.R), sc = Math.min(SP.s * SP.dpr, 12);
-  if (!page || !page.classList.contains('cpage') || !CF || typeof cfDoc === 'undefined' || !cfDoc) return;
+async function sharpBg() {                                   // 확대한 부분을 화면 해상도 그대로 다시 그림 (흐림 방지)
+  const page = SP.page, R = Object.assign({}, SP.R), sc = Math.min(SP.s * SP.dpr, 80);
+  if (!page) return;
+  if (!page.classList.contains('cpage')) {                    // 장기요양 서식: 배경이 SVG → 같은 배율로 다시 그림
+    try {
+      const svgEl = page.querySelector('svg.bg'), imgEl = page.querySelector('img.bg');
+      const src = svgEl ? URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svgEl)], { type: 'image/svg+xml' })) : imgEl && imgEl.src; if (!src) return;
+      const im = new Image(); await new Promise((ok, no) => { im.onload = ok; im.onerror = no; im.src = src; });
+      const c = document.createElement('canvas'); c.width = Math.ceil(R.w * sc); c.height = Math.ceil(R.h * sc);
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(im, -R.x * sc, -R.y * sc, 595 * sc, 841 * sc);
+      if (svgEl) URL.revokeObjectURL(src);
+      if (SP.page === page && SP.R && SP.R.x === R.x && SP.R.y === R.y) { SP.hi = c; drawPad(); }
+    } catch (e) {}
+    return;
+  }
+  if (!CF || typeof cfDoc === 'undefined' || !cfDoc) return;
   try {
     const pg = await cfDoc.getPage(+page.dataset.pg + 1), vp = pg.getViewport({ scale: sc, offsetX: -R.x * sc, offsetY: -R.y * sc });
     const c = document.createElement('canvas'); c.width = Math.ceil(R.w * sc); c.height = Math.ceil(R.h * sc);
@@ -1533,7 +1546,7 @@ function drawPad() {
   const c = spc(), ctx = c.getContext('2d'), k = SP.s * SP.dpr, b = SP.box;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
   const bg = SP.page && bgSource(SP.page);                 // 확대한 서식 배경(흐리게)
-  try { ctx.globalAlpha = 0.55;
+  try { ctx.globalAlpha = 0.72;
     if (SP.hi) ctx.drawImage(SP.hi, 0, 0, c.width, c.height);
     else if (bg) ctx.drawImage(bg.src, SP.R.x * bg.k, SP.R.y * bg.k, SP.R.w * bg.k, SP.R.h * bg.k, 0, 0, c.width, c.height);
   } catch (e) {} ctx.globalAlpha = 1;
