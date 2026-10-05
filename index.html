@@ -835,19 +835,8 @@
         <div id="ltcCodePanel"></div>
       </div>
     </div>
-    <div class="grp" data-mod="my">
-      <button class="cat" onclick="myOpen()"><span class="n">4</span>직접 만든 양식</button>
-      <div class="panel">
-        <button class="sb primary" onclick="pickPdf()">＋ 새 양식 만들기 (PDF)</button>
-        <button class="sb" onclick="pickJson()">📂 양식·작성 파일 열기</button>
-        <button class="sb" onclick="openBulkPublish()" data-tip="내 양식 여러 개를 골라 한 번에 공개 목록에 신청합니다.\n관리자 계정이면 신청과 동시에 승인되어 바로 공개됩니다.">📤 여러 양식 한꺼번에 공개</button>
-        <div class="pt">내 양식</div>
-        <div class="subs mylist" id="myList"></div>
-        <div id="myPanel"></div>
-      </div>
-    </div>
     <div class="grp" data-mod="pub">
-      <button class="cat" onclick="pubOpen()"><span class="n">5</span>공개 양식 모음</button>
+      <button class="cat" onclick="pubOpen()"><span class="n">4</span>공개 양식 모음</button>
       <div class="panel">
         <div class="subs" style="display:block;padding-left:8px">
           <button class="sub ptab" data-t="list" onclick="pubTab('list')">🌐 공개 양식 목록</button>
@@ -856,6 +845,17 @@
         </div>
         <div class="pt">계정</div>
         <div id="pubAuth"></div>
+      </div>
+    </div>
+    <div class="grp" data-mod="my">
+      <button class="cat" onclick="myOpen()"><span class="n">5</span>직접 만든 양식</button>
+      <div class="panel">
+        <button class="sb primary" onclick="pickPdf()">＋ 새 양식 만들기 (PDF)</button>
+        <button class="sb" onclick="pickJson()">📂 양식·작성 파일 열기</button>
+        <button class="sb" onclick="openBulkPublish()" data-tip="내 양식 여러 개를 골라 한 번에 공개 목록에 신청합니다.\n관리자 계정이면 신청과 동시에 승인되어 바로 공개됩니다.">📤 여러 양식 한꺼번에 공개</button>
+        <div class="pt">내 양식</div>
+        <div class="subs mylist" id="myList"></div>
+        <div id="myPanel"></div>
       </div>
     </div>
     <div class="grp" data-mod="collect">
@@ -1091,11 +1091,11 @@
       <li>단시간근로자 서식의 <b>☑ 동일 근로시간</b>(인쇄 안 됨)을 켜고 요일을 고르면 첫 열에만 시간을 넣어도 고른 요일 열에 똑같이 들어가고, 근로시간은 시업·종업·휴게로 자동 계산됩니다.</li>
       <li><b>🌏 외국인근로자 표준근로계약서</b>: 맨 위에서 <b>분야</b>(농업·축산업·어업 / 제조·건설·서비스업 등)와 <b>나라</b>(그 나라 말)를 고르면 그 언어판 근로계약서와 같은 나라 말 공제 동의서(숙소비·식비)가 한 계약서로 열립니다. 공제 동의서는 계약서에 적은 사업체명·근로자 이름·숙박비·식비·계약일이 그대로 들어가고, 근로자 서명만 따로 받습니다. 한국어 칸에 쓰면 아래 외국어 줄의 같은 칸(체크·괄호·날짜·시간 등)에도 함께 들어가고, 나라를 바꿔도 쓴 내용은 그대로 옮겨집니다. 원본 서식 PDF는 도구모음과 같은 곳의 <code>fw</code> 폴더에서 불러옵니다.</li>
       <li><b>🌐 번역 확인</b>: 고용주가 한국어로 적은 근무장소·업무내용 등을 근로자 나라 말로 번역해 외국어 줄에 넣고, 서명 전에 서로 묻고 답할 수 있습니다. 크롬(PC)의 내장 번역을 먼저 쓰고, 안 되는 언어는 Google 번역 창으로 연결합니다(기계 번역은 참고용).</li>
-      <li>칸을 고치거나 더하려면 <b>📋 내 양식으로 복사해 칸 편집</b>을 누르면 ‘4. 직접 만든 양식’에 복사됩니다.</li>
+      <li>칸을 고치거나 더하려면 <b>📋 내 양식으로 복사해 칸 편집</b>을 누르면 ‘5. 직접 만든 양식’에 복사됩니다.</li>
     </ul>
     <h4>🧩 직접 만든 양식</h4>
     <ul>
-      <li>오른쪽 <b>4. 직접 만든 양식 → ＋ 새 양식 만들기</b>에서 PDF를 올리면 원본 그대로 입력 양식이 만들어집니다.</li>
+      <li>오른쪽 <b>5. 직접 만든 양식 → ＋ 새 양식 만들기</b>에서 PDF를 올리면 원본 그대로 입력 양식이 만들어집니다.</li>
       <li><b>🛠 칸 편집</b>에서 칸을 고치고, <b>✏️ 작성</b>에서 입력·서명·인쇄합니다. 이름이 같은 칸은 함께 입력됩니다.</li>
       <li><b>여러 칸 묶기</b>: 칸 편집에서 <b>Ctrl(또는 Shift)+클릭</b>으로 여러 칸을 고르거나(쪽이 달라도 됨), Shift+빈 곳 드래그로 영역을 잡은 뒤 <b>🔗 같은 이름으로 묶기</b>를 누르면 한 곳에 입력할 때 모두 채워집니다. 휴대폰·태블릿은 <b>☐ 여러 칸 선택</b>을 켜고 누르세요.</li>
       <li><b>날짜</b>: ‘&nbsp;&nbsp;년&nbsp;&nbsp;월&nbsp;&nbsp;일’ 자리는 자동으로 <b>날짜 칸 하나</b>로 합쳐지고 원래 ‘년·월·일’ 글자는 가려집니다. 작성할 때 칸을 누르면 달력이 뜨고 한 번에 입력되며(예: 2026년 10월 2일), <b>☑오늘</b>을 체크하면 오늘 날짜가 들어갑니다(인쇄·PDF에는 안 나옴). 날짜 모양은 칸 편집에서 바꿀 수 있습니다. 직접 합치려면 칸 여러 개를 골라 <b>📅 날짜 칸 하나로 합치기</b>를 누르세요.</li>
@@ -2284,7 +2284,7 @@ function showPage(id) {                                       // 입소·이용�
 
 /* ---------- 처음 화면 ---------- */
 const HOME_GSVG = '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 6 29.6 4 24 4 16 4 9.1 8.6 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.3-1.9 14-5.1l-6.5-5.5C29.5 35.3 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9 39.4 15.9 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.5 5.5C40.9 36 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>';
-const MOD_NAME = { labor: '1. 표준근로계약서', crim: '2. 범죄경력 등 조회 신청서류', ltc: '3. 장기요양기관 신청서류', my: '4. 직접 만든 양식', pub: '5. 공개 양식 모음', collect: '6. 제출 PDF 모아 엑셀로', gov: '7. 행정 신고서류' };
+const MOD_NAME = { labor: '1. 표준근로계약서', crim: '2. 범죄경력 등 조회 신청서류', ltc: '3. 장기요양기관 신청서류', pub: '4. 공개 양식 모음', my: '5. 직접 만든 양식', collect: '6. 제출 PDF 모아 엑셀로', gov: '7. 행정 신고서류' };
 function homeItem(act, title, desc) { return `<button type="button" onclick="${act}"><b>${esc(title)}</b>${desc ? `<span>${esc(desc)}</span>` : ''}</button>`; }
 function homeDD(n, icon, title, count, inner, open) {
   return `<details class="hdd"${open ? ' open' : ''}><summary><span class="hn">${n}</span>${icon} ${esc(title)}<span class="hc">${count || ''}</span></summary><div class="hl">${inner}</div></details>`;
@@ -2302,16 +2302,34 @@ function homeRender() {
       + crim.groups.map(g => homeItem(`homeCrim(${g.n})`, g.n + '. ' + g.title, g.law || '')).join(''));
   h += homeDD(3, '🏥', '장기요양기관 신청서류', '1종',
       homeItem(`homeGo(()=>{showModule('ltc'); showPage('p1');})`, '입소·이용신청서', '재가서비스 이용내역서 포함 2쪽'));
+  h += `<details class="hdd" id="homePub" ontoggle="if(this.open)homePubLoad()"><summary><span class="hn">4</span>🌐 공개 양식 모음<span class="hc" id="homePubN"></span></summary><div class="hl" id="homePubL">`
+      + homeItem('homeGo(pubOpen)', '공개 양식 목록 전체 보기', '기관·분류·이름으로 찾기') + '<div class="hg" id="homePubMsg">펼치면 공개된 양식을 불러옵니다.</div></div></details>';
   if (gov.length) h += homeDD(7, '🗂', '행정 신고서류', gov.length + '종',
       gov.map(f => homeItem(`homeGo(()=>openForm('${f.id}'))`, f.title, GOV_DESC[f.id])).join(''));
   h += homeDD('＋', '🧰', '그 밖의 기능', '',
-      `<div class="hg">4. 직접 만든 양식</div>` + homeItem('homeGo(myOpen)', 'PDF 올려서 내 양식 만들기', '가진 서식 PDF를 입력할 수 있는 양식으로')
+      `<div class="hg">5. 직접 만든 양식</div>` + homeItem('homeGo(myOpen)', 'PDF 올려서 내 양식 만들기', '가진 서식 PDF를 입력할 수 있는 양식으로')
       + forms.map(f => homeItem(`homeGo(()=>{placePages('my'); showModule('my'); openForm('${f.id}')})`, '🧩 ' + f.title, '내 양식')).join('')
-      + `<div class="hg">5·6. 공유와 취합</div>` + homeItem('homeGo(pubOpen)', '공개 양식 모음', '다른 기관이 공개한 양식 찾아 쓰기')
-      + homeItem('homeGo(colOpen)', '제출 PDF 모아 엑셀로', '제출받은 PDF를 엑셀로 정리 · 진위 확인'));
+      + `<div class="hg">6. 취합</div>` + homeItem('homeGo(colOpen)', '제출 PDF 모아 엑셀로', '제출받은 PDF를 엑셀로 정리 · 진위 확인'));
   el.innerHTML = h;
   el.querySelectorAll('details').forEach((d, i) => { if (opened[i]) d.open = true; });
   homeAuth();
+}
+let homePubBusy = false;
+async function homePubLoad(force) {
+  const box = document.getElementById('homePubL'), msg = document.getElementById('homePubMsg'); if (!box || homePubBusy) return;
+  if (!FB.enabled()) { if (msg) msg.textContent = '공개 양식 서버가 연결되지 않았습니다.'; return; }
+  if (box.dataset.done && !force) return;
+  homePubBusy = true; if (msg) msg.textContent = '불러오는 중…';
+  try {
+    await FB.init(); if (!pubCache) pubCache = await FB.listApproved();
+    const L = [...pubCache].sort((a, b) => String(a.org || '힣').localeCompare(String(b.org || '힣'), 'ko') || String(a.title).localeCompare(String(b.title), 'ko'));
+    box.querySelectorAll('.hpub').forEach(e => e.remove());
+    if (msg) msg.textContent = L.length ? '' : '아직 공개된 양식이 없습니다.'; if (msg && L.length) msg.remove();
+    box.insertAdjacentHTML('beforeend', L.map(f => `<button type="button" class="hpub" onclick="homeGo(()=>pubUse('${esc(f.id)}'))"><b>${esc(f.title)}</b><span>${esc([f.org, f.category].filter(Boolean).join(' · '))}</span></button>`).join(''));
+    const n = document.getElementById('homePubN'); if (n) n.textContent = L.length + '종';
+    box.dataset.done = '1';
+  } catch (e) { if (msg) msg.textContent = '공개 양식을 불러오지 못했습니다. 인터넷 연결을 확인하세요.'; }
+  homePubBusy = false;
 }
 function homeAuth() {
   const a = document.getElementById('homeAuth'), go = document.getElementById('homeGo'); if (!a) return;
@@ -3036,7 +3054,7 @@ async function copyPresetToMine() {
   n.id = uid('f'); n.title = src.title + ' (내 양식)'; n.createdAt = new Date().toISOString();
   try { draftPut(draftKey(n.id), noSig(FV), sensOf(n.id)); } catch (e) {}
   forms.push(n); saveForms(); closeForm(); placePages('my'); myPages().style.display = '';
-  openForm(n.id, 'edit'); toast('‘4. 직접 만든 양식’에 복사했습니다. 칸을 자유롭게 고칠 수 있습니다.');
+  openForm(n.id, 'edit'); toast('‘5. 직접 만든 양식’에 복사했습니다. 칸을 자유롭게 고칠 수 있습니다.');
 }
 function closeForm() {
   flushFV();
@@ -4992,7 +5010,7 @@ function importBundle(o) {
   refreshMyList(); placePages('my'); showModule('my'); myPages().style.display = '';
   if (!CF) openForm(L[0].id, 'fill');
   toast(`양식 ${L.length}개를 가져왔습니다${upd ? ` (새로 ${add}개, 바꿈 ${upd}개)` : ''}.`);
-  if (FB.enabled() && confirm(`양식 ${L.length}개를 ‘4. 직접 만든 양식’에 넣었습니다.\n이어서 공개 목록에 한꺼번에 올릴까요?`)) openBulkPublish(L.map(t => t.id));
+  if (FB.enabled() && confirm(`양식 ${L.length}개를 ‘5. 직접 만든 양식’에 넣었습니다.\n이어서 공개 목록에 한꺼번에 올릴까요?`)) openBulkPublish(L.map(t => t.id));
 }
 /* 여러 양식 한꺼번에 공개 신청 (관리자는 바로 승인) */
 let BULK_PRE = null;
@@ -5048,7 +5066,7 @@ async function bulkSubmit() {
   }
   if (org && !myOrg.org) { myOrg = { org, dept, tel }; keepOrgLocal(); FB.saveProfile(myOrg).catch(() => {}); pubAuthChanged(); }
   pubCache = null; refreshMyList(); if (CF) renderMyPanel();
-  prog.innerHTML = `완료: <b>${ok}개</b> ${FB.admin ? '공개' : '공개 신청'}${fail ? `, <span style="color:#b3261e">${fail}개 실패</span>` : ''}.${FB.admin && ok ? ' ‘5. 공개 양식 모음’에서 확인할 수 있습니다.' : ''}`;
+  prog.innerHTML = `완료: <b>${ok}개</b> ${FB.admin ? '공개' : '공개 신청'}${fail ? `, <span style="color:#b3261e">${fail}개 실패</span>` : ''}.${FB.admin && ok ? ' ‘4. 공개 양식 모음’에서 확인할 수 있습니다.' : ''}`;
   btn.disabled = false; btn.textContent = '닫기'; btn.onclick = () => { document.getElementById('bulkDlg').close(); btn.onclick = bulkSubmit; };
 }
 function renameForm() {
@@ -6439,6 +6457,14 @@ fetch('minwage.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).t
 }).catch(() => {});
 
 (function init() {
+  try {                                                             // 2026-10-06: 공개 양식(내려받은 양식)에 남아 있던 작성 내용은 한 번 모두 비움
+    if (!localStorage.getItem('kit-reset-pub-1006')) {
+      const pubIds = new Set((Array.isArray(forms) ? forms : []).filter(f => f && (/^(pub_|buyeo)/.test(f.id || '') || f.pub || (f.source && f.source.pubId))).map(f => f.id));
+      Object.keys(localStorage).filter(k => k.startsWith('kit-fdraft-')).forEach(k => { const id = k.slice(11); if (/^(pub_|buyeo)/.test(id) || pubIds.has(id)) localStorage.removeItem(k); });
+      Object.keys(sessionStorage).filter(k => k.startsWith('kit-s:kit-fdraft-')).forEach(k => { const id = k.slice(17); if (/^(pub_|buyeo)/.test(id) || pubIds.has(id)) sessionStorage.removeItem(k); });
+      localStorage.setItem('kit-reset-pub-1006', '1');
+    }
+  } catch (e) {}
   forms = (Array.isArray(forms) ? forms : []).map(f => normForm(f, false)).filter(Boolean);   // 예전에 저장된 양식도 한 번 검사
   document.querySelector('#p1 [data-k="iName"]').setAttribute('list', 'instNames');
   document.querySelector('#p1 [data-k="iName"]').setAttribute('autocomplete', 'off');
