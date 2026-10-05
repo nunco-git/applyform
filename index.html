@@ -783,9 +783,9 @@
   <div class="db">
     <div class="hint2">한 번 등록해 두면 양식을 공개 신청할 때 자동으로 들어가고, 공개 목록에서 <b>기관명으로 검색</b>됩니다.</div>
     <label class="fl">기관명</label><input class="fi" id="orgN" placeholder="예) 부여군청, ○○구 보건소, ○○초등학교" maxlength="60">
-    <label class="fl">부서</label><input class="fi" id="orgDp" placeholder="예) 주민복지과 노인복지팀" maxlength="60">
+    <div id="orgMore"><label class="fl">부서</label><input class="fi" id="orgDp" placeholder="예) 주민복지과 노인복지팀" maxlength="60">
     <label class="fl">문의 전화 <small>선택 · 공개 목록에 표시됩니다</small></label><input class="fi" id="orgTel" placeholder="예) 041-830-0000" maxlength="30">
-    <div class="hint2" id="orgMail" style="margin-top:10px"></div>
+    <div class="hint2" id="orgMail" style="margin-top:10px"></div></div>
   </div>
   <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('orgDlg').close()">취소</button><button class="b primary" onclick="saveOrg()">저장</button></div>
 </dialog>
@@ -4629,7 +4629,7 @@ const realFB = {
     this.ready = (async () => {
       const [a, au, fs] = await Promise.all([import(FB_VER + 'firebase-app.js'), import(FB_VER + 'firebase-auth.js'), import(FB_VER + 'firebase-firestore.js')]);
       this.m = Object.assign({}, a, au, fs);
-      this.app = a.initializeApp(FIREBASE_CONFIG); this.auth = au.getAuth(this.app); this.db = fs.getFirestore(this.app);
+      this.app = a.initializeApp(FIREBASE_CONFIG); this.auth = au.getAuth(this.app); this.auth.languageCode = 'ko'; this.db = fs.getFirestore(this.app);
       try { await au.getRedirectResult(this.auth); } catch (e) {}
       await new Promise(res => {
         let first = true;
@@ -4690,7 +4690,9 @@ const realFB = {
   },
   orgEmail() { const p = this.user && (this.user.providerData || []).find(p => p.providerId === 'password'); return p ? p.email : ''; },
   sendOrgLink(email) {
-    return this.m.sendSignInLinkToEmail(this.auth, email, { url: location.origin + location.pathname + '?orgverify=1', handleCodeInApp: true });
+    this.auth.languageCode = 'ko';                              // 인증 메일을 한국어로
+    const em = btoa(unescape(encodeURIComponent(email))).replace(/=+$/, '');   // 다른 브라우저에서 열어도 메일 주소를 다시 묻지 않도록 링크에 담음
+    return this.m.sendSignInLinkToEmail(this.auth, email, { url: location.origin + location.pathname + '?orgverify=1&em=' + encodeURIComponent(em), handleCodeInApp: true });
   },
   isOrgLink(href) { return !!this.m && this.m.isSignInWithEmailLink(this.auth, href); },
   async refreshUser() { await this.m.reload(this.auth.currentUser); this.user = this.auth.currentUser; await this.user.getIdToken(true); },
@@ -5005,13 +5007,19 @@ function orgErr(e) {
   return '처리하지 못했습니다.\n' + ((e && e.message) || e);
 }
 async function handleOrgLink(href) {                       // 메일의 인증 링크로 들어왔을 때
-  const clean = () => { if (/[?&](oobCode|orgverify)=/.test(location.search)) history.replaceState(null, '', location.pathname); };
+  const clean = () => { if (/[?&](oobCode|orgverify|em)=/.test(location.search)) history.replaceState(null, '', location.pathname); };
   if (!FB.isOrgLink(href)) return false;
   if (!FB.user) {
     sessionStorage.setItem('kit-org-link', href); clean(); pubOpen();
     alert('기관 메일 인증을 마치려면 먼저 구글로 로그인하세요.\n로그인하면 인증이 자동으로 이어집니다.'); return true;
   }
   let email = localStorage.getItem(VERIFY_MAIL_KEY);
+  if (!email) {                                               // 다른 브라우저·기기: 링크에 담아 둔 메일 주소 사용
+    try {
+      const outer = new URL(href), inner = outer.searchParams.get('continueUrl'), q = inner ? new URL(inner).searchParams : outer.searchParams, em = q.get('em') || outer.searchParams.get('em');
+      if (em) email = decodeURIComponent(escape(atob(em.replace(/-/g, '+').replace(/_/g, '/'))));
+    } catch (e) {}
+  }
   if (!email) email = prompt('인증 메일을 받은 기관 메일 주소를 다시 입력해 주세요.\n(메일을 보낸 기기와 다른 기기에서 링크를 연 경우입니다)');
   clean(); if (!email) return true;
   try {
@@ -5019,7 +5027,7 @@ async function handleOrgLink(href) {                       // 메일의 인증 �
     localStorage.removeItem(VERIFY_MAIL_KEY);
     try { document.getElementById('ovDlg').close(); } catch (e) {}
     pubAuthChanged(); toast('기관 메일 인증을 마쳤습니다. 이제 양식을 공개 신청할 수 있습니다.');
-    if (!myOrg.org) setTimeout(openOrgDlg, 400);
+    if (!myOrg.org) setTimeout(() => openOrgDlg(true), 400);
   } catch (e) { alert(orgErr(e)); }
   return true;
 }
@@ -5028,14 +5036,16 @@ async function changeOrgMail() {
   try { await FB.unlinkOrg(); ovReset(); pubAuthChanged(); openOrgVerify(); } catch (e) { alert(orgErr(e)); }
 }
 
-function openOrgDlg() {
+function openOrgDlg(onlyName) {                             // onlyName: 인증 직후에는 기관명만 묻기
+  document.getElementById('orgMore').hidden = !!onlyName;
+  document.querySelector('#orgDlg .hint2').innerHTML = onlyName ? '✔ 기관 메일 인증을 마쳤습니다. <b>기관명</b>만 적어 주세요. (부서·전화는 나중에 ‘내 기관 정보’에서)' : '한 번 등록해 두면 양식을 공개 신청할 때 자동으로 들어가고, 공개 목록에서 <b>기관명으로 검색</b>됩니다.';
   document.getElementById('orgN').value = myOrg.org || ''; document.getElementById('orgDp').value = myOrg.dept || ''; document.getElementById('orgTel').value = myOrg.tel || '';
   const d = FB.user && (FB.user.email || '').split('@')[1];
   const om = FB.orgEmail(), od = om ? om.split('@')[1] : '';
   document.getElementById('orgMail').innerHTML = od ? `✔ 기관 메일 <b>${esc(om)}</b> 인증됨. 올리는 양식에 <b>${isGovDomain(od) ? '‘공공기관 메일 인증’' : '‘@' + esc(od) + ' 인증’'}</b> 표시가 붙습니다.`
     : d ? (isGovDomain(d) ? `✔ 지금 로그인한 계정(<b>${esc(d)}</b>)은 공공기관 메일이라 올리는 양식에 <b>‘공공기관 메일’</b> 표시가 자동으로 붙습니다.`
       : `지금 로그인한 계정은 일반 메일(<b>${esc(d)}</b>)입니다. 공공기관 메일(korea.kr·go.kr)로 만든 구글 계정으로 로그인하면 ‘공공기관 메일’ 표시가 붙고, 아니면 관리자가 확인 후 ‘기관 확인’ 표시를 붙여 드립니다.`) : '';
-  document.getElementById('orgDlg').showModal();
+  document.getElementById('orgDlg').showModal(); setTimeout(() => document.getElementById('orgN').focus(), 50);
 }
 async function saveOrg() {
   const p = { org: document.getElementById('orgN').value.trim().slice(0, 60), dept: document.getElementById('orgDp').value.trim().slice(0, 60), tel: document.getElementById('orgTel').value.trim().slice(0, 30) };
