@@ -803,7 +803,8 @@
       <div class="srow">
         <span class="sseg"><button id="smPen" class="on" onclick="sigMode('pen')">✍ 마우스로 쓰기</button><button id="smFont" onclick="sigMode('font')">🔤 글꼴로 쓰기</button></span>
         <span id="sFontBox" class="sfontbox" hidden><input id="sText" placeholder="이름" maxlength="20" oninput="SP.text=this.value; sigRefresh()"><select id="sFont" onchange="SP.font=this.value; sigFontSave(); sigRefresh()"></select><button class="b" onclick="sigMoreFonts()" title="이 컴퓨터에 설치된 글꼴을 모두 불러옵니다 (크롬·엣지, 허용 필요)">글꼴 더 찾기</button></span>
-        <label class="swl">굵기 <select id="sW" onchange="sigWeight(this.value)"><option value="r">무작위</option><option value="0.65">가늘게</option><option value="1">보통</option><option value="1.4">굵게</option><option value="1.85">아주 굵게</option></select></label>
+        <label class="swl" id="sPenWrap" title="같은 획이라도 펜에 따라 글씨 느낌(글꼴 느낌)이 달라집니다">펜 <select id="sPen" onchange="SP.pen=this.value; sigOptSave(); sigRefresh()"><option value="brushpen">붓펜 (손글씨체)</option><option value="ball">볼펜 (고딕·펜체)</option><option value="nib">만년필 (캘리그라피·명조 느낌)</option><option value="brush">붓 (궁서·붓글씨 느낌)</option><option value="marker">매직 (굵은 펜체)</option></select></label>
+        <label class="swl">굵기 <select id="sW" onchange="sigWeight(this.value)"><option value="r">무작위</option><option value="0.4">아주 가늘게</option><option value="0.65">가늘게</option><option value="1">보통</option><option value="1.4">굵게</option></select></label>
         <button class="b" onclick="sigReroll()" title="여섯 가지 모양의 기울기·장평·자간·굵기를 새로 정합니다">🎲 다른 느낌</button>
         <label class="same2" title="효과 없이 마우스로 쓴 그대로 넣기"><input type="checkbox" id="sRaw" onchange="sigRefresh()"> 쓴 그대로</label>
       </div>
@@ -1203,9 +1204,9 @@ const SIG_PAD = 0.04;                                     // 서명 칸 바깥 �
 let sigKey = null, sigCb = null;
 const SP = { target: null, page: null, box: null, R: null, s: 1, strokes: [], stamp: null, ink: '#111', onApply: null, dpr: 1, wk: 1, seed: 1 };   // 서명은 늘 검정
 const SIG_LOOKS = ['자연스럽게', '오른쪽 흘림', '왼쪽 흘림', '무작위', '완전 흘려쓰기', '싸인'];
-Object.assign(SP, { mode: 'pen', text: '', font: '', look: 0, wsel: 'r' });
-try { const o = JSON.parse(localStorage.getItem('kit-sigopt') || '{}'); if (o.mode) SP.mode = o.mode; if (o.look != null) SP.look = o.look; if (o.wsel) SP.wsel = o.wsel; if (o.font) SP.font = o.font; } catch (e) {}
-const sigOptSave = () => { try { localStorage.setItem('kit-sigopt', JSON.stringify({ mode: SP.mode, look: SP.look, wsel: SP.wsel, font: SP.font })); } catch (e) {} };
+Object.assign(SP, { mode: 'pen', text: '', font: '', look: 0, wsel: 'r', pen: 'brushpen' });
+try { const o = JSON.parse(localStorage.getItem('kit-sigopt') || '{}'); if (o.mode) SP.mode = o.mode; if (o.look != null) SP.look = o.look; if (o.wsel && o.wsel !== '1.85') SP.wsel = o.wsel; if (o.font) SP.font = o.font; if (o.pen) SP.pen = o.pen; } catch (e) {}
+const sigOptSave = () => { try { localStorage.setItem('kit-sigopt', JSON.stringify({ mode: SP.mode, look: SP.look, wsel: SP.wsel, font: SP.font, pen: SP.pen })); } catch (e) {} };
 const spc = () => document.getElementById('sigPad');
 
 function refreshSigs() {
@@ -1295,10 +1296,10 @@ function padBoxScreen() {
 const penW = () => clamp(SP.box.h * 0.055, 0.9, 1.9) * (SP.wk || 1);    // 펜 굵기(pt) – 서명 칸 크기에 맞춤 × 무작위(서명마다)
 function sigNewLook() {                                      // 서명마다 새 무작위 값 (굵기 무작위면 굵기도)
   const a = new Uint32Array(1); crypto.getRandomValues(a); SP.seed = a[0] || 1;
-  SP.wk = SP.wsel === 'r' ? 0.62 + (a[0] % 1000) / 1000 * 0.75 : +SP.wsel;
+  SP.wk = SP.wsel === 'r' ? 0.5 + (a[0] % 1000) / 1000 * 0.8 : +SP.wsel;     // 무작위 0.5~1.3배
 }
 function sigReroll() { sigNewLook(); const r = document.getElementById('sRaw'); if (r) r.checked = false; sigRefresh(); }
-function sigWeight(v) { SP.wsel = v; SP.wk = v === 'r' ? 0.62 + ((SP.seed >>> 3) % 1000) / 1000 * 0.75 : +v; sigOptSave(); sigRefresh(); }
+function sigWeight(v) { SP.wsel = v; SP.wk = v === 'r' ? 0.5 + ((SP.seed >>> 3) % 1000) / 1000 * 0.8 : +v; sigOptSave(); sigRefresh(); }
 function sigMode(m) {
   SP.mode = m; sigOptSave(); sigUI();
   if (m === 'font' && !SP.text) setTimeout(() => document.getElementById('sText').focus(), 50);
@@ -1347,6 +1348,7 @@ function sigUI() {
   document.getElementById('sRaw').parentElement.style.display = pen ? '' : 'none';
   document.getElementById('sText').value = SP.text || '';
   document.getElementById('sW').value = SP.wsel;
+  document.getElementById('sPen').value = SP.pen || 'brushpen'; document.getElementById('sPenWrap').style.display = pen ? '' : 'none';
   if (!pen) sigFontSel();
   const box = document.getElementById('sThumbs');
   box.innerHTML = SIG_LOOKS.map((n, i) => `<div class="sth${i === SP.look ? ' on' : ''}" onclick="sigLook(${i})" title="${n}"><canvas></canvas><i>${i + 1}. ${n}</i></div>`).join('');
@@ -1435,13 +1437,26 @@ function paintStyled(ctx, map, scale, look) {
   const W = penW() * scale;
   paintPts(ctx, map, W, scale, sigStyled(look));
 }
-function paintPts(ctx, map, W, scale, list) {
+/* 펜 종류: 같은 획을 펜에 따라 다른 글꼴 느낌으로 (붓펜·볼펜·만년필·붓·매직) */
+const PEN_BASE = { brushpen: 0.9, ball: 0.72, nib: 1.05, brush: 1.0, marker: 1.4 };
+function penMul(pen, w, dx, dy, i, n) {
+  switch (pen) {
+    case 'ball': return 0.82 + 0.18 * Math.min(1.2, w);                                   // 거의 같은 굵기
+    case 'marker': return 0.9 + 0.1 * Math.min(1.2, w);
+    case 'nib': { const a = Math.atan2(dy, dx); return (0.2 + 1.0 * Math.abs(Math.sin(a + 0.61))) * (0.6 + 0.4 * Math.min(1.2, w)); }   // 납작 펜촉(35°): 방향 따라 굵기
+    case 'brush': return Math.max(0.12, Math.pow(Math.max(0.05, w), 1.8) * 1.15 * (i < n * 0.14 ? 1.3 : 1));       // 붓: 시작은 눌러 굵게, 빠르면 아주 가늘게
+    default: return w;                                                                       // 붓펜: 필압
+  }
+}
+function paintPts(ctx, map, W, scale, list, plain) {
+  const pen = plain ? 'brushpen' : (SP.pen || 'brushpen'); W *= plain ? 1 : PEN_BASE[pen] || 1;
+  ctx.lineCap = ctx.lineJoin = pen === 'nib' ? 'round' : 'round';
   list.forEach(pts => {
     const P = pts.map(p => { const q = map(p[0], p[1]); return [q[0], q[1], p[2]]; });
     if (P.length === 1) { ctx.beginPath(); ctx.arc(P[0][0], P[0][1], W * 0.5, 0, 7); ctx.fill(); return; }
     for (let i = 1; i < P.length; i++) {                     // 굵기가 달라지는 선: 짧은 곡선 조각마다 굵기
       const a = P[i - 1], b = P[i], m0 = i > 1 ? [(P[i - 2][0] + a[0]) / 2, (P[i - 2][1] + a[1]) / 2] : a, m1 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      ctx.lineWidth = Math.max(0.35 * scale * 0.4, W * (a[2] + b[2]) / 2);
+      ctx.lineWidth = Math.max(0.35 * scale * 0.4, W * penMul(pen, (a[2] + b[2]) / 2, b[0] - a[0], b[1] - a[1], i, P.length));
       ctx.beginPath(); ctx.moveTo(m0[0], m0[1]); ctx.quadraticCurveTo(a[0], a[1], m1[0], m1[1]);
       if (i === P.length - 1) ctx.lineTo(b[0], b[1]);
       ctx.stroke();
@@ -1473,7 +1488,7 @@ function paintFont(ctx, map, scale, look) {                   // 글꼴로 쓴 �
   if (Q.sign) {                                                // 싸인 밑줄
     const H = fs, pts = sigSwoosh(x0, x0 + tw, by + fs * 0.12, H, r).map(p => [p[0], p[1], p[2]]);
     ctx.strokeStyle = ctx.fillStyle = '#111'; ctx.lineCap = ctx.lineJoin = 'round';
-    paintPts(ctx, (x, y) => [x, y], penW() * scale, scale, [pts]);
+    paintPts(ctx, (x, y) => [x, y], penW() * scale, scale, [pts], true);
   }
 }
 function drawThumbs() {                                       // 여섯 가지 모양 미리보기
@@ -1501,6 +1516,9 @@ function paintInk(ctx, map, scale, final) {
   if (SP.stamp) { const t = SP.stamp, [x, y] = map(t.x, t.y); ctx.drawImage(t.img, x, y, t.w * scale, t.h * scale); }
   if (SP.mode === 'font') return paintFont(ctx, map, scale, SP.look);                // 글꼴로 쓰기
   if (final && !sigRaw() && SP.strokes.length) return paintStyled(ctx, map, scale, SP.look);   // 넣을 모양: 고른 손글씨 효과
+  if (final && SP.strokes.length && (SP.pen || 'brushpen') !== 'brushpen') {         // 쓴 그대로 + 펜 종류
+    ctx.strokeStyle = ctx.fillStyle = '#111'; return paintPts(ctx, map, penW() * scale, scale, SP.strokes.map(s => s.map((p, i) => [p[0], p[1], 1])));
+  }
   ctx.strokeStyle = ctx.fillStyle = '#111'; ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = penW() * scale;
   SP.strokes.forEach(pts => {
     const P = pts.map(p => map(p[0], p[1]));
