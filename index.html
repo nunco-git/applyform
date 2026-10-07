@@ -267,6 +267,17 @@
   /* 확대 서명판 */
   #signOv { position:fixed; inset:0; z-index:2147483646; background:#0f1628; display:none; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing:border-box; }
   #signOv.on { display:flex; }
+  .scrop { position:absolute; inset:0; z-index:5; background:rgba(15,22,40,.82); display:flex; align-items:center; justify-content:center; padding:10px; box-sizing:border-box; }
+  .scrop[hidden] { display:none; }
+  .scbox { background:#fff; border-radius:12px; padding:14px 16px; width:min(640px,100%); max-height:100%; display:flex; flex-direction:column; gap:8px; box-sizing:border-box; overflow:auto; }
+  .scbox h5 { margin:0; font-size:16px; }
+  .scbox p { margin:0; font-size:13px; color:#556; line-height:1.5; }
+  .scwrap { position:relative; height:min(52vh,420px); min-height:200px; background:repeating-conic-gradient(#eef1f6 0 25%,#fff 0 50%) 0 0/16px 16px; border:1px solid #d9dfec; border-radius:8px; }
+  #scCv { position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; display:block; }
+  .scrow { display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:13px; color:#445; }
+  #scPrev { width:84px; height:84px; border:1px solid #d9dfec; border-radius:8px; background:#fff; flex:none; }
+  .scrow input[type=range] { width:120px; }
+  .scbtns { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
   body.signing { overflow:hidden; }
   #signOv .stage { flex:1; display:flex; flex-direction:column; background:#fff; overflow:hidden; width:100%; }
   .shead { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #e3e6ee; }
@@ -974,6 +985,18 @@
   <div class="db prevbox" id="pubPrevBody"></div>
 </dialog>
 <div id="signOv" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+  <div class="scrop" id="stampCrop" hidden>
+    <div class="scbox">
+      <h5>🔴 도장 부분 고르기</h5>
+      <p>도장이 있는 부분을 마우스·손가락으로 <b>끌어서 네모로 감싸세요</b>. 네모 안을 끌면 옮겨지고, 모서리를 끌면 크기가 바뀝니다. 처음에는 도장 부분을 자동으로 찾아 둡니다.</p>
+      <div class="scwrap"><canvas id="scCv"></canvas></div>
+      <div class="scrow"><canvas id="scPrev"></canvas><div style="display:flex;flex-direction:column;gap:6px">
+        <label class="same2"><input type="checkbox" id="scWhite" checked onchange="cropPrev()"> 흰 배경 지우기</label>
+        <label class="same2">배경 지우기 강도 <input type="range" id="scTh" min="150" max="245" value="215" oninput="cropPrev()"></label>
+        <span style="font-size:12px;color:#778">왼쪽 미리보기처럼 서명 칸에 <b>잘리지 않고 통째로</b> 들어갑니다.</span></div></div>
+      <div class="scbtns"><button class="b" onclick="cropClose()">취소</button><button class="b" onclick="cropAll()">사진 전체</button><button class="b" onclick="cropAuto()">🔍 자동으로 찾기</button><button class="b primary" onclick="cropApply()">✔ 이 부분 사용</button></div>
+    </div>
+  </div>
   <div class="stage">
     <div class="shead">
       <div><b id="sigTitle">서명</b><span id="sigWho"></span></div>
@@ -1072,7 +1095,7 @@
       <li>칸을 클릭해서 바로 입력합니다. <b>초록 칸</b>은 두 양식에 동시에 들어가고, <b>파란 칸</b>은 그 양식에만 들어갑니다.</li>
       <li>수급자와의 관계를 <b>본인</b>으로 고르면 신청인 성명·전화번호·주소가 수급자 칸에 자동으로 들어갑니다.</li>
       <li>수급자 주소를 넣으면 ‘○○군수 귀하’ 같은 단체장 명칭이 자동으로 바뀝니다.</li>
-      <li><b>✍ 서명</b> 칸을 누르면 그 부분이 화면 가득 <b>확대</b>됩니다. 점선 칸 안에 손가락·펜(휴대폰·태블릿)이나 마우스로 서명하고 <b>✔ 서명 넣기</b>를 누르면 원래 크기로 줄어들며 제자리에 들어갑니다. <b>🔴 도장 이미지</b>로 도장 사진을 찍을 수도 있습니다(흰 배경은 자동으로 지워짐). 다시 누르면 고쳐 쓰거나 삭제할 수 있고, 서명은 저장 파일에도 함께 저장됩니다.</li>
+      <li><b>✍ 서명</b> 칸을 누르면 그 부분이 화면 가득 <b>확대</b>됩니다. 점선 칸 안에 손가락·펜(휴대폰·태블릿)이나 마우스로 서명하고 <b>✔ 서명 넣기</b>를 누르면 원래 크기로 줄어들며 제자리에 들어갑니다. <b>🔴 도장 이미지</b>로 도장 사진을 찍을 수도 있습니다. 사진에서 도장 부분만 네모로 골라 자를 수 있고(자동으로 찾아 줌), 흰 배경은 지워지며 칸에 잘리지 않고 통째로 들어갑니다. 다시 누르면 고쳐 쓰거나 삭제할 수 있고, 서명은 저장 파일에도 함께 저장됩니다.</li>
       <li>복지용구 <b>대여기간</b> 칸을 누르면 달력이 뜹니다. ‘아래 줄도 모두 같은 기간으로 입력’을 체크하면 그 아래 줄에 한 번에 들어갑니다.</li>
       <li>날짜 옆 <b>☑오늘</b>을 체크하면 오늘 날짜가 들어갑니다(인쇄에는 안 나옵니다).</li>
       <li>상단 <b>장기요양기관</b> 목록에서 기관을 고르면 희망기관과 이용희망기관이 한 번에 채워집니다. 기관은 <b>⚙ 기관 관리</b>에서 등록합니다.</li>
@@ -1453,6 +1476,7 @@ function sigFitView() {
 }
 if (window.visualViewport) ['resize', 'scroll'].forEach(ev => visualViewport.addEventListener(ev, () => { if (SP.target) { const z0 = SP.vz; sigFitView(); if (Math.abs((SP.vz || 1) - (z0 || 1)) > 0.01 || ev === 'resize') layoutPad(); } }));
 function closeSig() {
+  if (CROP.src) cropClose();
   try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) {}
   ['inset', 'left', 'top', 'width', 'height', 'transform', 'transformOrigin', 'zoom'].forEach(k => document.getElementById('signOv').style[k] = '');
   document.getElementById('signOv').classList.remove('on'); sigHideFloaters(false); document.body.classList.remove('signing');
@@ -1777,23 +1801,108 @@ function drawPad() {
 function clearPad() { SP.strokes = []; SP.stamp = null; if (SP.mode === 'font') { SP.text = ''; document.getElementById('sText').value = ''; } drawPad(); }
 function undoPad() { SP.strokes.pop(); drawPad(); }
 function setInk() { SP.ink = '#111'; drawPad(); }               // 서명 색은 검정으로 고정
-/* 도장 이미지: 흰 배경을 지워 서명 칸에 찍기 */
+/* 도장 이미지: 원하는 부분을 골라(자르기) 흰 배경을 지운 뒤, 서명 칸에 잘리지 않게 통째로 찍기 */
+const CROP = { src: null, r: null, drag: null, v: null };
 function loadStamp(input) {
   const f = input.files[0]; input.value = ''; if (!f) return;
+  if (!/^image\//.test(f.type || 'image/')) { alert('그림 파일(사진)을 골라 주세요.'); return; }
   const img = new Image();
   img.onload = () => {
-    const cv = document.createElement('canvas'), m = Math.min(1, 600 / Math.max(img.width, img.height));
-    cv.width = Math.round(img.width * m); cv.height = Math.round(img.height * m);
-    const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0, cv.width, cv.height);
-    const d = cx.getImageData(0, 0, cv.width, cv.height), a = d.data;
-    for (let i = 0; i < a.length; i += 4) { const l = Math.min(a[i], a[i + 1], a[i + 2]); if (l > 215) a[i + 3] = 0; else if (l > 170) a[i + 3] = Math.round(a[i + 3] * (215 - l) / 45); }
-    cx.putImageData(d, 0, 0);
-    const b = SP.box, h = Math.min(b.h * 1.25, b.w * 1.1 * cv.height / cv.width), w = h * cv.width / cv.height;
-    SP.stamp = { img: cv, x: b.x + b.w / 2 - w / 2, y: b.y + b.h / 2 - h / 2, w, h }; drawPad();
+    const cv = document.createElement('canvas'), m = Math.min(1, 1600 / Math.max(img.width, img.height));
+    cv.width = Math.max(1, Math.round(img.width * m)); cv.height = Math.max(1, Math.round(img.height * m));
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0, cv.width, cv.height);
     URL.revokeObjectURL(img.src);
+    CROP.src = cv; CROP.r = stampFind(cv) || { x: 0, y: 0, w: cv.width, h: cv.height };
+    document.getElementById('stampCrop').hidden = false; requestAnimationFrame(() => { cropDraw(); cropPrev(); });
   };
+  img.onerror = () => { URL.revokeObjectURL(img.src); alert('이 그림 파일은 열 수 없습니다. JPG나 PNG로 다시 골라 주세요.'); };
   img.src = URL.createObjectURL(f);
 }
+/* 흰 종이 위 도장(빨강·진한 색) 부분을 자동으로 찾기 */
+function stampFind(cv) {                                     // 인주(빨강) 부분을 먼저, 없으면 진한 색 부분
+  const W = cv.width, H = cv.height, d = cv.getContext('2d').getImageData(0, 0, W, H).data, st = Math.max(1, Math.round(Math.max(W, H) / 400));
+  const box = test => { let x0 = W, y0 = H, x1 = -1, y1 = -1, n = 0;
+    for (let y = 0; y < H; y += st) for (let x = 0; x < W; x += st) { const i = (y * W + x) * 4; if (test(d[i], d[i + 1], d[i + 2])) { n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+    return n >= 6 && x1 > x0 && y1 > y0 ? { x0, y0, x1, y1 } : null; };
+  const B = box((r, g, b) => r - Math.max(g, b) > 55 && r > 110) || box((r, g, b) => Math.min(r, g, b) < 150); if (!B) return null;
+  let { x0, y0, x1, y1 } = B; const mg = Math.round(Math.max(x1 - x0, y1 - y0) * 0.06) + st;
+  x0 = Math.max(0, x0 - mg); y0 = Math.max(0, y0 - mg); x1 = Math.min(W, x1 + mg + st); y1 = Math.min(H, y1 + mg + st);
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+function cropView() {
+  const c = document.getElementById('scCv'), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, S = CROP.src;
+  const W = Math.max(1, Math.round(r.width * dpr)), H = Math.max(1, Math.round(r.height * dpr)); if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+  const k = Math.min(W / S.width, H / S.height) * 0.96; return { c, dpr, k, ox: (W - S.width * k) / 2, oy: (H - S.height * k) / 2 };
+}
+function cropDraw() {
+  if (!CROP.src) return; const V = cropView(), ctx = V.c.getContext('2d'), S = CROP.src, R = CROP.r;
+  ctx.clearRect(0, 0, V.c.width, V.c.height); ctx.drawImage(S, V.ox, V.oy, S.width * V.k, S.height * V.k);
+  const x = V.ox + R.x * V.k, y = V.oy + R.y * V.k, w = R.w * V.k, h = R.h * V.k;
+  ctx.fillStyle = 'rgba(15,22,40,.5)';
+  ctx.beginPath(); ctx.rect(V.ox, V.oy, S.width * V.k, S.height * V.k); ctx.rect(x, y, w, h); ctx.fill('evenodd');
+  ctx.lineWidth = 2 * V.dpr; ctx.strokeStyle = '#fff'; ctx.strokeRect(x, y, w, h);
+  ctx.setLineDash([6 * V.dpr, 4 * V.dpr]); ctx.strokeStyle = '#2f5bd3'; ctx.strokeRect(x, y, w, h); ctx.setLineDash([]);
+  const hs = 9 * V.dpr; ctx.fillStyle = '#2f5bd3';
+  [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].forEach(([a, b]) => { ctx.fillRect(a - hs / 2, b - hs / 2, hs, hs); });
+}
+/* 고른 부분 → 흰 배경 지우기 → 빈 가장자리 잘라내기 */
+function cropMake() {
+  const S = CROP.src, R = CROP.r, m = Math.min(1, 700 / Math.max(R.w, R.h));
+  const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(R.w * m)); cv.height = Math.max(1, Math.round(R.h * m));
+  const cx = cv.getContext('2d'); cx.drawImage(S, R.x, R.y, R.w, R.h, 0, 0, cv.width, cv.height);
+  const d = cx.getImageData(0, 0, cv.width, cv.height), a = d.data;
+  if (document.getElementById('scWhite').checked) {
+    const T = +document.getElementById('scTh').value || 215, F = Math.max(10, T - 170);
+    for (let i = 0; i < a.length; i += 4) { const l = Math.min(a[i], a[i + 1], a[i + 2]); if (l > T) a[i + 3] = 0; else if (l > T - F) a[i + 3] = Math.round(a[i + 3] * (T - l) / F); }
+    cx.putImageData(d, 0, 0);
+  }
+  let x0 = cv.width, y0 = cv.height, x1 = -1, y1 = -1;                       // 투명한 가장자리 잘라내기
+  for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) if (a[(y * cv.width + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < x0) return null;
+  const o = document.createElement('canvas'); o.width = x1 - x0 + 1; o.height = y1 - y0 + 1;
+  o.getContext('2d').drawImage(cv, x0, y0, o.width, o.height, 0, 0, o.width, o.height); return o;
+}
+function cropPrev() {
+  const c = document.getElementById('scPrev'); if (!c || !CROP.src) return;
+  const dpr = window.devicePixelRatio || 1; c.width = Math.round(84 * dpr); c.height = Math.round(84 * dpr);
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  const o = cropMake(); CROP.v = o; if (!o) return;
+  const k = Math.min(c.width / o.width, c.height / o.height) * 0.9; ctx.drawImage(o, (c.width - o.width * k) / 2, (c.height - o.height * k) / 2, o.width * k, o.height * k);
+}
+function cropClose() { document.getElementById('stampCrop').hidden = true; CROP.src = null; CROP.v = null; CROP.drag = null; }
+function cropAll() { if (!CROP.src) return; CROP.r = { x: 0, y: 0, w: CROP.src.width, h: CROP.src.height }; cropDraw(); cropPrev(); }
+function cropAuto() { if (!CROP.src) return; const r = stampFind(CROP.src); if (!r) { toast('도장 부분을 찾지 못했습니다. 직접 끌어서 골라 주세요.'); return; } CROP.r = r; cropDraw(); cropPrev(); }
+function cropApply() {
+  const o = cropMake(); if (!o) { alert('고른 부분에 도장이 보이지 않습니다. 네모를 도장에 맞추거나 ‘배경 지우기 강도’를 낮춰 보세요.'); return; }
+  cropClose();
+  /* 내보내는 그림(서명 칸 + 사방 여유) 안에 통째로 들어가게: 위아래·좌우가 잘리지 않음 */
+  const b = SP.box, Ew = b.w * (1 + 2 * SIG_PAD), Eh = b.h * (1 + 2 * SIG_PAD), k = Math.min(Ew / o.width, Eh / o.height) * 0.97, w = o.width * k, h = o.height * k;
+  SP.stamp = { img: o, x: b.x + b.w / 2 - w / 2, y: b.y + b.h / 2 - h / 2, w, h }; drawPad();
+}
+(function setupCrop() {
+  const c = document.getElementById('scCv'); if (!c) return;
+  const pt = e => { const V = cropView(), r = c.getBoundingClientRect(); return { x: ((e.clientX - r.left) * V.dpr - V.ox) / V.k, y: ((e.clientY - r.top) * V.dpr - V.oy) / V.k, tol: 14 * V.dpr / V.k }; };
+  const clamp = R => { const S = CROP.src, x0 = Math.max(0, Math.min(R.x, R.x + R.w)), y0 = Math.max(0, Math.min(R.y, R.y + R.h)), x1 = Math.min(S.width, Math.max(R.x, R.x + R.w)), y1 = Math.min(S.height, Math.max(R.y, R.y + R.h)); return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) }; };
+  c.addEventListener('pointerdown', e => {
+    if (!CROP.src) return; e.preventDefault(); c.setPointerCapture(e.pointerId);
+    const p = pt(e), R = CROP.r, cs = [[R.x, R.y], [R.x + R.w, R.y], [R.x, R.y + R.h], [R.x + R.w, R.y + R.h]];
+    const ci = cs.findIndex(([a, b]) => Math.abs(a - p.x) <= p.tol && Math.abs(b - p.y) <= p.tol);
+    if (ci >= 0) { const [ax, ay] = cs[3 - ci]; CROP.drag = { mode: 'new', ax, ay, old: R }; }            // 모서리: 반대쪽 모서리를 기준으로 크기 바꾸기
+    else if (p.x > R.x && p.x < R.x + R.w && p.y > R.y && p.y < R.y + R.h) CROP.drag = { mode: 'move', dx: p.x - R.x, dy: p.y - R.y, old: R };
+    else CROP.drag = { mode: 'new', ax: p.x, ay: p.y, old: R };
+  });
+  c.addEventListener('pointermove', e => {
+    const D = CROP.drag; if (!D) { if (CROP.src) { const p = pt(e), R = CROP.r, nearC = [[R.x, R.y], [R.x + R.w, R.y], [R.x, R.y + R.h], [R.x + R.w, R.y + R.h]].some(([a, b]) => Math.abs(a - p.x) <= p.tol && Math.abs(b - p.y) <= p.tol);
+      c.style.cursor = nearC ? 'nwse-resize' : (p.x > R.x && p.x < R.x + R.w && p.y > R.y && p.y < R.y + R.h ? 'move' : 'crosshair'); } return; }
+    e.preventDefault(); const p = pt(e), S = CROP.src;
+    if (D.mode === 'move') CROP.r = { x: Math.max(0, Math.min(S.width - D.old.w, p.x - D.dx)), y: Math.max(0, Math.min(S.height - D.old.h, p.y - D.dy)), w: D.old.w, h: D.old.h };
+    else CROP.r = clamp({ x: D.ax, y: D.ay, w: p.x - D.ax, h: p.y - D.ay });
+    cropDraw();
+  });
+  const end = () => { const D = CROP.drag; if (!D) return; CROP.drag = null; if (CROP.r.w < 6 || CROP.r.h < 6) CROP.r = D.old; cropDraw(); cropPrev(); };
+  c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => { if (CROP.src) cropDraw(); });
+})();
 /* 서명 칸(+여유) 영역만 깨끗한 그림으로 */
 function signImage() {
   if (!sigHas() && !SP.stamp) return '';
@@ -1819,7 +1928,7 @@ function applySig() {
   else done();
 }
 function removeSig() { const cb = SP.onApply, same = document.getElementById('sigSame').checked; closeSig(); cb && cb('', same); }
-document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && SP.target) closeSig(); });
+document.addEventListener('keydown', ev => { if (ev.key !== 'Escape') return; if (CROP.src) { cropClose(); return; } if (SP.target) closeSig(); });
 $$('.sig[data-sig]').forEach(d => d.addEventListener('click', () => openSig(d.dataset.sig)));
 
 /* ---------- 대여기간: 달력에서 선택 ---------- */
