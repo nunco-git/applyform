@@ -2419,8 +2419,10 @@ function homeRender() {
   if (crim) h += homeDD(2, '🔎', '범죄경력 등 조회 신청서류', crim.groups.length + '종',
       homeItem('homeCrim(0)', '전체 묶음 열기', '필요한 번호를 골라 한 번에 작성 · 기본 1·3·4번 선택')
       + crim.groups.map(g => homeItem(`homeCrim(${g.n})`, g.n + '. ' + g.title, g.law || '')).join(''));
-  h += homeDD(3, '🏥', '장기요양기관 신청서류', '1종',
-      homeItem(`homeGo(()=>{showModule('ltc'); showPage('p1');})`, '입소·이용신청서', '재가서비스 이용내역서 포함 2쪽'));
+  const ltcP = ltcPubGet();
+  h += homeDD(3, '🏥', '장기요양기관 신청서류', (1 + ltcP.length) + '종',
+      homeItem(`homeGo(()=>{showModule('ltc'); showPage('p1');})`, '입소·이용신청서', '재가서비스 이용내역서 포함 2쪽')
+      + ltcP.map(f => `<button type="button" onclick="homeGo(()=>pubUse('${esc(f.id)}'))"><b>${esc(f.title)}</b><span>${esc([f.org, '공개 양식'].filter(Boolean).join(' · '))}</span></button>`).join(''));
   h += `<details class="hdd" id="homePub" ontoggle="if(this.open)homePubLoad()"><summary><span class="hn">4</span>🌐 공개 양식 모음<span class="hc" id="homePubN"></span></summary><div class="hl" id="homePubL">`
       + homeItem('homeGo(pubOpen)', '공개 양식 목록 전체 보기', '기관·분류·이름으로 찾기') + '<div class="hg" id="homePubMsg">펼치면 공개된 양식을 불러옵니다.</div></div></details>';
   if (gov.length) h += homeDD(7, '🗂', '행정 신고서류', gov.length + '종',
@@ -2433,6 +2435,21 @@ function homeRender() {
   el.querySelectorAll('details').forEach((d, i) => { if (opened[i]) d.open = true; });
   homeAuth();
   if (FB.enabled()) setTimeout(() => homePubLoad(), 0);          // 4번 공개 양식 수를 미리 불러와 표시
+}
+/* ---------- 3번 장기요양기관 신청서류에 담아 둔 공개 양식 (이 기기에 저장) ---------- */
+function ltcPubGet() { try { const v = JSON.parse(localStorage.getItem('ltcPubList') || '[]'); return Array.isArray(v) ? v.filter(x => x && x.id) : []; } catch (e) { return []; } }
+function ltcPubSet(L) { try { localStorage.setItem('ltcPubList', JSON.stringify(L)); } catch (e) {} }
+function ltcPubHas(id) { return ltcPubGet().some(x => x.id === id); }
+function ltcPubToggle(id) {
+  const L = ltcPubGet(), i = L.findIndex(x => x.id === id);
+  if (i >= 0) L.splice(i, 1); else { const f = (pubCache || []).find(x => x.id === id); if (!f) return; L.push({ id, title: f.title || '공개 양식', org: f.org || '' }); }
+  ltcPubSet(L); homeRender(); pubRenderList(); toast(i >= 0 ? '3번 장기요양기관 신청서류에서 뺐습니다.' : '3번 장기요양기관 신청서류에 담았습니다.');
+}
+function ltcPubToday() {
+  const d0 = new Date(); d0.setHours(0, 0, 0, 0); const t0 = d0.getTime() / 1000;
+  const L = ltcPubGet(); let n = 0;
+  (pubCache || []).forEach(f => { const sec = f.createdAt && f.createdAt.seconds; if (sec >= t0 && !L.some(x => x.id === f.id)) { L.push({ id: f.id, title: f.title || '공개 양식', org: f.org || '' }); n++; } });
+  ltcPubSet(L); homeRender(); pubRenderList(); toast(n ? `오늘 올라온 양식 ${n}개를 3번에 담았습니다.` : '오늘 새로 올라온 양식이 없거나 이미 담겨 있습니다.');
 }
 let homePubBusy = false;
 async function homePubLoad(force) {
@@ -5811,11 +5828,11 @@ async function pubRenderList() {
       <input class="pq" id="pubQ" placeholder="기관명·신청서 이름으로 찾기" value="${esc(pubQuery)}">
       <select class="pq porgsel" id="pubOrgSel"><option value="">🏛 모든 기관 (${pubCache.length})</option>${orgOpts.map(o => `<option${o === pubOrg ? ' selected' : ''} value="${esc(o)}">${esc(o)} (${orgs[o]})</option>`).join('')}</select>
       <div class="pchips">${['', ...PUB_CATS].map(c => `<button class="chip${c === pubCat ? ' on' : ''}" data-c="${c}">${c || '전체'}</button>`).join('')}</div>
-      <button class="b" onclick="pubCache=null; pubRender()">↻ 새로고침</button>
+      <button class="b" onclick="pubCache=null; pubRender()">↻ 새로고침</button><button class="b" title="오늘 날짜에 올라온 공개 양식을 모두 ‘3. 장기요양기관 신청서류’에 담습니다" onclick="ltcPubToday()">🏥 오늘 올라온 양식 3번에 담기</button>
     </div>
     ${pubOrg && pubOrg !== '기관 미등록' ? `<div class="orghead">🏛 <b>${esc(pubOrg)}</b> 신청서 ${list.length}건 <button class="b" onclick="copyLink(linkFor('org='+encodeURIComponent(pubOrg)), '이 기관 신청서 모음')">🔗 이 기관 신청서 모음 링크</button></div>` : ''}
     <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 바로 입력할 수 있고, 입력한 내용은 내 기기에만 남습니다.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="홈 화면 ‘3. 장기요양기관 신청서류’ 목록에 담거나 뺍니다 (이 기기에 저장)" onclick="ltcPubToggle('${f.id}')">${ltcPubHas(f.id) ? '✔ 3번에서 빼기' : '🏥 3번에 담기'}</button><button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
       : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
   const qi = document.getElementById('pubQ');
   qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
