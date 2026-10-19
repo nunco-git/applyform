@@ -2419,10 +2419,9 @@ function homeRender() {
   if (crim) h += homeDD(2, '🔎', '범죄경력 등 조회 신청서류', crim.groups.length + '종',
       homeItem('homeCrim(0)', '전체 묶음 열기', '필요한 번호를 골라 한 번에 작성 · 기본 1·3·4번 선택')
       + crim.groups.map(g => homeItem(`homeCrim(${g.n})`, g.n + '. ' + g.title, g.law || '')).join(''));
-  const ltcP = ltcPubGet();
-  h += homeDD(3, '🏥', '장기요양기관 신청서류', (1 + ltcP.length) + '종',
+  h += homeDD(3, '🏥', '장기요양기관 신청서류', '<span id="homeLtcN">' + (1 + ltcPubGet().length) + '종</span>',
       homeItem(`homeGo(()=>{showModule('ltc'); showPage('p1');})`, '입소·이용신청서', '재가서비스 이용내역서 포함 2쪽')
-      + ltcP.map(f => `<button type="button" onclick="homeGo(()=>pubUse('${esc(f.id)}'))"><b>${esc(f.title)}</b><span>${esc([f.org, '공개 양식'].filter(Boolean).join(' · '))}</span></button>`).join(''));
+      + '<span id="homeLtcL" style="display:contents">' + ltcPubHtml() + '</span>');
   h += `<details class="hdd" id="homePub" ontoggle="if(this.open)homePubLoad()"><summary><span class="hn">4</span>🌐 공개 양식 모음<span class="hc" id="homePubN"></span></summary><div class="hl" id="homePubL">`
       + homeItem('homeGo(pubOpen)', '공개 양식 목록 전체 보기', '기관·분류·이름으로 찾기') + '<div class="hg" id="homePubMsg">펼치면 공개된 양식을 불러옵니다.</div></div></details>';
   if (gov.length) h += homeDD(7, '🗂', '행정 신고서류', gov.length + '종',
@@ -2436,20 +2435,23 @@ function homeRender() {
   homeAuth();
   if (FB.enabled()) setTimeout(() => homePubLoad(), 0);          // 4번 공개 양식 수를 미리 불러와 표시
 }
-/* ---------- 3번 장기요양기관 신청서류에 담아 둔 공개 양식 (이 기기에 저장) ---------- */
-function ltcPubGet() { try { const v = JSON.parse(localStorage.getItem('ltcPubList') || '[]'); return Array.isArray(v) ? v.filter(x => x && x.id) : []; } catch (e) { return []; } }
-function ltcPubSet(L) { try { localStorage.setItem('ltcPubList', JSON.stringify(L)); } catch (e) {} }
+/* ---------- 3번 장기요양기관 신청서류 = 공개 양식 중 분류가 '장기요양기관 신청서류'인 것 (서버 저장, 누구나 보임) ---------- */
+function ltcPubGet() { return (typeof pubCache !== 'undefined' && pubCache ? pubCache : []).filter(f => f.category === LTC_CAT).sort((a, b) => String(a.title).localeCompare(String(b.title), 'ko')); }
 function ltcPubHas(id) { return ltcPubGet().some(x => x.id === id); }
-function ltcPubToggle(id) {
-  const L = ltcPubGet(), i = L.findIndex(x => x.id === id);
-  if (i >= 0) L.splice(i, 1); else { const f = (pubCache || []).find(x => x.id === id); if (!f) return; L.push({ id, title: f.title || '공개 양식', org: f.org || '' }); }
-  ltcPubSet(L); homeRender(); pubRenderList(); toast(i >= 0 ? '3번 장기요양기관 신청서류에서 뺐습니다.' : '3번 장기요양기관 신청서류에 담았습니다.');
+function ltcPubHtml() { return ltcPubGet().map(f => `<button type="button" onclick="homeGo(()=>pubUse('${esc(f.id)}'))"><b>${esc(f.title)}</b><span>${esc([f.org, '공개 양식'].filter(Boolean).join(' · '))}</span></button>`).join(''); }
+function ltcPubRefresh() { const b = document.getElementById('homeLtcL'); if (b) b.innerHTML = ltcPubHtml(); const c = document.getElementById('homeLtcN'); if (c) c.textContent = (1 + ltcPubGet().length) + '종'; }
+async function ltcPubSetCat(ids, cat) {
+  if (!FB.admin) { toast('관리자만 바꿀 수 있습니다.'); return false; }
+  try { for (const id of ids) await FB.setCategory(id, cat); pubCache = null; await pubRenderList(); ltcPubRefresh(); return true; }
+  catch (e) { console.error(e); alert('분류를 바꾸지 못했습니다. 서버 보안 규칙에서 관리자의 forms 문서 수정(category)이 허용돼야 합니다.\n' + (e.message || e)); return false; }
 }
-function ltcPubToday() {
+async function ltcPubToggle(id) { const on = ltcPubHas(id); if (await ltcPubSetCat([id], on ? '복지·돌봄' : LTC_CAT)) toast(on ? '장기요양기관 신청서류에서 뺐습니다.' : '장기요양기관 신청서류에 담았습니다. 누구에게나 보입니다.'); }
+async function ltcPubToday() {
   const d0 = new Date(); d0.setHours(0, 0, 0, 0); const t0 = d0.getTime() / 1000;
-  const L = ltcPubGet(); let n = 0;
-  (pubCache || []).forEach(f => { const sec = f.createdAt && f.createdAt.seconds; if (sec >= t0 && !L.some(x => x.id === f.id)) { L.push({ id: f.id, title: f.title || '공개 양식', org: f.org || '' }); n++; } });
-  ltcPubSet(L); homeRender(); pubRenderList(); toast(n ? `오늘 올라온 양식 ${n}개를 3번에 담았습니다.` : '오늘 새로 올라온 양식이 없거나 이미 담겨 있습니다.');
+  const ids = (pubCache || []).filter(f => f.category !== LTC_CAT && f.createdAt && f.createdAt.seconds >= t0).map(f => f.id);
+  if (!ids.length) { toast('오늘 새로 올라온 양식이 없거나 이미 담겨 있습니다.'); return; }
+  if (!confirm(`오늘 올라온 공개 양식 ${ids.length}개를 ‘장기요양기관 신청서류’ 분류로 옮길까요?`)) return;
+  if (await ltcPubSetCat(ids, LTC_CAT)) toast(`${ids.length}개를 장기요양기관 신청서류로 옮겼습니다.`);
 }
 let homePubBusy = false;
 async function homePubLoad(force) {
@@ -2464,7 +2466,7 @@ async function homePubLoad(force) {
     if (msg) msg.textContent = L.length ? '' : '아직 공개된 양식이 없습니다.'; if (msg && L.length) msg.remove();
     box.insertAdjacentHTML('beforeend', L.map(f => `<button type="button" class="hpub" onclick="homeGo(()=>pubUse('${esc(f.id)}'))"><b>${esc(f.title)}</b><span>${esc([f.org, f.category].filter(Boolean).join(' · '))}</span></button>`).join(''));
     const n = document.getElementById('homePubN'); if (n) n.textContent = L.length + '종';
-    box.dataset.done = '1';
+    box.dataset.done = '1'; ltcPubRefresh();
   } catch (e) { if (msg) msg.textContent = '공개 양식을 불러오지 못했습니다. 인터넷 연결을 확인하세요.'; }
   homePubBusy = false;
 }
@@ -5555,7 +5557,8 @@ function handleJsonText(text, fname) {
    · 관리자는 Firestore의 admins 컬렉션에 문서 ID = 관리자 이메일 로 등록
    ===================================================================== */
 const FB_VER = 'https://www.gstatic.com/firebasejs/10.12.2/';
-const PUB_CATS = ['복지·돌봄', '계약', '행정·민원', '교육', '기타'];
+const LTC_CAT = '장기요양기관 신청서류';
+const PUB_CATS = ['복지·돌봄', LTC_CAT, '계약', '행정·민원', '교육', '기타'];
 /* App Check: 이 앱에서 온 요청만 서버가 받도록 (reCAPTCHA Enterprise, 화면에 문제 안 뜸) */
 const APPCHECK_SITE_KEY = '6LeISuAtAAAAADDLmTtJZQG4PTO_g3Nil6z41uls';
 const realFB = {
@@ -5651,6 +5654,7 @@ const realFB = {
     try { const d = await getDoc(doc(this.db, 'profiles', this.user.uid)); return d.exists() ? d.data() : null; } catch (e) { return null; }
   },
   saveProfile(p) { const { doc, setDoc } = this.m; return setDoc(doc(this.db, 'profiles', this.user.uid), p); },
+  setCategory(id, category) { const { doc, updateDoc } = this.m; return updateDoc(doc(this.db, 'forms', id), { category }); },
   setOrgVerified(id, v) { const { doc, updateDoc } = this.m; return updateDoc(doc(this.db, 'forms', id), { orgVerified: !!v }); },
   setStatus(id, status, reason) {
     const { doc, updateDoc, serverTimestamp } = this.m;
@@ -5828,11 +5832,11 @@ async function pubRenderList() {
       <input class="pq" id="pubQ" placeholder="기관명·신청서 이름으로 찾기" value="${esc(pubQuery)}">
       <select class="pq porgsel" id="pubOrgSel"><option value="">🏛 모든 기관 (${pubCache.length})</option>${orgOpts.map(o => `<option${o === pubOrg ? ' selected' : ''} value="${esc(o)}">${esc(o)} (${orgs[o]})</option>`).join('')}</select>
       <div class="pchips">${['', ...PUB_CATS].map(c => `<button class="chip${c === pubCat ? ' on' : ''}" data-c="${c}">${c || '전체'}</button>`).join('')}</div>
-      <button class="b" onclick="pubCache=null; pubRender()">↻ 새로고침</button><button class="b" title="오늘 날짜에 올라온 공개 양식을 모두 ‘3. 장기요양기관 신청서류’에 담습니다" onclick="ltcPubToday()">🏥 오늘 올라온 양식 3번에 담기</button>
+      <button class="b" onclick="pubCache=null; pubRender()">↻ 새로고침</button>${FB.admin ? `<button class="b" title="오늘 날짜에 올라온 공개 양식을 모두 ‘3. 장기요양기관 신청서류’로 옮깁니다" onclick="ltcPubToday()">🏥 오늘 올라온 양식 3번으로</button>` : ''}
     </div>
     ${pubOrg && pubOrg !== '기관 미등록' ? `<div class="orghead">🏛 <b>${esc(pubOrg)}</b> 신청서 ${list.length}건 <button class="b" onclick="copyLink(linkFor('org='+encodeURIComponent(pubOrg)), '이 기관 신청서 모음')">🔗 이 기관 신청서 모음 링크</button></div>` : ''}
     <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 바로 입력할 수 있고, 입력한 내용은 내 기기에만 남습니다.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button><button class="b" title="홈 화면 ‘3. 장기요양기관 신청서류’ 목록에 담거나 뺍니다 (이 기기에 저장)" onclick="ltcPubToggle('${f.id}')">${ltcPubHas(f.id) ? '✔ 3번에서 빼기' : '🏥 3번에 담기'}</button><button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button>${FB.admin ? `<button class="b" title="홈 화면 ‘3. 장기요양기관 신청서류’ 목록에 담거나 뺍니다 (서버에 저장, 모두에게 보임)" onclick="ltcPubToggle('${f.id}')">${ltcPubHas(f.id) ? '✔ 3번에서 빼기' : '🏥 3번에 담기'}</button>` : ''}<button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
       : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
   const qi = document.getElementById('pubQ');
   qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
