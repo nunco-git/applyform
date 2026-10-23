@@ -1386,7 +1386,7 @@ function render2() {
   sc.innerHTML = `<svg class="bg" viewBox="0 0 595 841" xmlns="http://www.w3.org/2000/svg">${g.join('')}</svg>` + ins.join('');
   /* 좌우 여백 40pt로 폭을 맞추고, 줄이 많아지면 한 장에 들어가도록 자동 축소 */
   const h = B - T0 + (printRowsS == null ? 22 : 0);
-  const s = Math.min(515 / (X[11] - X[0]), 732 / h);           // 아래쪽 발급번호·QR 자리를 남김
+  const s = Math.min(515 / (X[11] - X[0]), 714 / h);           // 아래쪽 발급번호·QR 자리를 남김
   const tx = (595 - (X[11] - X[0]) * s) / 2 - X[0] * s, ty = 58 - T0 * s;
   sc.style.transform = `translate(${tx}pt, ${ty}pt) scale(${s})`;
   /* 값 채우기 */
@@ -5530,13 +5530,13 @@ async function grpBuildPdf(L, F, src, g, idx, stamp) {
       text(pi, s, x, f.y + f.h / 2 + size * 0.36, size);
     });
     if (stamp) {                                              // 발급번호·진위 확인 (인쇄본의 아래쪽 띠와 같은 내용)
-      const fs = 6.2, l2 = H - 5 - 1.6, l1 = l2 - fs * 1.35, qr = stamp.qr, right = 595 - 30 - (qr ? 48 + 6 : 0);
+      const fs = 6.2, l2 = H - 5 - 1.6, l1 = l2 - fs * 1.35, qr = stamp.qr, right = 595 - 30 - (qr ? 64 + 6 : 0);
       page.drawLine({ start: { x: 34, y: H - (l1 - fs - 1.2) }, end: { x: right, y: H - (l1 - fs - 1.2) }, thickness: 0.4, color: rgb(0.6, 0.6, 0.6) });
       text(pi, `발급번호 ${stamp.id} · 발급 ${stamp.when} · ${pi + 1}/${idx.length}쪽`, 34, l1, fs, [0.27, 0.27, 0.27]);
       text(pi, `진위 확인: ${qr ? 'QR을 찍거나 ' : ''}‘계약과 신청서류 도구모음’ 6번 메뉴의 진위 확인에 이 PDF를 올리면 발급 후 내용이 바뀌었는지 확인됩니다.`, 34, l2, fs, [0.27, 0.27, 0.27]);
-      if (qr) { const N = qr.length, q = 2, T = N + 2 * q, sc = 48 / T, x0 = 595 - 30 - 48, y0 = 5;                  // PDF 좌표는 아래가 0
-        page.drawRectangle({ x: x0, y: y0, width: 48, height: 48, color: rgb(1, 1, 1) });
-        qr.forEach((row, r) => row.forEach((b, c) => { if (b) page.drawRectangle({ x: x0 + (c + q) * sc, y: y0 + 48 - (r + q + 1) * sc, width: sc + 0.02, height: sc + 0.02, color: rgb(0, 0, 0) }); })); }
+      if (qr) { const N = qr.length, q = 4, T = N + 2 * q, sc = 64 / T, x0 = 595 - 30 - 64, y0 = 5;                  // PDF 좌표는 아래가 0
+        page.drawRectangle({ x: x0, y: y0, width: 64, height: 64, color: rgb(1, 1, 1) });
+        qr.forEach((row, r) => row.forEach((b, c) => { if (b) page.drawRectangle({ x: x0 + (c + q) * sc, y: y0 + 64 - (r + q + 1) * sc, width: sc + 0.02, height: sc + 0.02, color: rgb(0, 0, 0) }); })); }
     }
   });
   for (const s of sigs) {                                     // 서명·도장: 칸 안에 비율 유지
@@ -6255,7 +6255,7 @@ const QR = (() => {
   }
   function svg(text, size) {
     const A = encode(text); if (!A) return '';
-    const N = A.length, q = 2, T = N + 2 * q; let d = '';
+    const N = A.length, q = 4, T = N + 2 * q; let d = '';
     A.forEach((row, r) => row.forEach((b, c) => { if (b) d += `M${c + q} ${r + q}h1v1h-1z`; }));
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${T} ${T}" width="${size}" height="${size}" shape-rendering="crispEdges"><rect width="${T}" height="${T}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
   }
@@ -6319,7 +6319,7 @@ function stampOn(pv, quiet) {
     pv.pages.forEach(p => { p.querySelectorAll('[data-k]').forEach(e => add(e.dataset.k, e.classList.contains('chk') ? (e.classList.contains('on') ? '√' : '') : e.value)); p.querySelectorAll('.sig[data-sig]').forEach(e => add(e.dataset.sig, e.classList.contains('signed') ? 'Y' : '')); }); }
   const id = newDocId(), when = tsWhen(new Date());
   const url = /^https?:$/.test(location.protocol) ? location.origin + location.pathname + '?verify=' + id : '';
-  const qr = url ? QR.svg(url, '48pt') : '';
+  const qr = url ? QR.svg(url, '64pt') : '';
   pv.pages.forEach((p, i) => p.insertAdjacentHTML('beforeend',
     `<div class="vstamp"><div class="vt">발급번호 <b>${id}</b> · 발급 ${when} · ${i + 1}/${pv.pages.length}쪽<br>진위 확인: ${url ? 'QR을 찍거나 ' : ''}‘계약과 신청서류 도구모음’ 6번 메뉴의 진위 확인에 이 PDF를 올리면 발급 후 내용이 바뀌었는지 확인됩니다.</div>${qr}</div>`));
   return registerStamp(id, pv, quiet);
