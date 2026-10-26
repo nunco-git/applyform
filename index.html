@@ -860,6 +860,7 @@
       <button class="cat" onclick="showModule('ltc')"><span class="n">4</span>장기요양기관 신청서류</button>
       <div class="subs">
         <button class="sub" data-p="p1" onclick="showModule('ltc'); showPage('p1')">입소·이용신청서 (재가서비스 이용내역서 포함)</button>
+        <div id="sideLtcL"></div>
       </div>
       <div class="panel">
         <div id="ltcCodePanel"></div>
@@ -2491,6 +2492,9 @@ function ltcPubHtml() { return hlItems(hlNorm(homeLists).find(x => x.id === 'ltc
 function ltcPubRefresh() {
   const L = hlNorm(homeLists), ltc = L.find(x => x.id === 'ltc');
   const b = document.getElementById('homeLtcL'); if (b) b.innerHTML = hlItems(ltc);
+  const sl = document.getElementById('sideLtcL');                    // 왼쪽 메뉴 4번에도 같은 목록의 공개 양식을 모두 보여 줌
+  if (sl) sl.innerHTML = (ltc.ids || []).map(id => (pubCache || []).find(f => f.id === id)).filter(Boolean)
+    .map(f => `<button class="sub" type="button" title="${esc(f.title)}" onclick="pubUse('${esc(f.id)}')">${esc(f.title)}</button>`).join('');
   const c = document.getElementById('homeLtcN'); if (c) c.textContent = (1 + hlCount(ltc)) + '종';
   const t = document.getElementById('homeLtcT'); if (t) t.textContent = ltc.name;
   const x = document.getElementById('homeExtra');
