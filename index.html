@@ -173,6 +173,8 @@
   .chk.bracketL { font-size:14pt; }
   .chk.f2c { font-size:10pt; font-family:"Batang","바탕",serif; }
   .chk.on::after { content:"√"; }
+  body.fillonly aside.side { display:none !important; } body.fillonly .zbar { right:16px; } body.fillonly #topbar [onclick*="mmOpen"] { display:none !important; }
+  .fobanner { background:#eef6ff; border-bottom:1px solid #c6dcf5; color:#245; font-size:13px; line-height:1.55; padding:8px 16px; } @media print { .fobanner { display:none !important; } }
   .chk.on[data-mark]::after { content:attr(data-mark); }
 
   .rowbtns { position:absolute; display:flex; gap:4pt; }
@@ -3106,8 +3108,9 @@ function renderMyPanel() {
   if (CF && !CF.preset) { clearTimeout(codeAutoReg.tm); const f = CF; codeAutoReg.tm = setTimeout(() => codeAutoReg(f), cfMode === 'edit' ? 4000 : 300); }
   if (cfMode === 'edit') renderProps();
 }
+let FILLONLY = false;
 function setMode(m) {
-  if (!CF || (CF.preset && m === 'edit')) return;
+  if (!CF || (CF.preset && m === 'edit') || (FILLONLY && m === 'edit')) return;
   closePickPop();
   if (cfMode === 'edit' && m === 'fill') setTimeout(() => toast('고친 양식은 자동 저장되었습니다. 백업하려면 ‘📤 양식 파일로 내보내기’'), 50);
   if (CALC_PICK) calcPickStop();
@@ -4001,6 +4004,8 @@ function codeInfoHTML(ctx) {
              : FB.enabled() ? '로그인하면 다른 컴퓨터에서도 열림 (지금은 이 컴퓨터만)' : '이 컴퓨터에서 이 번호로 다시 열기';
   return `<div class="pt">서식번호</div>
     <div class="codeline"><b>${codeFmt(code)}</b><button class="mini" onclick="codeCopy('${codeFmt(code)}', '서식번호')">복사</button><button class="mini" onclick="codeCopy(codeLink('${code}'), '바로 여는 링크')">링크</button></div>
+    ${f.preset || f === 'ltc' ? '' : `<button class="sb" onclick="codeCopy(codeLink('${code}') + '&fill=1', '작성 전용 링크')" data-tip="받은 사람이 이 사이트의 메뉴 없이 작성 화면만 보고 바로 쓰는 링크입니다.\n작성 후 인쇄/PDF로 저장합니다. 내용은 서버로 보내지지 않습니다.">📨 작성 전용 링크 복사</button>
+    <div class="hint">${f.codeReg ? '링크를 받은 사람은 로그인 없이 바로 작성' : FB.enabled() ? '⚠ 먼저 로그인해야 서버에 등록되어 다른 사람이 열 수 있음' : '서버 설정이 없어 다른 사람은 열 수 없음'}</div>`}
     <div class="hint">${note}</div>`;
 }
 
@@ -6100,7 +6105,7 @@ async function pubAlias(id) {
   const b = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('kit-pub-link|' + id)));
   let a = ''; for (let i = 0; i < 10; i++) a += PUB_ALIAS_ABC[b[i] % PUB_ALIAS_ABC.length]; return a;
 }
-async function copyPubLink(id) { if (!SAFE_ID.test(id)) return; copyLink(linkFor('p=' + await pubAlias(id)), '양식'); }
+async function copyPubLink(id, fill) { if (!SAFE_ID.test(id)) return; copyLink(linkFor('p=' + await pubAlias(id) + (fill ? '&fill=1' : '')), fill ? '작성 전용 링크' : '양식 링크'); }
 async function pubFindAlias(a) {
   if (!/^[a-z2-9]{10}$/.test(a || '')) return null;
   for (const f of pubCache || []) if (await pubAlias(f.id) === a) return f.id;
@@ -6204,7 +6209,7 @@ async function pubRenderList() {
     </div>
     ${pubOrg && pubOrg !== '기관 미등록' ? `<div class="orghead">🏛 <b>${esc(pubOrg)}</b> 신청서 ${list.length}건 <button class="b" onclick="copyLink(linkFor('org='+encodeURIComponent(pubOrg)), '이 기관 신청서 모음')">🔗 이 기관 신청서 모음 링크</button></div>` : ''}
     <div class="pnote">공개 양식은 누구나 무료로 쓸 수 있습니다. <b>이 양식 쓰기</b>를 누르면 바로 입력할 수 있고, 입력한 내용은 내 기기에만 남습니다.</div>
-    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button>${FB.admin ? `<button class="b" title="홈 화면의 목록(예: 장기요양기관 신청서류)으로 이동합니다" onclick="hlPick('${f.id}')">📂 목록 이동</button>` : ''}<button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
+    <div class="pgrid">${list.length ? list.map(f => cardHTML(f, `<button class="b primary" onclick="pubUse('${f.id}')">이 양식 쓰기</button><button class="b" onclick="pubPreview('${f.id}')">미리보기</button>${FB.admin ? `<button class="b" title="홈 화면의 목록(예: 장기요양기관 신청서류)으로 이동합니다" onclick="hlPick('${f.id}')">📂 목록 이동</button>` : ''}<button class="b" title="이 양식을 바로 여는 주소 (서버 문서 번호 대신 가상 주소)" onclick="copyPubLink('${f.id}')">🔗 링크</button><button class="b" title="받는 사람이 사이트 메뉴 없이 작성 화면만 보고 바로 쓰는 주소 (작성 후 인쇄/PDF 저장)" onclick="copyPubLink('${f.id}', 1)">📨 작성용 링크</button>${pubEditBtns(f)}<button class="b ghost" onclick="pubReport('${f.id}')">신고</button>`)).join('')
       : `<div class="pubmsg">${pubCache.length ? '찾는 양식이 없습니다.' : '아직 공개된 양식이 없습니다.<br><small>‘직접 만든 양식’에서 양식을 만들고 ‘공개 목록에 올리기’로 신청해 주세요.</small>'}</div>`}</div>`);
   const qi = document.getElementById('pubQ');
   qi.addEventListener('input', () => { pubQuery = qi.value; clearTimeout(qi._t); qi._t = setTimeout(() => { pubRenderList(); const n = document.getElementById('pubQ'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); });
@@ -7036,6 +7041,10 @@ fetch('minwage.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).t
   pubAuthChanged();
   comLtcAuto(); render2(); saveDraft(); ltcCodeRender();
   const qp = new URLSearchParams(location.search);
+  if (qp.get('fill') && (qp.get('code') || qp.get('p') || qp.get('form'))) {         // 작성 전용 링크: 사이트 메뉴 없이 양식 작성 화면만
+    FILLONLY = true; document.body.classList.add('fillonly');
+    const mn = document.querySelector('.main'); if (mn) mn.insertAdjacentHTML('afterbegin', '<div class="fobanner">✏️ <b>작성 전용 화면</b> – 칸을 눌러 입력하고, 다 쓰면 위쪽 <b>인쇄/PDF</b>로 저장하세요. 입력한 내용은 이 기기에만 저장되며 서버로 보내지지 않습니다. (중간에 멈추려면 <b>저장</b>으로 파일을 받아 두었다가 나중에 <b>열기</b>)</div>');
+  }
   if (FB.enabled() && /^\d{6}-[0-9A-Z]{8}$/.test(qp.get('verify') || '')) verifyById(qp.get('verify'));
   else if (qp.get('code')) setTimeout(() => codeOpen(qp.get('code')), 300);   // 서식 번호 바로가기 링크: ?code=ABCD12345678
   else
