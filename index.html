@@ -173,6 +173,7 @@
   .chk.bracketL { font-size:14pt; }
   .chk.f2c { font-size:10pt; font-family:"Batang","바탕",serif; }
   .chk.on::after { content:"√"; }
+  .chk.on[data-mark]::after { content:attr(data-mark); }
 
   .rowbtns { position:absolute; display:flex; gap:4pt; }
   .rowbtns button { font-family:"Malgun Gothic",sans-serif; font-size:6.5pt; padding:2pt 6pt; border-radius:3pt; border:0.6pt solid #2f5bd3;
@@ -933,6 +934,16 @@
     <div class="hint2">끼워 넣은 줄은 ‘↶ 되돌리기’로 취소할 수 있습니다(이 화면을 닫기 전까지).</div>
   </div>
   <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('rowDlg').close()">취소</button><button class="b primary" onclick="rowApply()">줄 끼워 넣기</button></div>
+</dialog>
+<dialog id="szDlg" class="pdlg">
+  <div class="dh"><h3>📐 표 크기 줄이기</h3><button class="b" onclick="document.getElementById('szDlg').close()">닫기</button></div>
+  <div class="db">
+    <div class="hint2" id="szInfo"></div>
+    <label class="fl">표 세로 크기 <b id="szPctT">85</b>%</label><input type="range" id="szPct" min="50" max="100" value="85" style="width:100%" oninput="szInfoUpd()">
+    <label class="okline"><input type="checkbox" id="szUni" onchange="szInfoUpd()"> 가로도 같은 비율로 줄이기 (글자 모양 유지, 표가 좁아져 가운데로 모임)</label>
+    <div class="hint2" id="szFree"></div>
+  </div>
+  <div class="df"><span class="sp"></span><button class="b" onclick="document.getElementById('szDlg').close()">취소</button><button class="b primary" onclick="szApply()">줄이기</button></div>
 </dialog>
 <dialog id="tblDlg" class="pdlg">
   <div class="dh"><h3>▦ 표 그리기</h3><button class="b" onclick="document.getElementById('tblDlg').close()">닫기</button></div>
@@ -3079,6 +3090,8 @@ function renderMyPanel() {
       <div class="hint">${rowMode ? '복사할 <b>표의 한 줄</b>을 가로로 가로질러 드래그하세요. 그 줄이 아래에 끼워지고 아래 내용은 밀려 내려갑니다.' : '표의 줄이 모자랄 때: 한 줄을 골라 아래에 더 끼워 넣습니다(칸도 함께 복사).'}</div>
       <button class="sb${tblMode ? ' primary' : ''}" onclick="toggleTblMode()">${tblMode ? '▦ 표 그리기 켜짐 – 영역을 드래그하세요 (끄기)' : '▦ 표 그리기 (빈 곳에 칸·줄 만들기)'}</button>
       <div class="hint">${tblMode ? '표를 놓을 <b>빈 곳을 드래그</b>하면 가로 칸 수·세로 줄 수를 묻습니다.' : '원하는 곳에 선과 입력칸이 있는 표를 새로 그립니다. 1줄×2칸으로 그려 기존 칸을 둘로 나눌 수도 있습니다.'}</div>
+      <button class="sb${szMode ? ' primary' : ''}" onclick="toggleSzMode()">${szMode ? '📐 표 줄이기 켜짐 – 표를 위아래로 드래그 (끄기)' : '📐 표 크기 줄이기 (아래 공간 만들기)'}</button>
+      <div class="hint">${szMode ? '줄일 <b>표 전체를 위에서 아래까지</b> 드래그하세요.' : '표를 세로로 줄여 아래에 빈 공간을 만들고, 그 뒤 ➕ 줄 추가로 줄을 늘립니다.'}</div>
       ${(ROW_UNDO[CF.id] || []).length ? '<button class="sb" onclick="rowUndo()">↶ 줄 추가·표 그리기 되돌리기</button>' : ''}
       <div class="pt">선택한 칸</div>
       <div id="myProps"></div>
@@ -3098,7 +3111,7 @@ function setMode(m) {
   closePickPop();
   if (cfMode === 'edit' && m === 'fill') setTimeout(() => toast('고친 양식은 자동 저장되었습니다. 백업하려면 ‘📤 양식 파일로 내보내기’'), 50);
   if (CALC_PICK) calcPickStop();
-  cfMode = m; rowMode = false; tblMode = false; syncModeClass(); cfSel = null; cfSelSet = new Set(); closeDatePop(); hideTip(); saveForms(); renderMyPanel(); renderFields();
+  cfMode = m; rowMode = false; tblMode = false; szMode = false; syncModeClass(); cfSel = null; cfSelSet = new Set(); closeDatePop(); hideTip(); saveForms(); renderMyPanel(); renderFields();
 }
 
 /* ---------- 양식 열기 ---------- */
@@ -3111,7 +3124,7 @@ async function openForm(id, mode = 'fill', doc = null) {
   }
   flushFV();
   if (f.preset) mode = 'fill';
-  CF = f; cfMode = mode; rowMode = false; tblMode = false; syncModeClass(); cfSel = null; cfSelSet = new Set(); cfDoc = null;
+  CF = f; cfMode = mode; rowMode = false; tblMode = false; szMode = false; syncModeClass(); cfSel = null; cfSelSet = new Set(); cfDoc = null;
   try { FV = noSig(draftGet(draftKey(f.id)) || {}); } catch (e) { FV = {}; }
   try { draftPut(draftKey(f.id), FV, sensOf(f.id)); } catch (e) {}
   if (mergeDates(f.fields)) saveForms();                                     // 예전 양식: 년·월·일 칸을 날짜 칸 하나로
@@ -3680,7 +3693,7 @@ function tplVal(f) {
 function tplHTML(f) {
   const v = tplVal(f), st = `${fStyle(f)};font-size:${f.fs || 11}pt;text-align:${f.align || 'center'}`;
   if (f.tple) return `<input class="in cf" data-tplf="${esc(f.id)}" data-tple="1" value="${esc(v)}" placeholder="9:00" title="시각을 적으세요 (예: 9:00, 18:30) – 한국어 칸과 함께 바뀝니다" style="${st}">`;
-  return f.type === 'check' ? `<span class="chk cf${v ? ' on' : ''}" data-tplf="${esc(f.id)}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt;cursor:default" title="한국어 칸을 따라 자동 표시"></span>`
+  return f.type === 'check' ? `<span class="chk cf${v ? ' on' : ''}"${f.mark ? ` data-mark="${esc(f.mark)}"` : ''} data-tplf="${esc(f.id)}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt;cursor:default" title="한국어 칸을 따라 자동 표시"></span>`
                             : `<input class="in cf" data-tplf="${esc(f.id)}" readonly tabindex="-1" value="${esc(v)}" title="한국어 칸을 따라 자동 표시" style="${st}">`;
 }
 document.addEventListener('change', e => {                    // 외국어 줄 시각 칸(9:00) → 한국어 시·분 칸에 나눠 넣기
@@ -3708,7 +3721,7 @@ function fillHTML(f) {
     case 'cover':  return f.coverIf ? `<div class="cover" data-coverif="${esc(f.coverIf)}" style="${fStyle(f)}${String(FV[f.coverIf] ?? '').trim() ? '' : ';visibility:hidden'}"></div>` : `<div class="cover" style="${fStyle(f)}"></div>`;
     case 'addrtitle': return `<input class="in cf${mk}" data-f="${k}" data-at="1" value="${esc(v)}" placeholder="🏛 ${esc(ADDR_LEVELS[f.level || 'sgg'])} · 주소를 넣으면 자동" title="주소 칸을 따라 자동으로 바뀝니다. 직접 고치면 그대로 둡니다(지우면 다시 자동)" style="${st}">`;
     case 'multi':  return `<textarea class="in cf ml${mk}" data-f="${k}" spellcheck="false" style="${st}">${esc(v)}</textarea>`;
-    case 'check':  return `<span class="chk cf${mk}${v ? ' on' : ''}" data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
+    case 'check':  return `<span class="chk cf${mk}${v ? ' on' : ''}"${f.mark ? ` data-mark="${esc(f.mark)}"` : ''} data-f="${k}" style="${fStyle(f)};font-size:${clamp(f.h * 0.8, 7, 16)}pt"></span>`;
     case 'sign':   return `<div class="sig cf${mk}${SIG_OK(v) ? ' signed' : ''}" data-f="${k}" data-title="${esc(f.name || '서명')}" style="${fStyle(f)}"><img alt=""${SIG_OK(v) ? ` src="${v}"` : ''}></div>`;
     case 'rrn': case 'birth': case 'bizno': case 'tel': case 'money': case 'time': case 'calc':
       return `<input class="in cf${mk}${f.type === 'calc' ? ' calc' : ''}" data-f="${k}" data-fid="${esc(f.id)}" data-fmtk="${f.type}" value="${esc(fmtShow(f, v))}"${f.type === 'time' ? ' readonly placeholder="🕒 시간 선택" title="눌러서 시·분을 고릅니다"' : ''}${f.type === 'calc' ? ' readonly tabindex="-1" title="다른 칸을 따라 자동 계산됩니다"' : ''}${/^(rrn|bizno|tel)$/.test(f.type) ? ' inputmode="numeric"' : ''} autocomplete="off" style="${st}">`;
@@ -4709,6 +4722,7 @@ function renderProps() {
         <div><label class="pl">종류 한꺼번에</label><select class="ssel" id="mType"><option value="">그대로</option>${TYPE_MENU.map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
         <div><label class="pl">글자 크기</label><input class="sin" id="mFs" type="number" min="6" max="30" step="0.5" placeholder="그대로"></div>
       </div>
+      ${sel.some(f => f.type === 'check') ? `<label class="pl">체크 모양 한꺼번에 <small>고른 칸 중 체크 칸만</small></label><div class="prow">${MARK_LIST.map(m => `<button class="sb" style="padding:4px 0" onclick="checkMarkSel('${m}')">${m}</button>`).join('')}</div>` : ''}
       <label class="pl">💬 입력 도움말 한꺼번에 <small>인쇄 안 됨</small></label>
       <div class="prow"><input class="sin" id="mTip" placeholder="고른 칸 모두에 같은 도움말"><button class="sb" style="flex:none;width:auto" onclick="tipSel()">넣기</button></div>
       <div class="prow"><button class="sb" onclick="unlinkSel()">✂ 묶음 풀기</button><button class="sb" onclick="delField()">🗑 모두 삭제</button></div>
@@ -4744,6 +4758,8 @@ function renderProps() {
       <div><label class="pl">기본값</label><input class="sin" id="pDef" value="${esc(f.def ?? '')}" placeholder="예) 5"></div>
       <div><label class="pl">눌러서 고를 값 <small>쉼표로</small></label><input class="sin" id="pPick" value="${esc(Array.isArray(f.pick) ? f.pick.join(', ') : ({ hour: '0~23시', min: '00~55분', week: '월~일', days: '1~7' }[f.pick] || f.pick || ''))}" placeholder="예) 월, 화, 수"></div>
     </div><label class="sopt"><input type="checkbox" id="pMoney"${f.money ? ' checked' : ''}> 금액 (세 자리마다 쉼표)</label>` : ''}
+    ${f.type === 'check' ? `<label class="pl">체크 모양 <small>눌렀을 때 찍히는 표시 (기본 √)</small></label><input class="sin" id="pMark" list="markList" maxlength="2" value="${esc(f.mark || '√')}"><datalist id="markList">${MARK_LIST.map(m => `<option value="${m}">`).join('')}</datalist>
+      <div class="prow">${MARK_LIST.map(m => `<button class="sb" style="padding:4px 0" onclick="document.getElementById('pMark').value='${m}';document.getElementById('pMark').dispatchEvent(new Event('input'))">${m}</button>`).join('')}</div>` : ''}
     ${f.type === 'box' ? `<label class="pl">선 굵기(pt)</label><input class="sin" id="pBw" type="number" min="0.2" max="4" step="0.1" value="${f.bw || 0.7}">
       <div class="hint keep">▦ 테두리 칸: 입력 없이 표의 칸 모양(선)만 그립니다. 인쇄·PDF에 선으로 나옵니다. 크기를 줄여 얇게 만들면 가로·세로 선이 됩니다.</div>` : ''}
     ${f.type === 'fixed' ? `<label class="pl">서식에 고정할 글자 <small>여러 줄 가능</small></label><textarea class="sin" id="pFixed" rows="3" placeholder="예) 해당 없음">${esc(f.text ?? '')}</textarea>
@@ -4795,6 +4811,7 @@ function renderProps() {
     if (g('pMfmt')) f.mfmt = g('pMfmt').value;
     if (g('pTfmt')) f.tfmt = g('pTfmt').value;
     if (g('pFixed')) f.text = g('pFixed').value;
+    if (g('pMark')) { const m = g('pMark').value.trim().slice(0, 2); if (m && m !== '√') f.mark = m; else delete f.mark; }
     if (g('pBw')) f.bw = clamp(+g('pBw').value || 0.7, 0.2, 4);
     if (g('pBfmt')) f.bfmt = g('pBfmt').value;
     if (g('pBirthOf')) { if (g('pBirthOf').value) f.birthOf = g('pBirthOf').value; else delete f.birthOf; }
@@ -4805,7 +4822,7 @@ function renderProps() {
     g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
     CF.fields.forEach(refreshBox); markSel(); saveFormsSoon();
   };
-  ['pName', 'pType', 'pFs', 'pAlign', 'pFixed', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit', 'pBw'].forEach(id => g(id) && g(id).addEventListener(/^(pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
+  ['pName', 'pType', 'pFs', 'pAlign', 'pFixed', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit', 'pBw', 'pMark'].forEach(id => g(id) && g(id).addEventListener(/^(pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
   if (g('pArgs')) g('pArgs').addEventListener('change', e => {     // 고른 순서 기억 (A, B, C …)
     const c = e.target; if (c.type !== 'checkbox') return;
     if (c.checked) c.dataset.ord = String(Date.now()); upd(); calcArgsLabel();
@@ -4892,15 +4909,16 @@ function maskSel(on) {
      아래쪽 빈 공간이 충분하면 쪽 크기는 그대로, 모자라면 그만큼 쪽이 길어짐.
    · ▦ 표 그리기: 빈 곳에 ‘테두리 칸’(선)과 입력칸으로 새 표를 만듦.
    ===================================================================== */
+const MARK_LIST = ['√','✓','✔','O','○','●','X','✗','■'];
 const ROW_UNDO = {};                 // 양식 id → 이전 상태 목록 (메모리에만 보관, 저장 안 함)
-let rowMode = false, tblMode = false, ROWSEL = null, TBL = null;
-function syncModeClass() { document.body.classList.toggle('rowmode', rowMode && cfMode === 'edit'); document.body.classList.toggle('tblmode', tblMode && cfMode === 'edit'); }
+let rowMode = false, tblMode = false, szMode = false, ROWSEL = null, TBL = null, SZ = null;
+function syncModeClass() { document.body.classList.toggle('rowmode', rowMode && cfMode === 'edit'); document.body.classList.toggle('tblmode', tblMode && cfMode === 'edit'); document.body.classList.toggle('rowmode', (rowMode || szMode) && cfMode === 'edit'); }
 function toggleRowMode() {
-  rowMode = !rowMode; if (rowMode) { tblMode = false; coverMode = false; } syncModeClass(); renderMyPanel();
+  rowMode = !rowMode; if (rowMode) { tblMode = false; szMode = false; coverMode = false; } syncModeClass(); renderMyPanel();
   toast(rowMode ? '줄 추가를 켰습니다. 복사할 표의 한 줄을 가로로 가로질러 드래그하세요.' : '줄 추가를 껐습니다.');
 }
 function toggleTblMode() {
-  tblMode = !tblMode; if (tblMode) { rowMode = false; coverMode = false; } syncModeClass(); renderMyPanel();
+  tblMode = !tblMode; if (tblMode) { rowMode = false; szMode = false; coverMode = false; } syncModeClass(); renderMyPanel();
   toast(tblMode ? '표 그리기를 켰습니다. 표를 놓을 빈 곳을 드래그하세요.' : '표 그리기를 껐습니다.');
 }
 function rowSnapshot() {
@@ -5042,9 +5060,62 @@ function tblApply() {
   tblMode = false; syncModeClass(); saveForms(); renderMyPanel(); renderFields();
   toast(`${cols}칸 × ${rows}줄 표를 그렸습니다. 칸을 눌러 이름·크기를 고치세요. 틀리면 ‘↶ 되돌리기’.`);
 }
+
+function toggleSzMode() {
+  szMode = !szMode; if (szMode) { rowMode = false; tblMode = false; coverMode = false; } syncModeClass(); renderMyPanel();
+  toast(szMode ? '표 줄이기를 켰습니다. 줄일 표를 위에서 아래까지 드래그하세요.' : '표 줄이기를 껐습니다.');
+}
+function szAsk(pg, x0, y0, x1, y1) {
+  const L = rowLines(pg, CF.pages[pg].w * 0.15, CF.pages[pg].w * 0.85, Math.max(0, y0 - 8), Math.min(CF.pages[pg].h, y1 + 8));
+  const t = L.filter(l => Math.abs((l.top + l.bot) / 2 - y0) <= 8)[0], b = L.filter(l => Math.abs((l.top + l.bot) / 2 - y1) <= 8).slice(-1)[0];
+  const a = t ? t.top : y0, bb = b ? b.bot : y1;
+  if (bb - a < 20) { toast('표 높이를 알 수 없습니다. 더 길게 드래그해 보세요.'); return; }
+  SZ = { pg, a: r1(a), b: r1(bb) };
+  document.getElementById('szInfo').innerHTML = `${CF.pages.length > 1 ? (pg + 1) + '쪽 · ' : ''}줄일 구간 ${SZ.a}~${SZ.b}pt (높이 ${r1(SZ.b - SZ.a)}pt)${t && b ? ' · 표의 위·아래 선에 맞췄습니다.' : ''}`;
+  document.getElementById('szPct').value = 85; szInfoUpd(); document.getElementById('szDlg').showModal();
+}
+function szInfoUpd() {
+  const s0 = +document.getElementById('szPct').value / 100; document.getElementById('szPctT').textContent = Math.round(s0 * 100);
+  document.getElementById('szFree').innerHTML = `📏 아래 내용이 <b>${r1((SZ.b - SZ.a) * (1 - s0))}pt</b> 위로 올라가 그만큼 빈 공간이 생깁니다. 글자도 같이 작아집니다.`;
+}
+async function pdfScaleBand(bytes, pi, a, b, sy, uni) {
+  const L = await pdfLibLoad(), { PDFDocument, pushGraphicsState, popGraphicsState, moveTo, lineTo, closePath, clip, endPath } = L;
+  const src = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false }), out = await PDFDocument.create(), pages = src.getPages();
+  for (let i = 0; i < pages.length; i++) {
+    const s0 = pages[i];
+    if (i !== pi) { const [cp] = await out.copyPages(src, [i]); out.addPage(cp); continue; }
+    if (s0.getRotation().angle % 360) throw new Error('돌려진 쪽은 지원하지 않습니다.');
+    const cb = s0.getCropBox(), W = cb.width, H = cb.height, emb = await out.embedPage(s0, { left: cb.x, bottom: cb.y, right: cb.x + W, top: cb.y + H }), page = out.addPage([W, H]);
+    const piece = (sa, sb, d, k) => {                       // 원본 sa~sb를 위쪽 d 자리에 세로 k배로
+      const yb = H - (d + (sb - sa) * k), yt = H - d, sx = k !== 1 && uni ? k : 1;
+      page.pushOperators(pushGraphicsState(), moveTo(0, yb), lineTo(W, yb), lineTo(W, yt), lineTo(0, yt), closePath(), clip(), endPath());
+      page.drawPage(emb, { x: (W - W * sx) / 2, y: H - d + sa * k - H * k, width: W * sx, height: H * k });
+      page.pushOperators(popGraphicsState());
+    };
+    piece(0, a, 0, 1); piece(a, b, a, sy); piece(b, H, a + (b - a) * sy, 1);
+  }
+  return out.save();
+}
+async function szApply() {
+  const R = SZ; if (!CF || !R) return;
+  const sy = clamp(+document.getElementById('szPct').value / 100, 0.5, 1), uni = document.getElementById('szUni').checked, W = CF.pages[R.pg].w, up = (R.b - R.a) * (1 - sy);
+  document.getElementById('szDlg').close(); toast('표를 줄이는 중…');
+  try {
+    const out = await pdfScaleBand(await formBytes(CF), R.pg, R.a, R.b, sy, uni);
+    rowSnapshot(); CF.pdf = bytesToB64(out); CF.rowEdited = true;
+    CF.fields.filter(f => f.page === R.pg).forEach(f => {
+      const m = f.y + f.h / 2;
+      if (m >= R.b) f.y = r1(f.y - up);
+      else if (m >= R.a) { f.y = r1(R.a + (f.y - R.a) * sy); f.h = r1(Math.max(4, f.h * sy)); f.fs = r1(Math.max(6, (f.fs || 11) * sy));
+        if (uni) { f.x = r1(W / 2 + (f.x - W / 2) * sy); f.w = r1(f.w * sy); } }
+    });
+    saveForms(); szMode = false; await openForm(CF.id, 'edit');
+    toast(`표를 ${Math.round(sy * 100)}%로 줄였습니다. 아래에 ${r1(up)}pt 빈 공간이 생겼습니다. 이제 ➕ 줄 추가로 줄을 늘리세요.`);
+  } catch (e) { alert('표를 줄이지 못했습니다.\n' + (e.message || e)); }
+}
 let coverMode = false;
 function toggleCover() {
-  coverMode = !coverMode; if (coverMode) { rowMode = false; tblMode = false; } renderMyPanel();
+  coverMode = !coverMode; if (coverMode) { rowMode = false; tblMode = false; szMode = false; } renderMyPanel();
   toast(coverMode ? '가림 상자 그리기를 켰습니다. 숨길 부분을 드래그하세요. 입력 없이 원래 내용만 가립니다.' : '가림 상자 그리기를 껐습니다. 이제 드래그하면 입력 칸이 생깁니다.');
 }
 function undateSel() {
@@ -5057,6 +5128,7 @@ function unlinkSel() {
   sel.forEach(f => { const base = (f.name || TYPES[f.type]).replace(/\s+\d+$/, ''); delete f.part; f.name = uniqueName(base, ids); ids.add(f.id); });
   saveFormsSoon(); renderFields(); toast('묶음을 풀었습니다. 이제 각 칸에 따로 입력합니다.');
 }
+function checkMarkSel(m) { selFields().filter(f => f.type === 'check').forEach(f => { if (m === '√') delete f.mark; else f.mark = m; }); saveFormsSoon(); toast('체크 모양을 바꿨습니다. 작성 화면에서 확인하세요.'); }
 function clearSel() { cfSelSet = new Set(); cfSel = null; markSel(); renderProps(); }
 function toggleMulti() { multiMode = !multiMode; renderMyPanel(); toast(multiMode ? '여러 칸 선택을 켰습니다. 칸을 누를 때마다 선택에 더하거나 뺍니다.' : '여러 칸 선택을 껐습니다.'); }
 function delField() {
@@ -5121,9 +5193,9 @@ function setupEditor() {
     const pageEl = ev.target.closest('.cpage'); if (!pageEl) return;
     ev.preventDefault(); document.activeElement && document.activeElement.blur && document.activeElement.blur();
     const [px, py] = ptOf(pageEl, ev), box = ev.target.closest('.ef'), plus = ev.shiftKey || ev.ctrlKey || ev.metaKey || multiMode;
-    if (rowMode || tblMode) {                                  // 줄 추가 / 표 그리기: 어디서 눌러도 영역 드래그
-      cfSelSet = new Set(); cfSel = null; fdrag = { mode: rowMode ? 'row' : 'tbl', pageEl, sx: px, sy: py, ex: px, ey: py };
-      pageEl.querySelector('.flayer').insertAdjacentHTML('beforeend', `<div class="marq${rowMode ? ' band' : ''}"></div>`);
+    if (rowMode || tblMode || szMode) {                                  // 줄 추가 / 표 그리기: 어디서 눌러도 영역 드래그
+      cfSelSet = new Set(); cfSel = null; fdrag = { mode: rowMode ? 'row' : szMode ? 'sz' : 'tbl', pageEl, sx: px, sy: py, ex: px, ey: py };
+      pageEl.querySelector('.flayer').insertAdjacentHTML('beforeend', `<div class="marq${rowMode || szMode ? ' band' : ''}"></div>`);
       pageEl.setPointerCapture(ev.pointerId); markSel(); renderProps(); return;
     }
     if (CALC_PICK) {
@@ -5153,10 +5225,10 @@ function setupEditor() {
       if (Math.hypot(dx, dy) < 1.5 && !fdrag.moved) return; fdrag.moved = true;
       fdrag.orig.forEach(o => { const P = CF.pages[o.g.page]; o.g.x = r1(clamp(o.x + dx, 0, P.w - o.g.w)); o.g.y = r1(clamp(o.y + dy, 0, P.h - o.g.h)); refreshBox(o.g); });
     } else if (fdrag.mode === 'resize') { f.w = r1(clamp(fdrag.ow + dx, 6, p.w - f.x)); f.h = r1(clamp(fdrag.oh + dy, 6, p.h - f.y)); refreshBox(f); }
-    else if (fdrag.mode === 'row' || fdrag.mode === 'tbl') {
+    else if (fdrag.mode === 'row' || fdrag.mode === 'tbl' || fdrag.mode === 'sz') {
       fdrag.ex = clamp(px, 0, p.w); fdrag.ey = clamp(py, 0, p.h);
       const mq = fdrag.pageEl.querySelector('.marq'); if (mq) {
-        const x0 = fdrag.mode === 'row' ? 0 : Math.min(fdrag.ex, fdrag.sx), x1 = fdrag.mode === 'row' ? p.w : Math.max(fdrag.ex, fdrag.sx), y0 = Math.min(fdrag.ey, fdrag.sy), y1 = Math.max(fdrag.ey, fdrag.sy);
+        const x0 = fdrag.mode !== 'tbl' ? 0 : Math.min(fdrag.ex, fdrag.sx), x1 = fdrag.mode !== 'tbl' ? p.w : Math.max(fdrag.ex, fdrag.sx), y0 = Math.min(fdrag.ey, fdrag.sy), y1 = Math.max(fdrag.ey, fdrag.sy);
         mq.style.cssText = `left:${x0}pt;top:${y0}pt;width:${x1 - x0}pt;height:${y1 - y0}pt`; }
     }
     else if (fdrag.mode === 'marquee') {
@@ -5178,10 +5250,11 @@ function setupEditor() {
   const end = () => {
     if (!fdrag) return;
     const d = fdrag; fdrag = null;
-    if (d.mode === 'row' || d.mode === 'tbl') {
+    if (d.mode === 'row' || d.mode === 'tbl' || d.mode === 'sz') {
       const mq = d.pageEl.querySelector('.marq'); if (mq) mq.remove();
       const pg = +d.pageEl.dataset.pg, x0 = Math.min(d.sx, d.ex), x1 = Math.max(d.sx, d.ex), y0 = Math.min(d.sy, d.ey), y1 = Math.max(d.sy, d.ey);
-      if (d.mode === 'row') { if (y1 - y0 < 4) { toast('줄 위를 가로로 가로질러 위아래로 조금 끌어 주세요.'); return; } rowAsk(pg, x0, y0, x1, y1); }
+      if (d.mode === 'sz') { if (y1 - y0 < 20) { toast('줄일 표의 위에서 아래까지 세로로 길게 드래그하세요.'); return; } szAsk(pg, x0, y0, x1, y1); }
+      else if (d.mode === 'row') { if (y1 - y0 < 4) { toast('줄 위를 가로로 가로질러 위아래로 조금 끌어 주세요.'); return; } rowAsk(pg, x0, y0, x1, y1); }
       else { if (x1 - x0 < 20 || y1 - y0 < 10) { toast('표를 놓을 영역을 더 크게 드래그하세요.'); return; } tblAsk(pg, x0, y0, x1, y1); }
       return;
     }
