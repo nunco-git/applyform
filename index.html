@@ -3950,10 +3950,13 @@ function codeNew() {
   return s;
 }
 const codeLink = c => location.origin + location.pathname + '?code=' + c;
-function codeCopy(txt, what) {
-  const done = () => toast(`${what}를 복사했습니다.`);
-  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, () => prompt('아래를 복사하세요.', txt)); else prompt('아래를 복사하세요.', txt);
+function copyText(txt, done) {   // 클립보드 API → 실패 시 임시 입력칸+execCommand → 그래도 안 되면 안내창(확인을 누르면 다시 복사 시도)
+  const legacy = () => { try { const t = document.createElement('textarea'); t.value = txt; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(t); t.select(); t.setSelectionRange(0, t.value.length); const ok = document.execCommand('copy'); t.remove(); return ok; } catch (e) { return false; } };
+  const ask = () => { const r = prompt('자동 복사가 막혀 있습니다. 확인을 누르면 복사를 다시 시도합니다.\n(안 되면 아래 주소를 Ctrl+C로 복사하세요.)', txt); if (r === null) return; legacy(); done(); };
+  if (legacy()) { done(); return; }
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, ask); else ask();
 }
+function codeCopy(txt, what) { copyText(txt, () => toast(`${what}를 복사했습니다.`)); }
 const LTC_EXTRA = { iCode: '기관기호', iAddr: '기관 주소', iTel: '기관 전화번호', chief: '제출처(단체장)', y: '신청일 (년)', m: '신청일 (월)', d: '신청일 (일)',
   rType1: '신청구분: 신규', rType2: '신청구분: 갱신', rType3: '신청구분: 변경', rType4: '신청구분: 해지', mType1: '의료급여 (제3조제1항제1호)', mType2: '의료급여 (그 외)' };
 const ltcLabel0 = k => { const m = k.match(/^w(\d+)_(buy|rent)$/); return m ? `복지용구${m[1]} ${m[2] === 'buy' ? '구입' : '대여'}` : null; };
@@ -6134,8 +6137,7 @@ async function pubFindAlias(a) {
   return null;
 }
 function copyLink(url, what) {
-  const done = () => toast(`${what} 링크를 복사했습니다. 홈페이지·안내문에 붙여 넣으세요.`);
-  if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => prompt('아래 링크를 복사하세요.', url)); else prompt('아래 링크를 복사하세요.', url);
+  copyText(url, () => toast(`${what} 링크를 복사했습니다. 홈페이지·안내문에 붙여 넣으세요.`));
 }
 const tsText = t => { const d = t && (t.toDate ? t.toDate() : (t.seconds ? new Date(t.seconds * 1000) : new Date(t))); return d && !isNaN(d) ? `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}` : ''; };
 const STATUS_TXT = { pending: ['승인 대기', 'st-wait'], approved: ['공개 중', 'st-ok'], rejected: ['반려', 'st-no'], hidden: ['숨김', 'st-no'] };
