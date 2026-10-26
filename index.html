@@ -4792,6 +4792,7 @@ function renderProps() {
           : `<label class="pl">단위 <small>뒤에 붙일 글자</small></label><input class="sin" id="pUnit" value="${esc(f.unit ?? (f.op === 'pct' ? '%' : ''))}" placeholder="예) %, 원, 명">`}</div>
       </div>
       <div class="hint keep">🧮 작성할 때 고른 칸의 숫자로 자동 계산됩니다 (직접 입력 안 됨).</div>` : ''}
+    ${/^(text|multi|select|birth|tel|bizno)$/.test(f.type) ? `<label class="sopt"><input type="checkbox" id="pFname"${f.fname ? ' checked' : ''}> PDF 파일 이름에 붙이기 <small>(예: 양식이름_홍길동)</small></label>` : ''}
     ${f.type === 'cover' ? '' : `<label class="pl">💬 입력 도움말 <small>작성할 때 칸 위에 풍선으로 뜸 · 인쇄 안 됨</small></label>
     <textarea class="sin" id="pTip" rows="2" placeholder="예) 주민등록상 주소를 적으세요">${esc(f.tip || '')}</textarea>`}
     ${f.type === 'cover' ? '<div class="hint">▭ 가림 상자: 입력 없이 이 자리의 원래 내용을 흰색으로 가립니다(인쇄·PDF에도 적용).</div>'
@@ -4816,6 +4817,7 @@ function renderProps() {
     if (g('pMfmt')) f.mfmt = g('pMfmt').value;
     if (g('pTfmt')) f.tfmt = g('pTfmt').value;
     if (g('pFixed')) f.text = g('pFixed').value;
+    if (g('pFname')) { if (g('pFname').checked) f.fname = true; else delete f.fname; }
     if (g('pMark')) { const m = g('pMark').value.trim().slice(0, 2); if (m && m !== '√') f.mark = m; else delete f.mark; }
     if (g('pBw')) f.bw = clamp(+g('pBw').value || 0.7, 0.2, 4);
     if (g('pBfmt')) f.bfmt = g('pBfmt').value;
@@ -4827,7 +4829,7 @@ function renderProps() {
     g('pOptWrap').style.display = f.type === 'select' ? '' : 'none';
     CF.fields.forEach(refreshBox); markSel(); saveFormsSoon();
   };
-  ['pName', 'pType', 'pFs', 'pAlign', 'pFixed', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit', 'pBw', 'pMark'].forEach(id => g(id) && g(id).addEventListener(/^(pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
+  ['pName', 'pType', 'pFs', 'pAlign', 'pFixed', 'pOpts', 'pFmt', 'pPeriod', 'pMask', 'pTip', 'pLevel', 'pSrc', 'pDef', 'pPick', 'pMoney', 'pMfmt', 'pTfmt', 'pBfmt', 'pBirthOf', 'pOp', 'pK', 'pDec', 'pCfmt', 'pUnit', 'pBw', 'pMark', 'pFname'].forEach(id => g(id) && g(id).addEventListener(/^(pFname|pMask|pMfmt|pTfmt|pBfmt|pBirthOf|pOp|pDec|pCfmt)$/.test(id) ? 'change' : 'input', upd));
   if (g('pArgs')) g('pArgs').addEventListener('change', e => {     // 고른 순서 기억 (A, B, C …)
     const c = e.target; if (c.type !== 'checkbox') return;
     if (c.checked) c.dataset.ord = String(Date.now()); upd(); calcArgsLabel();
@@ -5622,8 +5624,24 @@ function printForm() {
   const p = CF.pages[0]; let st = document.getElementById('pgSize');
   if (!st) { st = document.createElement('style'); st.id = 'pgSize'; document.head.appendChild(st); }
   st.textContent = `@media print { @page { size:${p.w}pt ${p.h}pt; margin:0; } }`;
-  document.body.dataset.print = 'current'; window.print();
+  document.body.dataset.print = 'current';
+  if (PRINT_TITLE0 == null) PRINT_TITLE0 = document.title;
+  document.title = pdfFileTitle();                              // 크롬은 ‘PDF로 저장’의 기본 파일 이름을 문서 제목으로 씀
+  window.print();
 }
+let PRINT_TITLE0 = null;
+const NAME_EXACT = /^(성\s*명|이름|신청인|신청자|작성자|근로자 성명|대상자 성명)( \d+)?$/, NAME_ANY = /(성명|이름|신청인|신청자|작성자)/, NAME_NOT = /(사업주|대표|기관장|사용자|고용주|담당|친권|후견|보호자|확인)/;
+function writerName() {                                          // 파일 이름에 붙일 작성자 이름: ‘파일 이름에 붙이기’로 정한 칸 → 없으면 성명·이름 칸
+  const val = f => String(shownVal(f) ?? '').trim(), fs = CF.fields.filter(f => f.type !== 'sign' && f.type !== 'cover' && f.type !== 'box');
+  const picked = fs.filter(f => f.fname && val(f)).map(val); if (picked.length) return [...new Set(picked)].join('_');
+  const a = fs.find(f => NAME_EXACT.test((f.name || '').trim()) && val(f)) || fs.find(f => NAME_ANY.test(f.name || '') && !NAME_NOT.test(f.name || '') && val(f));
+  return a ? val(a) : '';
+}
+function pdfFileTitle() {
+  const w = writerName(), t = (CF.title || '양식') + (w ? '_' + w : '');
+  return t.replace(/[\\/:*?"<>|\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100) || '양식';
+}
+window.addEventListener('afterprint', () => { if (PRINT_TITLE0 != null) { document.title = PRINT_TITLE0; PRINT_TITLE0 = null; } });
 window.addEventListener('afterprint', () => { const st = document.getElementById('pgSize'); if (st) st.textContent = ''; });
 
 /* ---------- 묶음 서식 (범죄경력 등 조회 신청서류) ----------
