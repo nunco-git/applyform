@@ -654,6 +654,67 @@
   #fselBar button { font:inherit; font-size:13px; padding:7px 10px; border-radius:7px; border:1px solid #5d6f97; background:#2c3b5e; color:#fff; cursor:pointer; white-space:nowrap; }
   #fselBar button.pri { background:#2f5bd3; border-color:#2f5bd3; } #fselBar button:hover { filter:brightness(1.15); }
   @media print { #fselBar { display:none !important; } #myPages .fsel { outline:none !important; background:none !important; } }
+
+  /* ===== 우측 메뉴 단순화 + 연한 하늘색 테마 ===== */
+  aside.side { background:#e4f2fc; color:#1f3350; box-shadow:-2px 0 10px rgba(40,90,140,.12); border-left:1px solid #c5def0; }
+  aside.side .sidehead, aside.side .sidefoot { border-color:#c5def0; }
+  aside.side .apptitle { color:#1f3a66; }
+  aside.side .codecap, aside.side .sidefoot, aside.side .hint, aside.side .comnow, aside.side .slegend { color:#4f6788; }
+  aside.side .codebox input { background:#fff; color:#223; border-color:#b8d3ea; }
+  aside.side .codebox input::placeholder { color:#7f95b0; }
+  aside.side .codebox button { background:#2f5bd3; color:#fff; }
+  aside.side .cat { color:#1f3350; }
+  aside.side .cat:hover { background:rgba(47,91,211,.09); }
+  aside.side .cat .n { background:rgba(47,91,211,.13); }
+  aside.side .cat em { color:#4f6788; background:rgba(47,91,211,.1); }
+  aside.side .grp.on .cat { background:#2f5bd3; color:#fff; }
+  aside.side .grp.on .cat .n { background:rgba(255,255,255,.25); }
+  aside.side .sub { color:#3b5273; border-left-color:rgba(47,91,211,.25); }
+  aside.side .sub:hover { color:#1b3fa8; }
+  aside.side .sub.on { color:#1b3fa8; border-left-color:#2f5bd3; }
+  aside.side .pt { color:#5b7090; }
+  aside.side .sb { background:#fff; color:#1f3350; border-color:#bcd6ec; }
+  aside.side .sb:hover { background:#f1f8fe; }
+  aside.side .sb.primary { background:#2f5bd3; border-color:#2f5bd3; color:#fff; }
+  aside.side .sb.primary:hover { background:#3a66e0; }
+  aside.side .hint b, aside.side .slegend .dim b { color:#1f3350; }
+  aside.side .slegend .dim { color:#6a80a0; }
+  aside.side .seg { background:rgba(47,91,211,.1); }
+  aside.side .seg button { color:#3b5273; }
+  aside.side .seg button.on { background:#fff; color:#1f3a66; box-shadow:0 1px 3px rgba(40,90,140,.18); }
+  aside.side .pl, aside.side .sopt, aside.side .codeline { color:#1f3350; }
+  aside.side .pl small { color:#7188a8; }
+  aside.side .mini { background:rgba(47,91,211,.08); border-color:rgba(47,91,211,.3); color:#1f3350; }
+  aside.side .tbtn.me { background:rgba(47,91,211,.08); color:#1f3350; }
+  .side .hint.autosv, aside.side .hint.autosv { color:#1d7a46; }
+  aside.side .tbtn.me:hover { background:rgba(47,91,211,.15); }
+
+  /* 단순 표시: 지금 쓰는 분류의 메뉴만 보이고, 분류 목록·번호입력·머리말은 숨김 (분류 이동은 ‘처음 화면’에서) */
+  body.sidemin aside.side { width:260px; }
+  body.sidemin aside.side .sidehead, body.sidemin aside.side .sidefoot { display:none; }
+  body.sidemin aside.side .grp:not(.on) { display:none; }
+  body.sidemin aside.side .grp.on > .cat { display:none; }
+  body.sidemin aside.side .grp.on .panel, body.sidemin aside.side .grp.on .subs { display:block !important; }
+  body.sidemin aside.side .tools { padding-top:14px; }
+  /* 칸 편집(양식 만드는) 화면: 편집 도구만 */
+  body.cfedit #myTop { display:none; }
+  /* 입력(작성) 화면: 우측 메뉴 숨김. ‘☰ 더보기’를 누르면 잠깐 펼침 */
+  body.sidefill aside.side { display:none !important; }
+  body.sidefill.sideopen aside.side { display:flex !important; position:fixed; right:0; top:0; height:100vh; width:min(320px,92vw); z-index:60; box-shadow:-6px 0 28px rgba(20,40,80,.28); }
+  body.sidefill aside.side .sidehead, body.sidefill aside.side .sidefoot { display:none; }
+  body.sidefill aside.side .grp:not(.on) { display:none; }
+  body.sidefill aside.side .grp.on > .cat { display:none; }
+  body.sidefill aside.side .grp.on .panel, body.sidefill aside.side .grp.on .subs { display:block !important; }
+  body.sidefill aside.side .grp.on .subs:not(.mylist):not(.lablist) { display:none !important; }
+  .sideclose { display:none; margin:12px 12px 0; padding:8px 12px; border:1px solid #bcd6ec; border-radius:8px; background:#fff; color:#1f3a66; font:inherit; font-weight:600; cursor:pointer; text-align:center; }
+  body.sidefill.sideopen .sideclose { display:block; }
+  @media print { .sideclose { display:none !important; } }
+  /* 상단 우측: 처음 화면 버튼 */
+  .topbar .thome { margin-left:auto; display:flex; gap:6px; flex:none; }
+  .topbar .tz + .thome { margin-left:8px; }
+  .topbar .tb.homebtn { background:#e4f2fc; border-color:#9cc6e6; color:#1f3a66; font-weight:600; }
+  .topbar .tb.homebtn:hover { background:#d3eafa; }
+  body.fillonly .thome { display:none !important; }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" media="print" onload="this.media='all'">
 </head>
@@ -828,6 +889,7 @@
 </div>
 
 <aside class="side">
+  <button class="sideclose" onclick="sideToggle(false)">✕ 메뉴 닫기</button>
   <div class="sidehead">
     <div class="apptitle homelink" onclick="homeShow()" data-tip="처음 화면(서류 목록·로그인)으로 갑니다">계약과 신청서류<br>도구모음</div>
     <div id="topAuth" class="topauth"></div>
@@ -838,12 +900,14 @@
     <div class="grp" data-mod="my">
       <button class="cat" onclick="myOpen()"><span class="n">1</span>PDF 올려서 내 양식 만들기</button>
       <div class="panel">
+        <div id="myTop">
         <button class="sb primary" onclick="pickPdf()">＋ 새 양식 만들기 (PDF)</button>
         <button class="sb" onclick="pickJson()">📂 양식·작성 파일 열기</button>
         <button class="sb" onclick="openFormCleanup()" data-tip="필요 없어진 양식을 여러 개 골라 이 컴퓨터에서 한꺼번에 지웁니다.">🗂 내 양식 정리 (여러 개 삭제)</button>
         <button class="sb" onclick="openBulkPublish()" data-tip="내 양식 여러 개를 골라 한 번에 공개 목록에 신청합니다.\n관리자 계정이면 신청과 동시에 승인되어 바로 공개됩니다.">📤 여러 양식 한꺼번에 공개</button>
         <div class="pt">내 양식</div>
         <div class="subs mylist" id="myList"></div>
+        </div>
         <div id="myPanel"></div>
       </div>
     </div>
@@ -2358,7 +2422,21 @@ function zPage() {                                            // 지금 보이�
   const pt = s => { const m = String(s || '').match(/^([\d.]+)pt$/); return m ? +m[1] : 0; };
   return { w: (pt(pg.style.width) || 595) * 4 / 3, h: (pt(pg.style.height) || 841) * 4 / 3 };
 }
+function sideSync() {                                           // 화면 종류에 맞춰 우측 메뉴를 단순하게
+  const b = document.body, mod = (document.querySelector('.module.on') || { dataset: {} }).dataset.mod || '';
+  const hasPage = !!document.querySelector('.module.on .page');
+  const cfOn = !!(CF && hasPage && (CF.preset ? CF.preset === mod : mod === 'my'));
+  const fill = mod === 'ltc' || (cfOn && cfMode === 'fill');
+  const was = b.className;
+  b.classList.toggle('sidefill', fill); b.classList.toggle('sidemin', !fill);
+  b.classList.toggle('cfedit', cfOn && cfMode === 'edit' && !CF.preset);
+  if (!fill) b.classList.remove('sideopen');
+  if (was !== b.className) requestAnimationFrame(() => fitPages());
+  return fill;
+}
+function sideToggle(on) { document.body.classList.toggle('sideopen', on === undefined ? !document.body.classList.contains('sideopen') : !!on); }
 function fitPages() {
+  sideSync();
   const m = document.querySelector('.main'), p = zPage(); if (!m) return;
   let z = ZM.z;
   if (p && ZM.mode === 'w') z = (Math.min(m.clientWidth, innerWidth) - 28) / p.w;
@@ -2393,6 +2471,7 @@ function topFw() {                                            // 외국인근로
 }
 function zbarRender() {
   const main = document.querySelector('.main'); if (!main) return;
+  const sideFill = sideSync();
   let b = document.getElementById('topbar');
   if (!b) { b = document.createElement('div'); b.id = 'topbar'; b.className = 'topbar'; main.prepend(b); }
   if (b.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;   // 고르는 중에는 다시 그리지 않음
@@ -2412,7 +2491,8 @@ function zbarRender() {
   const zoom = hasPage ? `<div class="tz"><button class="${ZM.mode === 'w' ? 'on' : ''}" onclick="zSet('w')" title="서식 너비를 화면 가로에 맞춤">↔ 가로 맞춤</button>`
     + `<button class="${ZM.mode === 'h' ? 'on' : ''}" onclick="zSet('h')" title="서식 한 쪽이 화면 세로에 다 보이게">↕ 세로 맞춤</button>`
     + `<button onclick="zStep(-1)" title="축소 (Ctrl + 마우스 휠)">－</button><span class="zv" onclick="zSet('z', 1)" title="눌러서 100%">${Math.round(ZM.z * 100)}%</span><button onclick="zStep(1)" title="확대 (Ctrl + 마우스 휠)">＋</button></div>` : '';
-  b.innerHTML = `<div class="tbt${cfOn && CF.fw ? ' fwt' : ''}" title="${esc(title)}">${esc(title)}</div>${badge ? `<span class="mbadge">${badge}</span>` : ''}${acts}${extra}${zoom}`;
+  b.innerHTML = `<div class="tbt${cfOn && CF.fw ? ' fwt' : ''}" title="${esc(title)}">${esc(title)}</div>${badge ? `<span class="mbadge">${badge}</span>` : ''}${acts}${extra}${zoom}`
+    + `<div class="thome">${sideFill && cfOn && !CF.preset && !FILLONLY ? `<button class="tb" onclick="setMode('edit')" title="칸 위치·종류를 고치는 편집 화면으로">🛠 칸 편집</button>` : ''}${sideFill ? `<button class="tb" onclick="sideToggle()" title="공통정보·서식 번호·양식 공유 등 부가 기능">☰ 더보기</button>` : ''}<button class="tb homebtn" onclick="homeShow()" title="처음 화면(서류 목록·로그인)으로 갑니다">🏠 처음 화면</button></div>`;
 }
 window.addEventListener('resize', fitPages);
 document.addEventListener('wheel', e => {                      // Ctrl + 휠: 서식만 확대·축소
